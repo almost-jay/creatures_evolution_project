@@ -1,0 +1,34 @@
+{
+  "name": "electron-typescript-example",
+  "version": "1.0.0",
+  "description": "template for an electron application using typescript",
+  "main": "./dist/buildApp.js",
+  "scripts": {
+    "prestart": "tsc",
+    "start": "electron-forge start",
+    "package": "electron-forge package",
+    "make": "electron-forge make"
+  },
+  "keywords": [
+    "electron",
+    "typescript"
+  ],
+  "author": "James Frowen",
+  "license": "ISC",
+  "dependencies": {
+    "@types/node": "^8.0.17",
+    "electron-squirrel-startup": "^1.0.0",
+    "typescript": "^2.4.2"
+  },
+  "devDependencies": {
+    "@electron-forge/cli": "^6.0.0-beta.70",
+    "@electron-forge/maker-deb": "^6.0.0-beta.70",
+    "@electron-forge/maker-rpm": "^6.0.0-beta.70",
+    "@electron-forge/maker-squirrel": "^6.0.0-beta.70",
+    "@electron-forge/maker-zip": "^6.0.0-beta.70",
+    "@typescript-eslint/eslint-plugin": "^5.41.0",
+    "@typescript-eslint/parser": "^5.41.0",
+    "electron": "^1.8.8",
+    "eslint": "^8.26.0"
+  }
+}

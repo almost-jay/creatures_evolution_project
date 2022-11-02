@@ -1,0 +1,13 @@
+{
+	"version": "0.2.0",
+	"configurations": [
+		{
+			"name": "Compile & Launch",
+			"type": "node-terminal",
+			"request": "launch",
+			"preLaunchTask": "tsc compile",
+			"command": "npm start",
+			"cwd": "${workspaceFolder}"
+		},
+	]
+}
