@@ -24,7 +24,7 @@ export class creatureJoint {
 		ctx.stroke();
 	}
 
-	move(maxDist : number, target : vector2) {
+	move(maxDist : number, target : vector2, isDead : boolean) {
 		let delta = new vector2(this.pos.x - this.childJoint.pos.x,this.pos.y - this.childJoint.pos.y);
 		let childDist = this.pos.distance(this.childJoint.pos);
 		if (childDist > maxDist) {

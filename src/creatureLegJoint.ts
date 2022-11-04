@@ -47,7 +47,7 @@ export class creatureLegJoint extends creatureJoint {
 		rightLegFin.y = (this.legLength * 2.2 * Math.sin(this.angle - (Math.PI * 0.74))) + this.pos.y;
 
 		if (this.leftLegPos.distance(leftLegFin) > this.legLength ** 1.4 || this.leftElbowPos.distance(this.rightElbowPos) < this.legLength) {
-			if (!this.rightLegUp || this.leftLegPos.distance(leftLegFin) > this.legLength ** 2) { this.leftLegUp = true; }
+			if (!this.rightLegUp || this.leftLegPos.distance(leftLegFin) > this.legLength ** 2.2) { this.leftLegUp = true; }
 		}
 		if (this.leftLegUp) {
 			this.leftLegPos = this.leftLegPos.add((leftLegFin.subtract(this.leftLegPos)).divide(4));
@@ -59,7 +59,7 @@ export class creatureLegJoint extends creatureJoint {
 		this.leftElbowPos = this.solveInverseKinematics(this.leftLegPos, 1);
 
 		if (this.rightLegPos.distance(rightLegFin) > this.legLength ** 1.4 || this.rightElbowPos.distance(this.leftElbowPos) < this.legLength) {
-			if (!this.leftLegUp || this.leftLegPos.distance(leftLegFin) > this.legLength ** 2) { this.rightLegUp = true; }
+			if (!this.leftLegUp || this.rightLegPos.distance(rightLegFin) > this.legLength ** 2.2) { this.rightLegUp = true; }
 		}
 		if (this.rightLegUp) {
 			this.rightLegPos = this.rightLegPos.add((rightLegFin.subtract(this.rightLegPos)).divide(4));
@@ -72,10 +72,35 @@ export class creatureLegJoint extends creatureJoint {
 
 	}
 
+	calcDeathPositions() {
+		this.angle = this.pos.getAvgAngleRad(this.angleParent.pos);
+
+		let leftLegFin = new vector2(0,0);
+		let rightLegFin = new vector2(0,0);
+
+		leftLegFin.x = (this.legLength * -2.2 * Math.cos(this.angle - (Math.PI * -0.74))) + this.pos.x;
+		leftLegFin.y = (this.legLength * -2.2 * Math.sin(this.angle - (Math.PI * -0.74))) + this.pos.y;
+		
+		rightLegFin.x = (this.legLength * -2.2 * Math.cos(this.angle - (Math.PI * 0.74))) + this.pos.x;
+		rightLegFin.y = (this.legLength * -2.2 * Math.sin(this.angle - (Math.PI * 0.74))) + this.pos.y;
+
+		this.leftLegPos = this.leftLegPos.add((leftLegFin.subtract(this.leftLegPos)).divide(4));
+		this.leftElbowPos = this.solveInverseKinematics(this.leftLegPos, 1);
+		
+		this.rightLegPos = this.rightLegPos.add((rightLegFin.subtract(this.rightLegPos)).divide(4));
+		this.rightElbowPos = this.solveInverseKinematics(this.rightLegPos,- 1);
+	}
+
+	move(maxDist : number, target : vector2, isDead : boolean) : void {
+		if (!isDead) {
+			this.calcLegPositions();
+		} else {
+			this.calcDeathPositions();
+		}
+		super.move(maxDist,target,isDead);
+	}
+
 	renderSegment(): void {
-
-		this.calcLegPositions();
-
 		ctx.lineCap = "round";
 		ctx.strokeStyle = this.colour;
 		ctx.lineWidth = this.width * 0.5;
@@ -103,19 +128,19 @@ export class creatureLegJoint extends creatureJoint {
 		ctx.fillStyle = this.angleParent.colour;
 		
 		ctx.beginPath();
-		ctx.arc(this.leftElbowPos.x,this.leftElbowPos.y,this.width * 0.4,0,2 * Math.PI);
+		ctx.arc(this.leftElbowPos.x,this.leftElbowPos.y,this.width * 0.2,0,2 * Math.PI);
 		ctx.fill();
 
 		ctx.beginPath();
-		ctx.arc(this.rightElbowPos.x,this.rightElbowPos.y,this.width * 0.4,0,2 * Math.PI);
+		ctx.arc(this.rightElbowPos.x,this.rightElbowPos.y,this.width * 0.2,0,2 * Math.PI);
 		ctx.fill();
 
 		ctx.beginPath();
-		ctx.arc(this.leftLegPos.x,this.leftLegPos.y,this.width * 0.4,0,2 * Math.PI);
+		ctx.arc(this.leftLegPos.x,this.leftLegPos.y,this.width * 0.3,0,2 * Math.PI);
 		ctx.fill();
 
 		ctx.beginPath();
-		ctx.arc(this.rightLegPos.x,this.rightLegPos.y,this.width * 0.4,0,2 * Math.PI);
+		ctx.arc(this.rightLegPos.x,this.rightLegPos.y,this.width * 0.3,0,2 * Math.PI);
 		ctx.fill();
 
 		super.renderSegment();

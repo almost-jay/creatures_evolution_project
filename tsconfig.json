@@ -6,12 +6,12 @@
         "alwaysStrict": true,
         "strictNullChecks": true,
         "sourceMap": true,
-        "outDir": "./dist",
+        "outDir": "./compiled",
         "jsx": "react"
     },
     "include": [
         "src/**/*.ts",
         "src/**/*.tsx"
-    ],
+, "src/index.ts"    ],
     "exclude": []
 }

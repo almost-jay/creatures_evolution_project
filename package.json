@@ -1,34 +1,42 @@
 {
-  "name": "electron-typescript-example",
+  "name": "creature_test",
+  "description": "just a test of electron",
   "version": "1.0.0",
-  "description": "template for an electron application using typescript",
-  "main": "./dist/buildApp.js",
-  "scripts": {
-    "prestart": "tsc",
-    "start": "electron-forge start",
-    "package": "electron-forge package",
-    "make": "electron-forge make"
+  "author": "jensen grundy",
+  "main": "./compiled/index.js",
+  "build": {
+    "appId": "com.creature.test",
+    "icon": "assets/icon.ico",
+    "mac": {
+      "target": "zip",
+      "category": "your.app.category.type"
+    },
+    "win": {
+      "target": "zip"
+    },
+    "linux": {
+      "target": "AppImage"
+    }
   },
-  "keywords": [
-    "electron",
-    "typescript"
-  ],
-  "author": "James Frowen",
-  "license": "ISC",
+  "scripts": {
+    "start": "electron .",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder",
+    "package-mac": "electron-packager . --overwrite --platform=darwin --arch=x64 --icon=assets/icon.icns --prune=true --out=release-builds",
+    "package-win": "electron-packager . creatures_typescript_electron --overwrite --asar=true --platform=win32 --arch=ia32 --icon=assets/icon.ico --prune=true --out=release-builds --version-string.CompanyName=CE --version-string.FileDescription=CE --version-string.ProductName=\"Electron Tutorial App\"",
+    "package-linux": "electron-packager . creatures_typescript_electron --overwrite --asar=true --platform=linux --arch=x64 --icon=assets/icon.png --prune=true --out=release-builds",
+	"installer-mac":"electron-installer-dmg ./release-builds/creature_test-darwin-x64/creature_test.app creature_test --out=release-builds --overwrite --icon=assets/icon.icns"
+  },
   "dependencies": {
-    "@types/node": "^8.0.17",
-    "electron-squirrel-startup": "^1.0.0",
-    "typescript": "^2.4.2"
+    "electron-squirrel-startup": "latest"
   },
   "devDependencies": {
-    "@electron-forge/cli": "^6.0.0-beta.70",
-    "@electron-forge/maker-deb": "^6.0.0-beta.70",
-    "@electron-forge/maker-rpm": "^6.0.0-beta.70",
-    "@electron-forge/maker-squirrel": "^6.0.0-beta.70",
-    "@electron-forge/maker-zip": "^6.0.0-beta.70",
-    "@typescript-eslint/eslint-plugin": "^5.41.0",
-    "@typescript-eslint/parser": "^5.41.0",
-    "electron": "^1.8.8",
-    "eslint": "^8.26.0"
-  }
+    "creature_test": "file:",
+    "electron": "latest",
+    "electron-builder": "latest",
+    "electron-packager": "^17.0.0",
+    "electron-squirrel-startup": "latest",
+    "eslint": "latest"
+  },
+  "postinstall": "electron-builder install-app-deps"
 }
