@@ -52,7 +52,6 @@ export class vector2 {
 	public getAvgPos(input : vector2) : vector2 {
 		return new vector2((input.x + this.x) / 2, (input.y + this.y) / 2);
 	}
-
 };
 
 export function hexToRgb(h : string) {

@@ -1,7 +1,10 @@
-import { app, webFrame } from "electron";
+import { webFrame } from "electron";
 import { creature } from "./creatureClass";
 import { vector2 } from "./globals";
+import { initState } from "./saveFile";
 import { splat } from "./splats";
+
+export var appId : number;
 
 export const canvas = document.getElementById("canvas") as HTMLCanvasElement;
 export const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
@@ -11,6 +14,11 @@ export var deadCreatures : Array<creature> = [];
 export var activeArea : Array<vector2> = [];
 export var isMouseDown : boolean;
 export var effects : Array<splat> = [];
+
+function setupApp() {
+	webFrame.setZoomFactor(1.6);
+	window.scrollTo(1000,1000);
+}
 
 function initNavigation() {
 	updateViewportInfo();
@@ -118,10 +126,10 @@ function renderCreatures() : void {
 	}
 }
 
-webFrame.setZoomFactor(1.6);
-window.scrollTo(1000,1000);
+setupApp();
 initNavigation();
 //fillBoard();
 newHead(new vector2(1200,1200));
 tick();
 updateViewportInfo();
+initState();

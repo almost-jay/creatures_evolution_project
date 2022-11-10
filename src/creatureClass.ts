@@ -104,7 +104,7 @@ export class creature {
 					segmentResult.push(new creatureJoint(this.pos.add(new vector2(i * maxDist,i * maxDist)),i,colour[i],bodyGuide[i][1]));
 					break;
 				case 3:
-					let newJoint = new creatureLegJoint(this.pos.add(new vector2(i * maxDist,i * maxDist)),i,colour[i],bodyGuide[i][1] * 1.3,bodyGuide[i][1] * 0.8,segmentResult[Math.max(i - Math.floor(weightDist / 3))]);
+					let newJoint = new creatureLegJoint(this.pos.add(new vector2(i * maxDist,i * maxDist)),i,colour[i],bodyGuide[i][1] * 1.3,bodyGuide[i][1] * 0.8);
 					segmentResult.push(newJoint);
 					this.legs.push(newJoint);
 					break;

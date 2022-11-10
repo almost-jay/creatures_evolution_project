@@ -8,7 +8,6 @@ export class creatureLegJoint extends creatureJoint {
 	colour : string;
 	width : number;
 	childJoint : creatureJoint;
-	angleParent : creatureJoint;
 	angle : number;
 	legLength : number;
 	leftElbowPos : vector2;
@@ -18,10 +17,9 @@ export class creatureLegJoint extends creatureJoint {
 	leftLegUp : boolean;
 	rightLegUp : boolean;
 
-	constructor(pos : vector2, id : number, colour : string, width : number, legLength : number, angleParent : creatureJoint) {
+	constructor(pos : vector2, id : number, colour : string, width : number, legLength : number) {
 		super(pos,id,colour,width);
 		this.legLength = legLength;
-		this.angleParent = angleParent;
 
 		this.leftElbowPos = new vector2(this.pos.x,this.pos.y);
 		this.rightElbowPos = new vector2(this.pos.x,this.pos.y);
@@ -31,11 +29,10 @@ export class creatureLegJoint extends creatureJoint {
 
 		this.leftLegUp = false;
 		this.rightLegUp = false;
-
 	}
 
 	calcLegPositions() : void {
-		this.angle = this.pos.getAvgAngleRad(this.angleParent.pos);
+		this.angle = this.pos.getAvgAngleRad(this.childJoint.pos);
 
 		let leftLegFin = new vector2(0,0);
 		let rightLegFin = new vector2(0,0);
@@ -73,7 +70,7 @@ export class creatureLegJoint extends creatureJoint {
 	}
 
 	calcDeathPositions() {
-		this.angle = this.pos.getAvgAngleRad(this.angleParent.pos);
+		this.angle = this.pos.getAvgAngleRad(this.childJoint.pos);
 
 		let leftLegFin = new vector2(0,0);
 		let rightLegFin = new vector2(0,0);
@@ -125,7 +122,7 @@ export class creatureLegJoint extends creatureJoint {
 		ctx.lineTo(this.rightLegPos.x,this.rightLegPos.y);
 		ctx.stroke();
 
-		ctx.fillStyle = this.angleParent.colour;
+		ctx.fillStyle = this.childJoint.colour;
 		
 		ctx.beginPath();
 		ctx.arc(this.leftElbowPos.x,this.leftElbowPos.y,this.width * 0.2,0,2 * Math.PI);

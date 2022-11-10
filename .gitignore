@@ -1,6 +1,5 @@
-node_modules
-dist
-.vscode
-compiled
 assets
-out/
+compiled
+dist
+node_modules
+.gitignore
