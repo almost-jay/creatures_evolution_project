@@ -1,5 +1,4 @@
 export const idCharas : string = "ABCDEFGHIHKLMNOPQRSTUVWXYZ0123456789";
-
 export class vector2 {
 	x : number; 
 	y : number;

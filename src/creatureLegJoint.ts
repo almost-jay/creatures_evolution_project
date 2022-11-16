@@ -9,6 +9,7 @@ export class creatureLegJoint extends creatureJoint {
 	width : number;
 	childJoint : creatureJoint;
 	angle : number;
+	angleParentId : number;
 	legLength : number;
 	leftElbowPos : vector2;
 	rightElbowPos : vector2;
@@ -29,10 +30,19 @@ export class creatureLegJoint extends creatureJoint {
 
 		this.leftLegUp = false;
 		this.rightLegUp = false;
+
 	}
 
-	calcLegPositions() : void {
-		this.angle = this.pos.getAvgAngleRad(this.childJoint.pos);
+	importJsonProps(loaded: creatureLegJoint): void {
+		super.importJsonProps(loaded);
+		this.leftElbowPos = new vector2(loaded.leftElbowPos.x,loaded.leftElbowPos.y);
+		this.rightElbowPos = new vector2(loaded.rightElbowPos.x,loaded.rightElbowPos.y);
+		this.leftLegPos = new vector2(loaded.leftLegPos.x,loaded.leftLegPos.y);
+		this.rightLegPos = new vector2(loaded.rightLegPos.x,loaded.rightLegPos.y);
+	}
+
+	calcLegPositions(angleParentPos : vector2) : void {
+		this.angle = this.pos.getAvgAngleRad(angleParentPos);
 
 		let leftLegFin = new vector2(0,0);
 		let rightLegFin = new vector2(0,0);
@@ -69,8 +79,8 @@ export class creatureLegJoint extends creatureJoint {
 
 	}
 
-	calcDeathPositions() {
-		this.angle = this.pos.getAvgAngleRad(this.childJoint.pos);
+	calcDeathPositions(angleParentPos : vector2) {
+		this.angle = this.pos.getAvgAngleRad(angleParentPos);
 
 		let leftLegFin = new vector2(0,0);
 		let rightLegFin = new vector2(0,0);
@@ -88,13 +98,13 @@ export class creatureLegJoint extends creatureJoint {
 		this.rightElbowPos = this.solveInverseKinematics(this.rightLegPos,- 1);
 	}
 
-	move(maxDist : number, target : vector2, isDead : boolean) : void {
+	move(maxDist : number, target : vector2, isDead : boolean, angleParentPos : vector2) : void {
 		if (!isDead) {
-			this.calcLegPositions();
+			this.calcLegPositions(angleParentPos);
 		} else {
-			this.calcDeathPositions();
+			this.calcDeathPositions(angleParentPos);
 		}
-		super.move(maxDist,target,isDead);
+		super.move(maxDist,target,isDead,angleParentPos);
 	}
 
 	renderSegment(): void {

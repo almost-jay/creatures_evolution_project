@@ -1,5 +1,9 @@
 import { webFrame } from "electron";
+import { creatureJoint } from "./creatureBase";
 import { creature } from "./creatureClass";
+import { creatureHead } from "./creatureHead";
+import { creatureLegJoint } from "./creatureLegJoint";
+import { creatureTail } from "./creatureTail";
 import { vector2 } from "./globals";
 import { initState } from "./saveFile";
 import { splat } from "./splats";
@@ -14,40 +18,34 @@ export var deadCreatures : Array<creature> = [];
 export var activeArea : Array<vector2> = [];
 export var isMouseDown : boolean;
 export var effects : Array<splat> = [];
+export var windowInfo : Array<number> = [0,0];
 
 function setupApp() {
-	webFrame.setZoomFactor(1.6);
-	window.scrollTo(1000,1000);
-}
-
-function initNavigation() {
-	updateViewportInfo();
-	webFrame.setZoomFactor(1.6);
-	window.scrollTo(1000,1000);
+	windowInfo = [window.innerWidth,window.innerHeight];
 	let holdX : number;
 	let holdY : number;
 	isMouseDown = false;
-	
 	document.addEventListener("mousedown", () => {
+		updateViewportInfo();
 		if (!isMouseDown) {
 			isMouseDown = true;
 		}
 	});
 	document.addEventListener("mouseup", () => {
+		updateViewportInfo();
 		if (isMouseDown) {
 			isMouseDown = false;
 			canvas.style.cursor = "default";
-			updateViewportInfo();
 		}
 	});
 	
 	document.addEventListener("mousemove", (event : MouseEvent) => {
+		updateViewportInfo();
 		navigateCanvas(event);
 	});
 	function navigateCanvas(event : MouseEvent) {
 		if (isMouseDown) {
 			canvas.style.cursor = "pointer";
-			event.preventDefault();
 			window.scrollBy(holdX - event.clientX, holdY - event.clientY);
 			updateViewportInfo();
 		}
@@ -61,14 +59,24 @@ function initNavigation() {
 			newHead(new vector2(1300,1300));
 		}
 	}
+	initNavigation();
+
+}
+
+function initNavigation() {
+	webFrame.setZoomFactor(1.6);
+	window.scrollTo(1000,1000);
+	updateViewportInfo();
 }
 
 function updateViewportInfo() {
+	windowInfo = [window.innerWidth,window.innerHeight];
 	activeArea[0] = new vector2(window.scrollX - 24, window.scrollY - 24);
-	activeArea[1] = new vector2((1280 / webFrame.getZoomFactor()) + 24 + activeArea[0].x,(720 / webFrame.getZoomFactor()) + 24 + activeArea[0].y);
+	activeArea[1] = new vector2(activeArea[0].x + windowInfo[0] + 48,activeArea[0].y + windowInfo[1] + 48);
 }
 
 function tick() : void {
+	updateViewportInfo();
 	clearCanvas();
 	drawGrid();
 	renderSplats();
@@ -78,7 +86,7 @@ function tick() : void {
 
 function clearCanvas() : void {
 	ctx.fillStyle = "#181818";
-	ctx.fillRect(activeArea[0].x,activeArea[0].y,activeArea[1].x,activeArea[1].y);
+	ctx.fillRect(activeArea[0].x,activeArea[0].y,activeArea[1].x - activeArea[0].x,activeArea[1].y - activeArea[0].y);
 }
 
 function drawGrid() {
@@ -114,7 +122,7 @@ function fillBoard() : void {
 }
 
 function newHead(pos : vector2) : void {
-	new creature(pos,16,8,2);
+	new creature(pos,16,8,2,"");
 }
 
 function renderCreatures() : void {
@@ -126,9 +134,21 @@ function renderCreatures() : void {
 	}
 }
 
+export function replaceCurrentState(loadedState : { [key : string]: creature }) : void {
+	creatures = [];
+	deadCreatures = [];
+	creaturesReference = {};
+
+	Object.keys(loadedState).forEach(function(i) {
+		new creature(new vector2(0,0),16,4,2,i);
+		let baseCreature : creature = creaturesReference[i];
+		let loadCreature : creature = loadedState[i];
+		baseCreature = Object.assign(baseCreature,loadCreature);
+		baseCreature.importJsonProps(loadCreature);
+	});
+}
+
 setupApp();
-initNavigation();
-//fillBoard();
 newHead(new vector2(1200,1200));
 tick();
 updateViewportInfo();

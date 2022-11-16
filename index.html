@@ -5,12 +5,17 @@
     <link rel = "stylesheet" href = "styles.css">
 </head>
 <body>
-	<div id = "leftPanel" class = "panel">
-		<a href = "#" id = "loadSave">Load Save</a>
-		<a href = "#" id = "writeSave">Write Save</a>
-	</div>
+	<div id = "popup"></div>
+	<div id = "sidenav" class = "sidenav">
+		<label for = "savePicker" position = "fixed" id = "saveLabel">Save file: </label>
+		<input type = "number" id = "savePicker" name = "savePicker" min = "0" step = "1" value = "0">
+		<a id = "writeSave">Write Save</a>
+		<a id = "loadSave">Load Save</a>
+		<a id = "testpopout">Lorem Ipsum</a>
+	  </div>
+	
 	<div id = "holder">
-		<canvas id = "canvas" width = "4096" height = "4096"></canvas>
+		<canvas id = "canvas" width = "4096" height = "4096" z-index = "-1"></canvas>
 	</div>
     <div id="app"></div>
 </body>
