@@ -154,7 +154,6 @@ export class creatureLegJoint extends creatureJoint {
 	}
 
 	solveInverseKinematics(targetPos : vector2, side : number) : vector2 {
-		
 		let comp = new vector2(targetPos.x - this.pos.x, targetPos.y - this.pos.y);
 		let distance = comp.x * comp.x + comp.y * comp.y;
 		let angle = Math.max(-1, Math.min(1, distance / (2 * this.legLength * Math.sqrt(distance))));

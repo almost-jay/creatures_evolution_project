@@ -17,7 +17,6 @@ export class creature {
 	mainArrayId : number;
 	segments : Array<creatureJoint>;
 	head : creatureHead;
-	legs : Array<creatureJoint>;
 	interactingId : string;
 	state : string;
 	traits : { [key: string] : number };
@@ -39,7 +38,6 @@ export class creature {
 		this.interactingId = "";
 		this.mainArrayId = creatures.length;
 		
-		this.legs = [];
 		this.state = "idle";
 		
 		this.segments = this.initSegments(length,maxDist,weights);
@@ -51,24 +49,24 @@ export class creature {
 		this.target = this.path[0];
 
 		creatures.push(this);
-		this.traits = {
+		this.traits = { //sets up long-term creature traits
 			"maxHealth" : 20,
 			"sightDistance" : 512,
 			"lungeDistance" : 80,
+			"fieldOfView" : 36,
 		};
 		this.health = this.traits.maxHealth;
 	}
 
 	importJsonProps(loaded : creature) {
 		this.pos = new vector2(loaded.pos.x,loaded.pos.y);
-		this.target = new vector2(loaded.pos.x,loaded.pos.y);
+		this.target = new vector2(loaded.pos.x,loaded.pos.y); //sets loaded generic JSON values as vector2
 		this.path = [];
 		for (let i = 0; i < loaded.path.length; i++) {
-			this.path.push(new vector2(loaded.path[i].x,loaded.path[i].y));
+			this.path.push(new vector2(loaded.path[i].x,loaded.path[i].y)); //adds loaded path as array of vector2
 		}
-		this.legs = [];
-		this.segments = this.initSegments(loaded.length,loaded.maxDist,loaded.weights);
-		for (let i = 0; i < loaded.length; i++) {
+		this.segments = this.initSegments(loaded.length,loaded.maxDist,loaded.weights); //adds "empty segments"
+		for (let i = 0; i < loaded.length; i++) { //iterates through segments and runs a function on each to assign it the correct properties
 			this.segments[i] = Object.assign(this.segments[i],loaded.segments[i]);
 			this.segments[i].importJsonProps(loaded.segments[i]);
 		}
@@ -130,7 +128,6 @@ export class creature {
 				case 3: //if it's 3, it adds a new leg joint
 					let newJoint = new creatureLegJoint(this.pos.add(new vector2(i * maxDist,i * maxDist)),i,colour[i],bodyGuide[i][1] * 1.3,bodyGuide[i][1] * 0.8);
 					segmentResult.push(newJoint);
-					this.legs.push(newJoint);
 					break;
 				case 4: //if it's 4, it adds a head!
 					segmentResult.push(new creatureHead(this.pos.add(new vector2(i * maxDist,i * maxDist)),0,colour[i],bodyGuide[i][1] * 1.4,eyeColour,bodyGuide[i][1] / 2));
@@ -146,9 +143,10 @@ export class creature {
 		}
 	}
 
-	generatePath(startPos : vector2) : Array<vector2> { //generates a 
+	generatePath(startPos : vector2) : Array<vector2> { //generates a path randomly around the given position
 		let pathResult : Array<vector2> = [];
-
+		
+		//if it's out of bounds, it moves the start position back
 		if (startPos.x < 128) {
 			startPos.x = 256;
 		}
@@ -167,38 +165,40 @@ export class creature {
 		for (let i = 0; i < 360; i += 10) {
 			pathResult.push(new vector2(startPos.x + width * Math.cos(i * Math.PI/180) + ((Math.random() - 0.5) * 32),startPos.y + height * Math.sin(i * Math.PI/180) + ((Math.random() - 0.5) * 32)));
 		}
-		if (Math.random() < 0.5) {
+		if (Math.random() < 0.5) { //randomly flips path direction half the time
 			pathResult.reverse();
 		}
-		let closest : Array<number> = [0,canvas.width];
+
+		let closest : Array<number> = [0,canvas.width]; //finds point closest to creature
 		for (let i = 0; i < pathResult.length; i++) {
 			let distance = startPos.distance(pathResult[i]);
 			if (distance < closest[1]) {
 				closest = [i,distance];
 			}
 		}
-		pathResult = pathResult.concat(pathResult.splice(0,closest[0]));
+		pathResult = pathResult.concat(pathResult.splice(0,closest[0])); //moves entire path so closest point to start pos is at front
+
 		return pathResult;
 	}
 
 	generateColours() : any {
 		let colourInd1 = Math.round(((Math.random() + preColours.length * 0.25) * (preColours.length - preColours.length * 0.25)));
 		let colourInd2 = Math.round(colourInd1 + ((Math.random() + preColours.length * 0.25) * (preColours.length - preColours.length * 0.25)));
-		
+		//picks one random integer and then one a random "distance" from the first
 		while (colourInd1 > preColours.length - 1) {
-			colourInd1 -= preColours.length - 1;
+			colourInd1 -= preColours.length - 1; //keep it the right length
 		}
 		
 		while (colourInd2 > preColours.length - 1) {
 			colourInd2 -= preColours.length - 1;
 		}
 
-		let colour1 = hexToRgb(preColours[colourInd1]);
+		let colour1 = hexToRgb(preColours[colourInd1]); //selects colour from list from those integers, converts them into RGB format
 		let colour2 = hexToRgb(preColours[colourInd2]);
 
 		let colourRes : Array<string> = [];
-		let inc = 1 / this.length;
-		for (let i = 0; i < this.length; i++) {
+		let inc = 1 / this.length; //reciprocal of length
+		for (let i = 0; i < this.length; i++) { //creates gradient between two given colours, pushing the results into an array
 			let r = Math.round(Math.max(Math.min(colour1[0] * (1 - (inc * i)) + (colour2[0] * (inc * i)), 255), 0));
 			let g = Math.round(Math.max(Math.min(colour1[1] * (1 - (inc * i)) + (colour2[1] * (inc * i)), 255), 0));
 			let b = Math.round(Math.max(Math.min(colour1[2] * (1 - (inc * i)) + (colour2[2] * (inc * i)), 255), 0));
@@ -208,44 +208,42 @@ export class creature {
 
 	}
 
-	stateMachine() : void {
+	stateMachine() : void { //controls creature behaviour based on current state
 		switch (this.state) {
-			case "idle":
+			case "idle": //when idle, it simply moves towards the nearest target, then switches targets when it gets close enough
 				if (this.head.pos.distance(this.target) < this.maxDist) {
 					this.path.push(this.target);
 					this.path.shift();
 					this.target = this.path[0];
 				}
-				if (this.interactingId != "") {
+				if (this.interactingId != "") { //if it's holding something, and the thing it's holding is not dead, it stops holding something
 					if (creaturesReference[this.interactingId].state != "dead") {
 						this.interactingId = "";
 					}
 				}
 				break;
-			case "bitePrepare":
+			case "bitePrepare": //it tries to get a certain distance away from its target before biting
 				if (this.interactingId != "") {
-					if (this.pos.distance(creaturesReference[this.interactingId].pos) < this.traits.lungeDistance) {
-						let retreat = Math.round(Math.random());
-						if (retreat) {
-							this.target = this.segments[1].pos;
-							for (let i = 0; i < this.segments.length; i++) {
+					if (this.pos.distance(creaturesReference[this.interactingId].pos) < this.traits.lungeDistance) { //if it's far away enough...
+						if (Math.round(Math.random())) { //50% chance of biting
+							this.target = this.segments[1].pos; //it moves towards its neck
+							for (let i = 0; i < this.segments.length; i++) { //moves everything back slightly
 								this.segments[i].pos.x += ((this.segments[i].pos.x - creaturesReference[this.interactingId].segments[1].pos.x) / 200) * (this.head.speed * 0.2);
 								this.segments[i].pos.y += ((this.segments[i].pos.y - creaturesReference[this.interactingId].segments[1].pos.y) / 200) * (this.head.speed * 0.2);
 							}
-						} else if (this.pos.distance(this.target) < this.maxDist){
+						} else if (this.pos.distance(this.target) < this.maxDist) { //randomly picks a target near its head to give it the impression of doing "false strikes"
 							this.target = new vector2(this.head.pos.x + ((Math.random() * this.maxDist * 2) + this.maxDist * -2),this.head.pos.y + ((Math.random() * this.maxDist * 2) + this.maxDist * -2));
 						}
 					} else {
-						let lunge = Math.random();
-						if (lunge < 0.01) {
-							this.head.speed *= 1.6;
+						if (Math.random() < 0.01) { //small chance of lunge
+							this.head.speed *= 1.6; //sets the speed up (temporarily) so it goes fast
 							
-							this.target = creaturesReference[this.interactingId].segments[2].pos;
+							this.target = creaturesReference[this.interactingId].segments[2].pos; //attempts to bite target's neck
 							this.target.x += (Math.random() - 0.5) * this.maxDist;
 							this.target.y += (Math.random() - 0.5) * this.maxDist;
 							
-							this.state = "biteLunge";
-						} else {
+							this.state = "biteLunge"; //creature is officially attacking!
+						} else { //generates random paths around target's position to follow them
 							if (this.head.pos.distance(this.target) < this.maxDist) {
 								if (!this.path.length) {
 									this.path = this.generatePath(creaturesReference[this.interactingId].pos);
@@ -260,36 +258,36 @@ export class creature {
 					}
 				}
 				break;
-			case "biteLunge":
+			case "biteLunge": //if it's close enough to its target, the target takes damage
 				if (this.head.pos.distance(this.target) < this.maxDist && creaturesReference[this.interactingId]) {
 					creaturesReference[this.interactingId].takeDamage(this);
 					this.head.speed /= 2;
 					this.path = this.generatePath(this.pos);
 					this.target = this.path[0];
-					this.state = "idle";
+					this.state = "idle"; //state gets reset
 				}
 				break;
-			case "threatened":
-				if (this.interactingId != "") {
+			case "threatened": //tries to curl up if threatened
+				if (this.interactingId != "") { //if it's interacting with something, it tries to curl up in a ball
 					if (this.head.pos.distance(creaturesReference[this.interactingId].pos) < this.traits.lungeDistance / 2) {
 						this.target = this.segments[this.segments.length - 1].pos;
 					} else {		
 						if (Math.random() < 0.01) {
-							this.state = "idle";
+							this.state = "idle"; //if the threat is far away enough, it will eventually "calm down"
 						}
 					}
 				}
 				if (this.head.pos.distance(this.target) < this.maxDist) {
 					this.target = new vector2(this.head.pos.x + ((Math.random() * this.maxDist * 2) + this.maxDist * -2),this.head.pos.y + ((Math.random() * this.maxDist * 2) + this.maxDist * -2));
-				}
+				} //random new target
 				break;
 		}
 	}
 
 	castSight() : void {
 		let canSee = [];
-		if (this.interactingId == "" && this.state != "dead") {
-			for (let i = 0; i < creatures.length; i++) {
+		if (this.interactingId == "" && this.state != "dead") { //if it's alive and not interacting with anything
+			for (let i = 0; i < creatures.length; i++) { //get array of creatures within a sight distance
 				let distanceTo = creatures[i].pos.distance(this.pos);
 				if (distanceTo < this.traits.sightDistance && creatures[i].id != this.id) {
 					let tupleC : [creature,number];
@@ -298,43 +296,39 @@ export class creature {
 				}
 			}
 		}
-
+		//sort array so that the closest creatures are the first
 		canSee = canSee.sort(function (a,b) : number {
 			return b[1] - a[1];
 		});
 
 		for (let i = 0; i < canSee.length; i++) {
-			this.seeCreature(canSee[i][0]);
+			this.seeCreature(canSee[i][0]); //then it does a check on all creatures it can see
 		}
 	}
-
+	
 	seeCreature(creature : creature) {
 		let sightAngle = Math.abs(this.head.angle - creature.pos.getAvgAngleDeg(this.head.pos));
-		if (sightAngle < 36) {
-			this.interactingId = creature.id;
-			this.initAttack();
-			creature.state = "threatened";
-			creature.interactingId = this.id;
+		if (sightAngle < this.traits.fieldOfView) { //if it's got it in its field of view...
+			this.interactingId = creature.id; //prepare for attack
+			this.state = "bitePrepare";
+			this.path = [];
+			creature.state = "threatened"; //the other guy feels threatened
+			creature.interactingId = this.id; //other guy begins interacting with this creature
 		}
-	}
-
-	initAttack() : void {
-		this.state = "bitePrepare";
-		this.path = [];
 	}
 
 	takeDamage(attacker : creature) : void {
-		attacker.interactingId = "";
-		let damage = Math.floor((Math.random() * 18) + 8);
-		if (this.health - damage < 1) {
+		attacker.interactingId = ""; //reset the attacker's state
+		let damage = Math.floor((Math.random() * 18) + 8); //damage is somewhat varied
+		if (this.health - damage < 1) { //if removing all that health would kill it, it simply dies
 			this.initCorpse(attacker);
 		} else {
 			this.health -= damage;
 		}
 		for (let i = 0; i < (Math.random() * 24) + 16; i++) {
-			effects.push(new splat(this.segments[2].pos,effects.length));
+			effects.push(new splat(this.segments[2].pos,effects.length)); //new blood effect
 		}
-		let attackAngle = this.pos.getAvgAngleRad(attacker.pos);
+		let attackAngle = this.pos.getAvgAngleRad(attacker.pos); //begins running away
 		this.target = new vector2(this.pos.x + (((Math.random() * 256) + 64) * Math.cos(attackAngle)),this.pos.y + (((Math.random() * 256) + 64) * Math.sin(attackAngle)));
 		this.path = this.generatePath(this.target);
 		if (Math.random() < 0.01) {
@@ -342,15 +336,15 @@ export class creature {
 		}
 	}
 
-	initCorpse(killer : creature) : void {
+	initCorpse(killer : creature) : void { //sets up the creature for death
 		this.state = "dead";
 		this.health = 0;
 		this.interactingId = killer.id;
 		killer.interactingId = this.id;
 		this.head.eyeType = "cross";
 		this.path = [];
-		creatures.splice(this.mainArrayId,1);
-		for (let i = this.mainArrayId; i < creatures.length; i++) {
+		creatures.splice(this.mainArrayId,1); //removes itself from the living creature array
+		for (let i = this.mainArrayId; i < creatures.length; i++) { //changes 
 			creatures[i].mainArrayId -= 1;
 		}
 		deadCreatures.push(this);
