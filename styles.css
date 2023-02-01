@@ -19,10 +19,6 @@ body {
 	border-radius: 0 4px 4px 0;
 	text-align: center;
   }
-
-  #saveLabel {
-	color : white;
-  }
   
   #sidenav a:hover {
 	left: -20px;
