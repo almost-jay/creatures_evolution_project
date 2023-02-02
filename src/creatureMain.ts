@@ -28,7 +28,7 @@ export class creature {
 		this.segments.push(new creatureJoint(this.pos.subtract(new vector2(this.maxDist * this.length,this.maxDist * this.length)),0,"#FF0000",8));
 		for (let i = 1; i < this.length - 1; i += 1) {
 			let hasLegs = false
-			if (i == 3 || i == 6) {
+			if (i == 4 || i == 10) {
 				hasLegs = true
 			}
 			this.segments.push(new creatureBody(this.pos.subtract(new vector2(this.maxDist * i,this.maxDist * i)),i,"#FF0000",8,this.segments[i - 1],hasLegs));

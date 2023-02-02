@@ -10,6 +10,7 @@ export class creatureBody extends creatureJoint {
 	width : number;
 	childJoint : creatureJoint;
 	legs : [creatureLeg,creatureLeg]
+	legParentJoint : creatureJoint;
 
 	constructor (pos : vector2, id : number, colour : string, width : number, childJoint : creatureJoint, hasLegs : boolean) {
 		super(pos, id, colour, width)
@@ -51,7 +52,10 @@ export class creatureBody extends creatureJoint {
 	}
 
 	initLegs() {
-		this.legs = [new creatureLeg(this.pos,"#0000FF",-1,6,3,6),new creatureLeg(this.pos,"#00FF00",1,6,3,6)];
+		let legAngle = 0.8
+		this.legs = [new creatureLeg(this.pos,"#0000FF",-1,16,6,legAngle),new creatureLeg(this.pos,"#00FF00",1,16,6,legAngle)];
+		this.legs[0].pair = this.legs[1];
+		this.legs[1].pair = this.legs[0];
 	}
 
 	move(maxDist : number) {

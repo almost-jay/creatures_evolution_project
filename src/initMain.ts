@@ -102,4 +102,4 @@ setupApp();
 tick();
 updateViewportInfo();
 
-creatureList.push(new creature(new vector2(1240,1240),12,12,2))
+creatureList.push(new creature(new vector2(1240,1240),16,8,2))
