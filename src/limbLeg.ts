@@ -8,7 +8,8 @@ export class creatureLeg {
 	joinPos : vector2;
 	elbowPos : vector2;
 	footPos : vector2;
-	colour : string;
+	lightColour : string;
+	darkColour : string;
 	side : number;
 	jointAngle : number;
 	isFootUp : boolean;
@@ -19,13 +20,52 @@ export class creatureLeg {
 		this.width = width;
 		this.legAngle = legAngle;
 		this.joinPos = joinPos;
-		this.colour = colour;
+		this.lightColour = colour;
+		this.darkColour = this.calcDarkColour();
 		this.side = side;
 
 		this.elbowPos = new vector2(0,0);
 		this.footPos = new vector2(0,0);
 
 		this.isFootUp = false;
+	}
+
+	calcDarkColour() {
+		let colourArray = this.lightColour.substring(4,this.lightColour.length - 1).replace(/ /g, "").split(",");
+		let result = "rgb("+parseInt(colourArray[0]) * 0.8+","+parseInt(colourArray[1]) * 0.8+","+parseInt(colourArray[2]) * 0.8+")";
+		console.log(result);
+		return result;
+	}
+
+	updateLimb(joinPos : vector2, childJointPos: vector2) {
+		this.updateLimbPos(joinPos,childJointPos);
+		
+		ctx.lineWidth = this.width;
+
+		ctx.fillStyle = this.darkColour;
+		ctx.beginPath();
+		ctx.arc(this.footPos.x,this.footPos.y,this.width * 0.64,0, 2 * Math.PI);
+		ctx.fill();
+
+		ctx.strokeStyle = this.darkColour;
+		ctx.beginPath();
+		ctx.moveTo(this.elbowPos.x,this.elbowPos.y);
+		ctx.lineTo(this.footPos.x,this.footPos.y);
+		ctx.stroke();
+		ctx.closePath();
+
+		ctx.fillStyle = this.lightColour;
+		ctx.beginPath();
+		ctx.arc(this.elbowPos.x,this.elbowPos.y,this.width * 0.64,0, 2 * Math.PI);
+		ctx.fill();
+
+		ctx.strokeStyle = this.lightColour;
+		ctx.beginPath();
+		ctx.moveTo(this.joinPos.x,this.joinPos.y);
+		ctx.lineTo(this.elbowPos.x,this.elbowPos.y);
+		ctx.stroke();
+		ctx.closePath();
+
 	}
 
 	updateLimbPos(joinPos : vector2, childJointPos : vector2) {
@@ -39,12 +79,6 @@ export class creatureLeg {
 
 	calcFootPos() {
 		let footCheckPos = this.calcFootCheckPos()
-		
-		ctx.fillStyle = "#F0F0FF"
-		ctx.beginPath();
-		ctx.arc(footCheckPos.x,footCheckPos.y,4,0,2 * Math.PI);
-		ctx.fill();
-
 
 		if (this.footPos.distance(footCheckPos) > this.length ** 1.4 || this.elbowPos.distance(this.joinPos) < 0.6) {
 			if (this.pair.isFootUp == false || this.footPos.distance(footCheckPos) > this.length ** 2.2) {

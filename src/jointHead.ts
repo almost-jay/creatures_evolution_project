@@ -13,8 +13,8 @@ export class creatureHead extends creatureBody {
 	eyeColour : string;
 	angle : number;
 
-	constructor (pos : vector2, id : number, colour : string, width : number, childJoint : creatureJoint, eyeSpacing : number, eyeColour : string, hasLegs : boolean) {
-		super(pos, id, colour, width, childJoint,hasLegs)
+	constructor (pos : vector2, id : number, colour : string, width : number, eyeSpacing : number, eyeColour : string, hasLegs : boolean) {
+		super(pos, id, colour, width,hasLegs)
 		this.eyeSpacing = eyeSpacing;
 		this.eyeColour = eyeColour;
 	}
@@ -28,10 +28,10 @@ export class creatureHead extends creatureBody {
 		this.angle = this.pos.getAvgAngleRad(this.childJoint.pos);
 		ctx.fillStyle = this.eyeColour;
 		ctx.beginPath();
-		ctx.arc((this.eyeSpacing * Math.cos(this.angle - (Math.PI * 0.5))) + this.pos.x,(this.eyeSpacing * Math.sin(this.angle - (Math.PI * 0.5))) + this.pos.y,this.width * 0.2,0,2 * Math.PI);
+		ctx.arc((this.eyeSpacing * Math.cos(this.angle - (Math.PI * 0.5))) + this.pos.x,(this.eyeSpacing * Math.sin(this.angle - (Math.PI * 0.5))) + this.pos.y,this.width * 0.22,0,2 * Math.PI);
 		ctx.fill();
 		ctx.beginPath();
-		ctx.arc((this.eyeSpacing * Math.cos(this.angle - (Math.PI * -0.5))) + this.pos.x,(this.eyeSpacing * Math.sin(this.angle - (Math.PI * -0.5))) + this.pos.y,this.width * 0.2,0,2 * Math.PI);
+		ctx.arc((this.eyeSpacing * Math.cos(this.angle - (Math.PI * -0.5))) + this.pos.x,(this.eyeSpacing * Math.sin(this.angle - (Math.PI * -0.5))) + this.pos.y,this.width * 0.22,0,2 * Math.PI);
 		ctx.fill();
 	}
 

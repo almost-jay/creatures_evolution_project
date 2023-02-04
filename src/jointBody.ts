@@ -12,9 +12,8 @@ export class creatureBody extends creatureJoint {
 	legs : [creatureLeg,creatureLeg]
 	legParentJoint : creatureJoint;
 
-	constructor (pos : vector2, id : number, colour : string, width : number, childJoint : creatureJoint, hasLegs : boolean) {
+	constructor (pos : vector2, id : number, colour : string, width : number, hasLegs : boolean) {
 		super(pos, id, colour, width)
-		this.childJoint = childJoint;
 		if (hasLegs) {
 			this.initLegs()
 		}
@@ -31,30 +30,20 @@ export class creatureBody extends creatureJoint {
 
 		if (this.legs !== undefined) {
 			for (let i = 0; i < this.legs.length; i++) {
-
-				this.legs[i].updateLimbPos(this.pos,this.childJoint.pos);
-
-				ctx.strokeStyle = this.legs[i].colour;
-				ctx.lineWidth = this.legs[i].width;
-				ctx.beginPath();
-				ctx.moveTo(this.pos.x,this.pos.y);
-				ctx.lineTo(this.legs[i].elbowPos.x,this.legs[i].elbowPos.y);
-				ctx.stroke();
-				ctx.closePath();
-				
-				ctx.beginPath();
-				ctx.moveTo(this.legs[i].elbowPos.x,this.legs[i].elbowPos.y);
-				ctx.lineTo(this.legs[i].footPos.x,this.legs[i].footPos.y);
-				ctx.stroke();
-				ctx.closePath();
+				this.legs[i].updateLimb(this.pos,this.childJoint.pos);
+				if (this.legs[i].isFootUp == false) {
+					this.skewBodyByFoot(this.legs[i].elbowPos);
+				}
 			}
 		}
 	}
 
 	initLegs() {
-		let legAngle = 0.8
-		this.legs = [new creatureLeg(this.pos,"#0000FF",-1,16,6,legAngle),new creatureLeg(this.pos,"#00FF00",1,16,6,legAngle)];
-		this.legs[0].pair = this.legs[1];
+		let legAngle = 0.8;
+		let legWidth = 7.2;
+		let legLength = 14;
+		this.legs = [new creatureLeg(this.pos,this.colour,-1,legLength,legWidth,legAngle),new creatureLeg(this.pos,this.colour,1,legLength,legWidth,legAngle)];
+		this.legs[0].pair = this.legs[1]; //this.legs[0] is right
 		this.legs[1].pair = this.legs[0];
 	}
 
@@ -73,5 +62,9 @@ export class creatureBody extends creatureJoint {
 		super.updateJoint(maxDist);
 		this.move(maxDist);
 		this.renderSegment();
+	}
+
+	skewBodyByFoot(elbowPos : vector2) : void {
+
 	}
 }

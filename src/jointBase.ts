@@ -6,6 +6,7 @@ export class creatureJoint {
 	id : number;
 	colour : string;
 	width : number;
+	childJoint : any;
 
 	constructor (pos : vector2, id : number, colour : string, width : number) {
 		this.pos = pos;

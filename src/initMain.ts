@@ -10,7 +10,8 @@ export var activeArea : Array<vector2> = [];
 export var isMouseDown : boolean;
 export var windowInfo : Array<number> = [0,0];
 
-export var creatureList : Array<creature> = [];
+export var creaturesList : Array<creature> = [];
+export var creaturesDict : { [key: string]: creature } = {};
 
 function setupApp() {
 	ctx.lineCap = "round";
@@ -93,8 +94,8 @@ function drawGrid() {
 };
 
 function renderCreatures() {
-	for (let i = 0; i < creatureList.length; i += 1) {
-		creatureList[i].update();
+	for (let i = 0; i < creaturesList.length; i += 1) {
+		creaturesList[i].update();
 	}
 }
 
@@ -102,4 +103,4 @@ setupApp();
 tick();
 updateViewportInfo();
 
-creatureList.push(new creature(new vector2(1240,1240),16,8,2))
+creaturesList.push(new creature(new vector2(1240,1240),16,8,2));
