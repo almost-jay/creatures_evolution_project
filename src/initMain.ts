@@ -99,8 +99,18 @@ function renderCreatures() {
 	}
 }
 
+function addDemoCreatures() {
+	let crNo = (Math.random() * 4) + 4
+	crNo = 64;
+	for (let i = 0; i < crNo; i ++) {
+		let xOffset = ((Math.random() - 0.5) * 256)
+		let yOffset = ((Math.random() - 0.5) * 256)
+		let legCount = Math.floor(Math.random() * 8);
+		creaturesList.push(new creature(new vector2(1200 + xOffset,1200 + yOffset),16,8,legCount));
+	}
+}
+
 setupApp();
 tick();
 updateViewportInfo();
-
-creaturesList.push(new creature(new vector2(1240,1240),16,8,2));
+addDemoCreatures();

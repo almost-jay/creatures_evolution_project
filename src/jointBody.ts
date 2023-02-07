@@ -20,6 +20,15 @@ export class creatureBody extends creatureJoint {
 	}
 
 	renderSegment() {
+		if (this.legs !== undefined) {
+			for (let i = 0; i < this.legs.length; i++) {
+				this.legs[i].updateLimb(this.pos,this.childJoint.pos);
+				if (this.legs[i].isFootUp) {
+					this.skewBodyByFoot(this.legs[i].elbowPos);
+				}
+			}
+		}
+
 		ctx.strokeStyle = this.colour;
 		ctx.lineWidth = this.width;
 		ctx.beginPath();
@@ -27,15 +36,6 @@ export class creatureBody extends creatureJoint {
 		ctx.lineTo(this.childJoint.pos.x,this.childJoint.pos.y);
 		ctx.stroke();
 		ctx.closePath();
-
-		if (this.legs !== undefined) {
-			for (let i = 0; i < this.legs.length; i++) {
-				this.legs[i].updateLimb(this.pos,this.childJoint.pos);
-				if (this.legs[i].isFootUp == false) {
-					this.skewBodyByFoot(this.legs[i].elbowPos);
-				}
-			}
-		}
 	}
 
 	initLegs() {
@@ -50,7 +50,7 @@ export class creatureBody extends creatureJoint {
 	move(maxDist : number) {
 		let childDist = this.pos.distance(this.childJoint.pos);
 		if (childDist > maxDist) {
-			let delta = new vector2(this.pos.x - this.childJoint.pos.x,this.pos.y - this.childJoint.pos.y);
+			let delta = this.pos.subtract(this.childJoint.pos);
 			delta = delta.divide(childDist);
 			delta = delta.multiply(maxDist);
 			
@@ -59,12 +59,25 @@ export class creatureBody extends creatureJoint {
 	}
 
 	updateJoint(maxDist : number): void {
-		super.updateJoint(maxDist);
 		this.move(maxDist);
 		this.renderSegment();
+		super.updateJoint(maxDist);
 	}
 
 	skewBodyByFoot(elbowPos : vector2) : void {
+		let elbowDist = this.pos.distance(elbowPos);
+		
+		if (elbowDist > this.width) {
+			let delta = this.pos.subtract(elbowPos);
+			delta = delta.multiply(0.1);
 
+			this.pos = this.pos.add(delta);
+
+
+			let childDelta = this.pos.subtract(this.childJoint.pos);
+			childDelta = childDelta.multiply(0.1);
+
+			this.childJoint.pos = this.childJoint.pos.add(childDelta);
+		}
 	}
 }

@@ -27,7 +27,7 @@ export class creature {
 	}
 
 	initJoints() {
-		let bodyCount = Math.floor(0.6 * this.length);
+		let bodyCount = Math.floor(0.7 * this.length);
 		let bodyColour = this.generateColours();
 		let baseWidth = 8;
 
@@ -37,7 +37,7 @@ export class creature {
 			if (i < bodyCount) {
 				this.segments.push(new creatureBody(jointPos,i,bodyColour[i],this.calcBodyWidth(bodyCount,i) * baseWidth,this.calcLegs(bodyCount, i)));
 			} else {
-				this.segments.push(new creatureBody(jointPos,i,bodyColour[i],(this.calcTailWidth(bodyCount, i - (this.length - bodyCount)) + 0.2) * baseWidth,false));
+				this.segments.push(new creatureBody(jointPos,i,bodyColour[i],(this.calcTailWidth(bodyCount, this.length - i) + 0.1) * baseWidth,false));
 			}
 		}
 		this.segments.push(new creatureJoint(this.pos.add(new vector2(this.length * this.maxDist,this.length * this.maxDist)),this.length - 1,bodyColour[this.length - 1],this.calcTailWidth(bodyCount,this.length) * baseWidth));
@@ -57,7 +57,7 @@ export class creature {
 		return result;
 	}
 	calcTailWidth(bodyCount : number, x : number) {
-		let result = Math.abs(-((1 / (this.length - bodyCount)) * x) + 1);
+		let result = Math.abs(x / (this.length - bodyCount));
 		return result;
 	}
 

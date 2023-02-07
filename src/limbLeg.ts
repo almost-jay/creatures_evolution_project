@@ -33,7 +33,6 @@ export class creatureLeg {
 	calcDarkColour() {
 		let colourArray = this.lightColour.substring(4,this.lightColour.length - 1).replace(/ /g, "").split(",");
 		let result = "rgb("+parseInt(colourArray[0]) * 0.8+","+parseInt(colourArray[1]) * 0.8+","+parseInt(colourArray[2]) * 0.8+")";
-		console.log(result);
 		return result;
 	}
 
@@ -79,16 +78,20 @@ export class creatureLeg {
 
 	calcFootPos() {
 		let footCheckPos = this.calcFootCheckPos()
-
-		if (this.footPos.distance(footCheckPos) > this.length ** 1.4 || this.elbowPos.distance(this.joinPos) < 0.6) {
-			if (this.pair.isFootUp == false || this.footPos.distance(footCheckPos) > this.length ** 2.2) {
-				this.isFootUp = true;
+		let footDist = this.footPos.distance(footCheckPos);
+		if (footDist > this.length * 2.4 || this.elbowPos.distance(this.joinPos) < 0.6) {
+			if (this.pair.isFootUp == false || footDist > this.length * 4) {
+				if (footDist > this.length * 4) {
+					this.footPos = new vector2(footCheckPos.x,footCheckPos.y);
+				} else {
+					this.isFootUp = true;
+				}
 			}
 		}
 
 		if (this.isFootUp) {
-			this.footPos = footCheckPos.add((footCheckPos.subtract(this.footPos)).divide(4));
-			if (this.footPos.distance(footCheckPos) < this.length * 0.6) {
+			this.moveFootForward(footCheckPos,footDist);
+			if (footDist < this.length * 0.6) {
 				this.isFootUp = false;	
 				this.footPos = footCheckPos;
 			}
@@ -111,5 +114,13 @@ export class creatureLeg {
 		
 		this.elbowPos.x = this.joinPos.x + (this.length * Math.cos(theta));
 		this.elbowPos.y = this.joinPos.y + (this.length * Math.sin(theta));
+	}
+
+	moveFootForward(footCheckPos : vector2, footDist : number) {
+		let delta = this.footPos.subtract(footCheckPos);
+		delta = delta.divide(footDist);
+		delta = delta.multiply(this.length * 0.6);
+		
+		this.footPos = this.footPos.subtract(delta);
 	}
 }
