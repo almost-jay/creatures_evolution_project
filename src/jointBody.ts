@@ -1,5 +1,5 @@
 import { vector2 } from "./globals";
-import { ctx } from "./initMain";
+import { activeArea, ctx } from "./initMain";
 import { creatureJoint } from "./jointBase";
 import { creatureLeg } from "./limbLeg";
 
@@ -60,7 +60,11 @@ export class creatureBody extends creatureJoint {
 
 	updateJoint(maxDist : number): void {
 		this.move(maxDist);
-		this.renderSegment();
+		if (this.pos.x > activeArea[0].x && this.pos.x < activeArea[1].x) {
+			if (this.pos.y > activeArea[0].y && this.pos.y < activeArea[1].y) {
+				this.renderSegment();
+			}
+		}
 		super.updateJoint(maxDist);
 	}
 

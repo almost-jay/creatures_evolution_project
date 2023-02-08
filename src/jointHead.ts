@@ -59,25 +59,25 @@ export class creatureHead extends creatureBody {
 	}
 
 	updateJoint(maxDist : number): void {
+		//this.drawPath();
 		super.updateJoint(maxDist)
-		this.followPath()
-		this.drawEyes()
+		this.followPath();
+		this.drawEyes();
 	}
 
 	generatePath() {
 		let alpha = 4;
-		let pathLength = 64;
+		let pathLength = 32;
 		this.path = [new vector2(this.pos.x,this.pos.y)];
 		for (let i = 1; i < pathLength; i++) {
 			this.path[i] = new vector2(this.pos.x,this.pos.y);
 			let theta = Math.random() * 2 * Math.PI;
-			let f = (Math.random() ** (-1 / alpha)) + 32;
+			let f = (Math.random() ** (-1 / alpha)) + 128;
 			this.path[i].x = this.path[i - 1].x + (f * Math.cos(theta));
 			this.path[i].y = this.path[i - 1].y + (f * Math.sin(theta));
 		}
 		this.linearSmoothPath();
-		this.interpolatePath();
-		this.linearSmoothPath();
+		this.interpolatePath(2);
 	}
 
 	linearSmoothPath() {
@@ -95,44 +95,81 @@ export class creatureHead extends creatureBody {
 		}
 	}
 
-	interpolatePath() {
+	drawPath() {
+		ctx.strokeStyle = "#BFC8AD";
+		ctx.fillStyle = "#DD0000";
+		ctx.lineWidth = 2;
+		ctx.beginPath();
+		ctx.moveTo(this.path[0].x,this.path[0].y);
+		for (let i = 1; i < this.path.length; i++) {
+			ctx.lineTo(this.path[i].x,this.path[i].y);
+		}
+		ctx.stroke();
+		ctx.closePath();
+
+		for (let i = 1; i < this.path.length; i ++) {
+			ctx.beginPath();
+			ctx.arc(this.path[i].x,this.path[i].y,3,0,2 * Math.PI);
+			ctx.fill();
+		}
+	}
+
+	interpolatePath(degree : number) { //degree should be an integer between 2 and 5, inclusive
+		let knotCount = this.path.length + degree + 1;
+		let knots = this.calcKnots(knotCount,degree);
 		let result = [];
-		let n = this.path.length;
-		let h = [], alpha = [], l = [1], u = [0], z = [0], c = [], b = [], d = [];
-		
-		for (let i = 0; i < n - 1; i++) {
-			h[i] = this.path[i + 1].x - this.path[i].x;
-		}
-
-		for (let i = 1; i < n - 1; i++) {
-			alpha[i] = 3 / h[i] * (this.path[i + 1].y - this.path[i].y) - 3 / h[i - 1] * (this.path[i].y - this.path[i - 1].y);
-
-		}
-
-		for (let i = 1; i < n - 1; i++) {
-			l[i] = 2 * (this.path[i + 1].x - this.path[i - 1].x) - h[i - 1] * u[i - 1];
-			u[i] = h[i] / l[i];
-			z[i] = (alpha[i] - h[i - 1] * z[i - 1]) / l[i];
-		}
-
-		c[n - 1] = 0;
-
-		for (let i = n - 2; i >= 0; i--) {
-			c[i] = z[i] - u[i] * c[i + 1];
-			b[i] = (this.path[i + 1].y - this.path[i].y) / h[i] - h[i] * (c[i + 1] + 2 * c[i]) / 3;
-			d[i] = (c[i + 1] - c[i]) / (3 * h[i]);
-		}
-
-		for (let i = 0; i < n - 1; i++) {
-			let numPoints = this.path[i + 1].x - this.path[i].x;
-			for (let j = 1; j < numPoints; j+= 16) {
-				let x = this.path[i].x + j;
-				let y = this.path[i].y + b[i] * (x - this.path[i].x) + c[i] * Math.pow(x - this.path[i].x, 2) + d[i] * Math.pow(x - this.path[i].x, 3);
-
-				result.push(new vector2(x,y));
+		for (let t = 0; t < 1; t += 0.005) {
+			result.push(this.interpolate(t,degree,knots));
+			if (Math.floor(t * 100) % 2 == 0) {
+				result[result.length - 1].y += (Math.random() + 1) * 16;
+				result[result.length - 1].x += (Math.random() + 1) * 16;
 			}
 		}
+
 		this.path = result;
 	}
+
+	calcKnots(knotCount : number, degree : number) : Array<number> {
+		let knots = [];
+		for (let i = 0; i < knotCount - (degree * 2); i++) {
+			knots.push(i);
+		}
+		
+		for (let i = 0; i < degree; i++) {
+			knots.push(knots[knots.length - 1]);
+			knots.unshift(knots[0]);
+		}
+		return knots;
+	}
+
+	interpolate(t : number, degree : number, knots : Array<number>) {
+		var n = this.path.length;
+
+		var low  = knots[degree];
+		var high = knots[knots.length - 1];
+		t = t * (high - low) + low;
 	  
+		let s = degree;
+		for(let i = degree; i < knots.length - 1; i++) {
+		  if(t >= knots[i] && t <= knots[i + 1]) {
+			s = i;
+		  }
+		}
+	  
+		let v : Array<vector2> = [];
+
+		for (let i = 0; i < n; i++) {
+			v.push(new vector2(this.path[i].x,this.path[i].y));
+		}
+
+		for(let i = 1; i <= degree + 1; i++) {
+		  for(let j = s; j > s - degree - 1 + i; j--) {
+			let alpha = (t - knots[j]) / (knots[j + degree + 1 - i] - knots[j]);
+			v[j] = (v[j - 1].multiply(1 - alpha)).add(v[j].multiply(alpha));
+
+		  }
+		}
+	  
+		return new vector2(v[s].x / 1,v[s].y / 1);
+	  }
 }

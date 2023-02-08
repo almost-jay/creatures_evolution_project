@@ -100,13 +100,15 @@ function renderCreatures() {
 }
 
 function addDemoCreatures() {
-	let crNo = (Math.random() * 4) + 4
-	crNo = 64;
+	let crNo = (Math.random() * 2) + 4
+	crNo = 1;
 	for (let i = 0; i < crNo; i ++) {
-		let xOffset = ((Math.random() - 0.5) * 256)
-		let yOffset = ((Math.random() - 0.5) * 256)
-		let legCount = Math.floor(Math.random() * 8);
-		creaturesList.push(new creature(new vector2(1200 + xOffset,1200 + yOffset),16,8,legCount));
+		let xOffset = (Math.random() * 1024) + 1024;
+		let yOffset = (Math.random() * 1024) + 1024;
+		let legCount = Math.floor(Math.random() * 4);
+		creaturesList.push(new creature(new vector2(1280,1280),16,8,legCount));
+
+		document.getElementById("testpopout")!.innerHTML = (creaturesList.length).toString();
 	}
 }
 

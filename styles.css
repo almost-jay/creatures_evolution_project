@@ -42,6 +42,12 @@ body {
 	background-color: slateblue;
   }
 
+  #infoPanel {
+	top : 20px;
+	left : 200px;
+	color : white;
+  }
+
  #popup {
 	visibility: hidden;
 	min-width: 12%;

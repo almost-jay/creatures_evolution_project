@@ -27,7 +27,7 @@ export class creature {
 	}
 
 	initJoints() {
-		let bodyCount = Math.floor(0.7 * this.length);
+		let bodyCount = Math.floor(0.6 * this.length);
 		let bodyColour = this.generateColours();
 		let baseWidth = 8;
 
@@ -35,9 +35,9 @@ export class creature {
 		for (let i = 1; i < this.length - 1; i++ ) {
 			let jointPos = this.pos.add(new vector2(i * this.maxDist,i * this.maxDist));
 			if (i < bodyCount) {
-				this.segments.push(new creatureBody(jointPos,i,bodyColour[i],this.calcBodyWidth(bodyCount,i) * baseWidth,this.calcLegs(bodyCount, i)));
+				this.segments.push(new creatureBody(jointPos,i,bodyColour[i],Math.max(0.6,this.calcBodyWidth(bodyCount,i)) * baseWidth,this.calcLegs(bodyCount, i)));
 			} else {
-				this.segments.push(new creatureBody(jointPos,i,bodyColour[i],(this.calcTailWidth(bodyCount, this.length - i) + 0.1) * baseWidth,false));
+				this.segments.push(new creatureBody(jointPos,i,bodyColour[i],Math.max(0.4,this.calcTailWidth(bodyCount, this.length - i) + 0.1) * baseWidth,false));
 			}
 		}
 		this.segments.push(new creatureJoint(this.pos.add(new vector2(this.length * this.maxDist,this.length * this.maxDist)),this.length - 1,bodyColour[this.length - 1],this.calcTailWidth(bodyCount,this.length) * baseWidth));
@@ -112,7 +112,7 @@ export class creature {
 	}
 
 	update() {
-		for (let i = 0; i < this.length; i += 1) {
+		for (let i = this.length - 1; i >= 0; i --) {
 			this.segments[i].updateJoint(this.maxDist);
 		}
 	}
