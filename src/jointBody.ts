@@ -73,15 +73,9 @@ export class creatureBody extends creatureJoint {
 		
 		if (elbowDist > this.width) {
 			let delta = this.pos.subtract(elbowPos);
-			delta = delta.multiply(0.1);
-
-			this.pos = this.pos.add(delta);
-
-
-			let childDelta = this.pos.subtract(this.childJoint.pos);
-			childDelta = childDelta.multiply(0.1);
-
-			this.childJoint.pos = this.childJoint.pos.add(childDelta);
+			delta = delta.divide(this.width);
+			delta = delta.multiply(0.4);
+			this.pos = this.pos.subtract(delta);
 		}
 	}
 }

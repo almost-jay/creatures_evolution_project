@@ -1,4 +1,5 @@
-import { idCharas, preColours, vector2, hexToRgb } from "./globals"
+import { creatureTraits } from "./creatureTraits";
+import { idCharas, preColours, vector2, hexToRgb, idList } from "./globals"
 import { activeArea, canvas, creaturesDict, ctx } from "./initMain";
 import { creatureJoint } from "./jointBase";
 import { creatureBody } from "./jointBody";
@@ -12,6 +13,7 @@ export class creature {
 	id : string;
 	segments : Array<creatureJoint>;
 	head : creatureJoint;
+	properties : creatureTraits;
 
 	constructor(pos : vector2, length : number, maxDist : number, weights : number) {
 		this.pos = pos;
@@ -73,15 +75,9 @@ export class creature {
 	}
 
 	generateId() : void {
-		let idResult : Array<string> = [];
-		for (let i = 0; i < 4; i ++) {
-			idResult.push(idCharas[Math.floor(Math.random() * idCharas.length)]);
-		}
-		if (idResult.join("") in creaturesDict) {
-			this.generateId();
-		} else {
-			this.id = idResult.join("");
-		}
+		let idIndex = Math.random() * idList.length;
+		this.id = idList[idIndex];
+		idList.splice(idIndex,1);
 	}
 
 	generateColours() : any {

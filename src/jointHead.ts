@@ -29,7 +29,7 @@ export class creatureHead extends creatureBody {
 		let targDist = this.pos.distance(this.target);
 		let speed = 1;
 		
-		if (targDist > this.width * 2) {
+		if (targDist > this.width * 1.5) {
 			let delta = this.pos.subtract(this.target);
 			delta = delta.divide(this.width * 2);
 			delta = delta.multiply(speed);
@@ -59,7 +59,7 @@ export class creatureHead extends creatureBody {
 	}
 
 	updateJoint(maxDist : number): void {
-		//this.drawPath();
+		this.drawPath();
 		super.updateJoint(maxDist)
 		this.followPath();
 		this.drawEyes();
@@ -73,11 +73,28 @@ export class creatureHead extends creatureBody {
 			this.path[i] = new vector2(this.pos.x,this.pos.y);
 			let theta = Math.random() * 2 * Math.PI;
 			let f = (Math.random() ** (-1 / alpha)) + 128;
-			this.path[i].x = this.path[i - 1].x + (f * Math.cos(theta));
-			this.path[i].y = this.path[i - 1].y + (f * Math.sin(theta));
+
+			let xPos = this.path[i - 1].x + (f * Math.cos(theta));
+			let yPos = this.path[i - 1].x + (f * Math.sin(theta));
+			if (xPos >= 4032 ) {
+				xPos -= (Math.random() * (xPos - 4096)) + 32;
+			}
+			if (yPos >= 4032) {
+				yPos -= (Math.random() * (yPos - 4096)) + 32;
+			}
+
+			if (xPos <= 64) {
+				xPos += (Math.random() * xPos) + 32;
+			}
+			if (yPos <= 64) {
+				yPos += (Math.random() * yPos) + 32;
+			}
+
+			this.path[i].x = xPos;
+			this.path[i].y = yPos;
 		}
 		this.linearSmoothPath();
-		this.interpolatePath(2);
+		this.interpolatePath(4);
 	}
 
 	linearSmoothPath() {
@@ -121,8 +138,8 @@ export class creatureHead extends creatureBody {
 		for (let t = 0; t < 1; t += 0.005) {
 			result.push(this.interpolate(t,degree,knots));
 			if (Math.floor(t * 100) % 2 == 0) {
-				result[result.length - 1].y += (Math.random() + 1) * 16;
-				result[result.length - 1].x += (Math.random() + 1) * 16;
+				result[result.length - 1].y += (Math.random() + 1) * 6;
+				result[result.length - 1].x += (Math.random() + 1) * 6;
 			}
 		}
 
@@ -143,10 +160,10 @@ export class creatureHead extends creatureBody {
 	}
 
 	interpolate(t : number, degree : number, knots : Array<number>) {
-		var n = this.path.length;
+		let n = this.path.length;
 
-		var low  = knots[degree];
-		var high = knots[knots.length - 1];
+		let low  = knots[degree];
+		let high = knots[knots.length - 1];
 		t = t * (high - low) + low;
 	  
 		let s = degree;
@@ -156,20 +173,20 @@ export class creatureHead extends creatureBody {
 		  }
 		}
 	  
-		let v : Array<vector2> = [];
+		let d : Array<vector2> = [];
 
 		for (let i = 0; i < n; i++) {
-			v.push(new vector2(this.path[i].x,this.path[i].y));
+			d.push(new vector2(this.path[i].x,this.path[i].y));
 		}
 
 		for(let i = 1; i <= degree + 1; i++) {
 		  for(let j = s; j > s - degree - 1 + i; j--) {
 			let alpha = (t - knots[j]) / (knots[j + degree + 1 - i] - knots[j]);
-			v[j] = (v[j - 1].multiply(1 - alpha)).add(v[j].multiply(alpha));
+			d[j] = (d[j - 1].multiply(1 - alpha)).add(d[j].multiply(alpha));
 
 		  }
 		}
 	  
-		return new vector2(v[s].x / 1,v[s].y / 1);
+		return new vector2(d[s].x / 1,d[s].y / 1);
 	  }
 }

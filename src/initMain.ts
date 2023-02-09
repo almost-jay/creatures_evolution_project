@@ -1,6 +1,6 @@
 import { webFrame } from "electron";
 import { creature } from "./creatureMain";
-import { vector2 } from "./globals";
+import { initIdList, vector2 } from "./globals";
 
 export var appId : number;
 
@@ -116,3 +116,4 @@ setupApp();
 tick();
 updateViewportInfo();
 addDemoCreatures();
+initIdList();
