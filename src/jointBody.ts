@@ -1,5 +1,5 @@
 import { vector2 } from "./globals";
-import { activeArea, ctx } from "./initMain";
+import { activeArea, ctx, isPanning, isPaused } from "./initMain";
 import { creatureJoint } from "./jointBase";
 import { creatureLeg } from "./limbLeg";
 
@@ -20,6 +20,16 @@ export class creatureBody extends creatureJoint {
 	}
 
 	renderSegment() {
+		ctx.strokeStyle = this.colour;
+		ctx.lineWidth = this.width;
+		ctx.beginPath();
+		ctx.moveTo(this.pos.x,this.pos.y);
+		ctx.lineTo(this.childJoint.pos.x,this.childJoint.pos.y);
+		ctx.stroke();
+		ctx.closePath();
+	}
+
+	renderLegs() {
 		if (this.legs !== undefined) {
 			for (let i = 0; i < this.legs.length; i++) {
 				this.legs[i].updateLimb(this.pos,this.childJoint.pos);
@@ -28,14 +38,6 @@ export class creatureBody extends creatureJoint {
 				}
 			}
 		}
-
-		ctx.strokeStyle = this.colour;
-		ctx.lineWidth = this.width;
-		ctx.beginPath();
-		ctx.moveTo(this.pos.x,this.pos.y);
-		ctx.lineTo(this.childJoint.pos.x,this.childJoint.pos.y);
-		ctx.stroke();
-		ctx.closePath();
 	}
 
 	initLegs() {
@@ -59,9 +61,12 @@ export class creatureBody extends creatureJoint {
 	}
 
 	updateJoint(maxDist : number): void {
-		this.move(maxDist);
+		if (!isPaused) {
+			this.move(maxDist);
+		}
 		if (this.pos.x > activeArea[0].x && this.pos.x < activeArea[1].x) {
 			if (this.pos.y > activeArea[0].y && this.pos.y < activeArea[1].y) {
+				this.renderLegs();
 				this.renderSegment();
 			}
 		}

@@ -38,7 +38,6 @@ export class creatureLeg {
 
 	updateLimb(joinPos : vector2, childJointPos: vector2) {
 		this.updateLimbPos(joinPos,childJointPos);
-		
 		ctx.lineWidth = this.width;
 
 		ctx.fillStyle = this.darkColour;
@@ -71,8 +70,8 @@ export class creatureLeg {
 		this.joinPos = joinPos;
 		this.jointAngle = this.joinPos.getAvgAngleRad(childJointPos);
 		
-		this.calcFootPos()
-		this.calcElbowPos()
+		this.calcFootPos();
+		this.calcElbowPos();
 
 	}
 

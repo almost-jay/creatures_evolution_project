@@ -1,6 +1,6 @@
 import { creatureTraits } from "./creatureTraits";
-import { idCharas, preColours, vector2, hexToRgb, idList } from "./globals"
-import { activeArea, canvas, creaturesDict, ctx } from "./initMain";
+import { idCharas, preColours, vector2, hexToRgb, idList, randRange } from "./globals"
+import { activeArea, canvas, creaturesDict, ctx, isMouseDown, mousePos } from "./initMain";
 import { creatureJoint } from "./jointBase";
 import { creatureBody } from "./jointBody";
 import { creatureHead } from "./jointHead";
@@ -15,7 +15,8 @@ export class creature {
 	head : creatureJoint;
 	properties : creatureTraits;
 
-	constructor(pos : vector2, length : number, maxDist : number, weights : number) {
+	constructor(pos : vector2, length : number, maxDist : number, weights : number, parentProps : Array<creatureTraits> | null) {
+		this.properties = new creatureTraits(parentProps);
 		this.pos = pos;
 		this.length = length;
 		this.maxDist = maxDist;
@@ -26,6 +27,8 @@ export class creature {
 
 		this.generateId();
 		creaturesDict[this.id] = this;
+
+		console.log(this.properties);
 	}
 
 	initJoints() {
@@ -46,6 +49,7 @@ export class creature {
 		for (let i = 0; i < this.length - 1; i++) {
 			this.segments[i].childJoint = this.segments[i + 1];
 		}
+		this.segments[1].width *= 1.4;
 		
 	}
 
@@ -75,7 +79,7 @@ export class creature {
 	}
 
 	generateId() : void {
-		let idIndex = Math.random() * idList.length;
+		let idIndex = randRange(0,idList.length);
 		this.id = idList[idIndex];
 		idList.splice(idIndex,1);
 	}

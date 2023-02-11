@@ -1,6 +1,6 @@
 import { webFrame } from "electron";
 import { creature } from "./creatureMain";
-import { initIdList, vector2 } from "./globals";
+import { cursors, initIdList, vector2 } from "./globals";
 
 export var appId : number;
 
@@ -8,7 +8,11 @@ export const canvas = document.getElementById("canvas") as HTMLCanvasElement;
 export const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
 export var activeArea : Array<vector2> = [];
 export var isMouseDown : boolean;
+export var isPanning : boolean;
 export var windowInfo : Array<number> = [0,0];
+export var mousePos = new vector2(0,0);
+
+export var isPaused : boolean = false;
 
 export var creaturesList : Array<creature> = [];
 export var creaturesDict : { [key: string]: creature } = {};
@@ -19,30 +23,44 @@ function setupApp() {
 	let holdX : number;
 	let holdY : number;
 	isMouseDown = false;
-	document.addEventListener("mousedown", () => {
+	document.addEventListener("mousedown", (event) => {
 		updateViewportInfo();
 		if (!isMouseDown) {
 			isMouseDown = true;
+			if (event.button == 2) {
+				isPanning = true;
+			}
+			
 		}
 	});
 	document.addEventListener("mouseup", () => {
 		updateViewportInfo();
 		if (isMouseDown) {
 			isMouseDown = false;
-			canvas.style.cursor = "default";
+			isPanning = false;
+			canvas.style.cursor = "url('./assets/arrow-pointer-solid.svg') 5 8, pointer";
 		}
 	});
 	
 	document.addEventListener("mousemove", (event : MouseEvent) => {
 		updateViewportInfo();
 		navigateCanvas(event);
+		mousePos.x = event.clientX;
+		mousePos.y = event.clientY;
+	});
+
+	document.addEventListener("keydown", (event: KeyboardEvent) => {
+		if (event.key == "Escape") {
+			isPaused = !isPaused;
+			console.log(isPaused);
+		}
 	});
 
 	function navigateCanvas(event : MouseEvent) {
-		if (isMouseDown) {
-			canvas.style.cursor = "pointer";
+		if (isPanning) {			
 			window.scrollBy(holdX - event.clientX, holdY - event.clientY);
 			updateViewportInfo();
+			canvas.style.cursor = "url('./assets/arrows-up-down-left-right-solid.svg') 8 8, move";
 		}
 		holdX = event.clientX;
 		holdY = event.clientY;
@@ -99,6 +117,7 @@ function renderCreatures() {
 	}
 }
 
+
 function addDemoCreatures() {
 	let crNo = (Math.random() * 2) + 4
 	crNo = 1;
@@ -106,7 +125,7 @@ function addDemoCreatures() {
 		let xOffset = (Math.random() * 1024) + 1024;
 		let yOffset = (Math.random() * 1024) + 1024;
 		let legCount = Math.floor(Math.random() * 4);
-		creaturesList.push(new creature(new vector2(1280,1280),16,8,legCount));
+		creaturesList.push(new creature(new vector2(1280,1280),16,8,legCount,null));
 
 		document.getElementById("testpopout")!.innerHTML = (creaturesList.length).toString();
 	}
