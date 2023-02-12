@@ -15,5 +15,8 @@ export class creatureJoint {
 		this.width = width;
 	}
 
-	updateJoint(maxDist : number) {}
+	updateJoint(maxDist : number, state: string) {}
+	moveByDrag(maxDist : number) {
+		this.pos.y += maxDist * 0.75;
+	}
 }

@@ -124,8 +124,7 @@ function addDemoCreatures() {
 	for (let i = 0; i < crNo; i ++) {
 		let xOffset = (Math.random() * 1024) + 1024;
 		let yOffset = (Math.random() * 1024) + 1024;
-		let legCount = Math.floor(Math.random() * 4);
-		creaturesList.push(new creature(new vector2(1280,1280),16,8,legCount,null));
+		creaturesList.push(new creature(new vector2(1280,1280),16,8,null));
 
 		document.getElementById("testpopout")!.innerHTML = (creaturesList.length).toString();
 	}

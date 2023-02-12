@@ -15,7 +15,6 @@ export class creatureHead extends creatureBody {
 	path : Array<vector2>;
 	target : vector2;
 	targetIndex : number;
-	isMouseDragging : boolean;
 
 	constructor (pos : vector2, id : number, colour : string, width : number, eyeSpacing : number, eyeColour : string, hasLegs : boolean) {
 		super(pos, id, colour, width,hasLegs)
@@ -24,7 +23,6 @@ export class creatureHead extends creatureBody {
 		this.generatePath();
 		this.targetIndex = 0;
 		this.target = this.path[this.targetIndex];
-		this.isMouseDragging = false;
 	}
 
 	followPath() {
@@ -41,9 +39,7 @@ export class creatureHead extends creatureBody {
 				this.targetIndex += 1;
 				this.target = this.path[this.targetIndex];
 			} else {
-				this.targetIndex = 0;
 				this.generatePath();
-				this.target = this.path[0];
 			}
 		}
 
@@ -60,22 +56,26 @@ export class creatureHead extends creatureBody {
 		ctx.fill();
 	}
 
-	updateJoint(maxDist : number): void {
+	updateJoint(maxDist : number, state: string): void {
+		super.updateJoint(maxDist, state);
 		//this.drawPath();
-		if (this.checkMouse() == false) {
-			super.updateJoint(maxDist);
-			if (!isPaused) {
-				this.followPath();
+		if (!isPaused) {
+			switch(state) {
+				case "idle":
+					this.drawEyes();
+					this.followPath();
+					break;
+				case "mouseDragging":
+					this.drawEyes();
+					break;
 			}
-		} else {
-			super.updateJoint(2);
 		}
-		this.drawEyes();
 	}
 
 	generatePath() {
 		let alpha = 4;
 		let pathLength = 32;
+		this.targetIndex = 0;
 		this.path = [new vector2(this.pos.x,this.pos.y)];
 		for (let i = 1; i < pathLength; i++) {
 			this.path[i] = new vector2(this.pos.x,this.pos.y);
@@ -103,6 +103,7 @@ export class creatureHead extends creatureBody {
 		}
 		this.linearSmoothPath();
 		this.interpolatePath(4);
+		this.target = this.path[0];
 	}
 
 	linearSmoothPath() {
@@ -197,21 +198,9 @@ export class creatureHead extends creatureBody {
 	  
 		return new vector2(d[s].x / 1,d[s].y / 1);
 	  }
-	  
-	checkMouse() {
-		let result = false
-		let mouseCoordPos = new vector2(activeArea[0].x + 24 + mousePos.x,activeArea[0].y + 24 + mousePos.y);
-		if (this.pos.distance(mouseCoordPos) < this.width || this.isMouseDragging) {
-			if (isMouseDown) {
-				this.isMouseDragging = true;
-				canvas.style.cursor = "url('./assets/hand-back-fist-solid.svg') 5 8, pointer";
-				this.pos = mouseCoordPos;
-				result = true;
-			} else {
-				canvas.style.cursor = "url('./assets/hand-solid.svg') 5 8, pointer";
-				this.isMouseDragging = false;
-			}
-		}
-		return result;
+
+	  moveByDrag(maxDist : number): void {
+		super.moveByDrag(maxDist);
+		this.pos = new vector2(activeArea[0].x + 24 + mousePos.x,activeArea[0].y + 24 + mousePos.y);
 	}
 }

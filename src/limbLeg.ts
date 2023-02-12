@@ -36,8 +36,11 @@ export class creatureLeg {
 		return result;
 	}
 
-	updateLimb(joinPos : vector2, childJointPos: vector2) {
-		this.updateLimbPos(joinPos,childJointPos);
+	updateLimb(joinPos : vector2, childJointPos: vector2,state: string) {
+		this.updateLimbPos(joinPos,childJointPos,state);
+	}
+
+	renderLimb() {
 		ctx.lineWidth = this.width;
 
 		ctx.fillStyle = this.darkColour;
@@ -63,14 +66,17 @@ export class creatureLeg {
 		ctx.lineTo(this.elbowPos.x,this.elbowPos.y);
 		ctx.stroke();
 		ctx.closePath();
-
 	}
 
-	updateLimbPos(joinPos : vector2, childJointPos : vector2) {
+	updateLimbPos(joinPos : vector2, childJointPos : vector2,state: string) {
 		this.joinPos = joinPos;
 		this.jointAngle = this.joinPos.getAvgAngleRad(childJointPos);
 		
-		this.calcFootPos();
+		if (state == "mouseDragging") {
+			this.footPos = this.calcFootDragPos();
+		} else {
+			this.calcFootPos();
+		}
 		this.calcElbowPos();
 
 	}
@@ -101,7 +107,7 @@ export class creatureLeg {
 	calcFootCheckPos() : vector2 {
 		let limbSpacing = this.length * 2;
 		let footStepPos = new vector2(limbSpacing * -1 * Math.cos(this.jointAngle - (Math.PI * this.side)) + this.joinPos.x,limbSpacing * -1 * Math.sin(this.jointAngle - (Math.PI * this.side)) + this.joinPos.y);
-		return new vector2(limbSpacing * Math.cos(this.jointAngle - (Math.PI * this.legAngle * this.side)) + footStepPos.x,limbSpacing * Math.sin(this.jointAngle - (Math.PI * this.legAngle * this.side)) + footStepPos.y)
+		return new vector2(limbSpacing * Math.cos(this.jointAngle - (Math.PI * this.legAngle * this.side)) + footStepPos.x,limbSpacing * Math.sin(this.jointAngle - (Math.PI * this.legAngle * this.side)) + footStepPos.y);
 	}
 	
 	calcElbowPos() {
@@ -122,4 +128,17 @@ export class creatureLeg {
 		
 		this.footPos = this.footPos.subtract(delta);
 	}
+
+	
+	calcFootDragPos() : vector2 {
+		let limbSpacing = this.length * 1.4;
+		let dragAngle = 1.1;
+		let footStepPos = new vector2(limbSpacing * Math.cos(this.jointAngle - (Math.PI * this.side)) + this.joinPos.x,limbSpacing * Math.sin(this.jointAngle - (Math.PI * this.side)) + this.joinPos.y);
+		return new vector2(limbSpacing * Math.cos(this.jointAngle - (Math.PI * dragAngle * this.side)) + footStepPos.x,limbSpacing * Math.sin(this.jointAngle - (Math.PI * dragAngle * this.side)) + footStepPos.y);
+	}
+
+	//1 is east
+	//2/pi is north
+	// - 2/pi is south
+	//-pi is west OR pi is west
 }

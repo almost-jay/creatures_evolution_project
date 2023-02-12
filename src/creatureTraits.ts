@@ -30,10 +30,19 @@ export class creatureTraits {
 				"visionDistance": new trait(randRange(8,256),randRange(8,256),randRange(0,1),[randRange(-1,1),randRange(-1,1)]),
 				"visionAngle": new trait(randRange(12,160),randRange(12,180),randRange(0,1),[randRange(-1,1),randRange(-1,1)]),
 				"toxicity": new trait(randRange(0,5),randRange(0,5),randRange(0,1),[randRange(-1,1),randRange(-1,1)]),
-			}
+			};
 		}
 	}
 }
+
+//health is leg count
+//strength is R, 
+//health is G, low health animals look sickly
+//diet is like... darkness
+//speed is leg length
+//vision distance is eye lightness
+//vision angle is how far apart le eyes are
+//toxic ones have black stripes
 
 export class trait {
 	value: number;
@@ -42,7 +51,11 @@ export class trait {
 	attitude: Array<number>;
 	constructor(value: number, display: number, cost : number, attitude : Array<number>) {
 		this.value = value;
-		this.display = display;
+		if (Math.random() < 0.05) {
+			this.display = display;
+		} else {
+			this.display = value;
+		}
 		this.cost = cost;
 		this.attitude = attitude;
 	}

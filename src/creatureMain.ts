@@ -12,15 +12,16 @@ export class creature {
 	weights : number;
 	id : string;
 	segments : Array<creatureJoint>;
-	head : creatureJoint;
+	head : creatureHead;
 	properties : creatureTraits;
+	state : string;
 
-	constructor(pos : vector2, length : number, maxDist : number, weights : number, parentProps : Array<creatureTraits> | null) {
+	constructor(pos : vector2, length : number, maxDist : number, parentProps : Array<creatureTraits> | null) {
 		this.properties = new creatureTraits(parentProps);
 		this.pos = pos;
 		this.length = length;
 		this.maxDist = maxDist;
-		this.weights = weights;
+		this.weights = Math.floor(this.properties.traits.speed.display / 4);
 		
 		this.segments = [];
 		this.initJoints();
@@ -28,7 +29,7 @@ export class creature {
 		this.generateId();
 		creaturesDict[this.id] = this;
 
-		console.log(this.properties);
+		this.state = "idle";
 	}
 
 	initJoints() {
@@ -36,7 +37,8 @@ export class creature {
 		let bodyColour = this.generateColours();
 		let baseWidth = 8;
 
-		this.segments.push(new creatureHead(this.pos,0,bodyColour[0],baseWidth * 1.3,baseWidth * 0.5,"#FFFFFF",false));
+		this.head = new creatureHead(this.pos,0,bodyColour[0],baseWidth * 1.3,baseWidth * 0.5,"#FFFFFF",false);
+		this.segments.push(this.head);
 		for (let i = 1; i < this.length - 1; i++ ) {
 			let jointPos = this.pos.add(new vector2(i * this.maxDist,i * this.maxDist));
 			if (i < bodyCount) {
@@ -50,7 +52,6 @@ export class creature {
 			this.segments[i].childJoint = this.segments[i + 1];
 		}
 		this.segments[1].width *= 1.4;
-		
 	}
 
 	calcBodyWidth(bodyCount : number, x : number) {
@@ -111,9 +112,32 @@ export class creature {
 
 	}
 
-	update() {
-		for (let i = this.length - 1; i >= 0; i --) {
-			this.segments[i].updateJoint(this.maxDist);
+	checkMouse() {
+		let mouseCoordPos = new vector2(activeArea[0].x + 24 + mousePos.x,activeArea[0].y + 24 + mousePos.y);
+		if (this.pos.distance(mouseCoordPos) < this.head.width * 4 || this.state == "mouseDragging") {
+			if (isMouseDown) {
+				canvas.style.cursor = "url('./assets/hand-back-fist-solid.svg') 5 8, pointer";
+				this.state = "mouseDragging";
+			} else if (this.state == "mouseDragging") {
+				this.head.generatePath()
+				canvas.style.cursor = "url('./assets/hand-solid.svg') 5 8, pointer";
+				this.state = "idle";
+			}
+		} else if (this.state == "mouseDragging") {
+			this.head.generatePath();
+			canvas.style.cursor = "url('./assets/arrow-pointer-solid.svg') 5 8, pointer";
+			this.state = "idle";
 		}
+	}
+
+	update() {
+		this.checkMouse();
+		for (let i = this.length - 1; i >= 0; i --) {
+			this.segments[i].updateJoint(this.maxDist,this.state);
+			if (this.state == "mouseDragging") {
+				this.segments[i].moveByDrag(this.maxDist);
+			}
+		}
+		this.pos = this.head.pos;
 	}
 }

@@ -29,10 +29,11 @@ export class creatureBody extends creatureJoint {
 		ctx.closePath();
 	}
 
-	renderLegs() {
+	updateLegs(state: string) {
 		if (this.legs !== undefined) {
 			for (let i = 0; i < this.legs.length; i++) {
-				this.legs[i].updateLimb(this.pos,this.childJoint.pos);
+				this.legs[i].updateLimb(this.pos,this.childJoint.pos,state);
+				this.legs[i].renderLimb();
 				if (this.legs[i].isFootUp) {
 					this.skewBodyByFoot(this.legs[i].elbowPos);
 				}
@@ -60,17 +61,17 @@ export class creatureBody extends creatureJoint {
 		}
 	}
 
-	updateJoint(maxDist : number): void {
+	updateJoint(maxDist : number, state: string): void {
 		if (!isPaused) {
 			this.move(maxDist);
 		}
 		if (this.pos.x > activeArea[0].x && this.pos.x < activeArea[1].x) {
 			if (this.pos.y > activeArea[0].y && this.pos.y < activeArea[1].y) {
-				this.renderLegs();
+				this.updateLegs(state);
 				this.renderSegment();
 			}
 		}
-		super.updateJoint(maxDist);
+		super.updateJoint(maxDist, state);
 	}
 
 	skewBodyByFoot(elbowPos : vector2) : void {
@@ -81,6 +82,15 @@ export class creatureBody extends creatureJoint {
 			delta = delta.divide(this.width);
 			delta = delta.multiply(0.4);
 			this.pos = this.pos.subtract(delta);
+		}
+	}
+
+	moveByDrag(maxDist: number): void {
+		super.moveByDrag(maxDist);
+		if (this.legs !== undefined) {
+			for (let i = 0; i < this.legs.length; i++) {
+				this.legs[i].isFootUp = true;
+			}
 		}
 	}
 }
