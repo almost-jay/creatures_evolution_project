@@ -1,7 +1,8 @@
 import { vector2 } from "./globals";
 import { creatureJoint } from "./jointBase";
 import { creatureBody } from "./jointBody";
-import { ctx, canvas, isMouseDown, activeArea, mousePos, isPaused } from "./initMain";
+import { ctx, canvas, isLeftMouseDown, activeArea, mousePos, isPaused, creaturesList } from "./initMain";
+import { creatureTraits, relationship, trait } from "./creatureTraits";
 
 export class creatureHead extends creatureBody {
 	pos : vector2;
@@ -202,5 +203,44 @@ export class creatureHead extends creatureBody {
 	  moveByDrag(maxDist : number): void {
 		super.moveByDrag(maxDist);
 		this.pos = new vector2(activeArea[0].x + 24 + mousePos.x,activeArea[0].y + 24 + mousePos.y);
+	}
+
+	checkSenses() {
+		for (let i = 0; i < creaturesList.length; i++) {
+			let checkDist = creaturesList[i].head.pos.distance(this.pos);
+			if (checkDist < this.properties.traits.visionDistance.value) {
+				if (this.castVision(creaturesList[i].head.pos)) {
+					if (this.properties.relationships[creaturesList[i].id] == undefined) {
+						this.properties.relationships[creaturesList[i].id] = new relationship(creaturesList[i],true,false);
+					} else {
+						this.properties.relationships[creaturesList[i].id].canSee = true;
+					}
+				}
+			} if (checkDist < this.properties.traits.hearingDistance.value) {
+				if (this.properties.relationships[creaturesList[i].id] == undefined) {
+					this.properties.relationships[creaturesList[i].id] = new relationship(creaturesList[i],false,true);
+					this.calcAttitude(creaturesList[i].properties.traits);
+				} else {
+					this.properties.relationships[creaturesList[i].id].canHear = true;
+				}
+			}
+		}
+	}
+
+	calcAttitude(creatureTraits: { [id: string] : trait }) {
+		
+	}
+
+	calcInteractions() {
+		
+	}
+
+	castVision(checkPos: vector2) {
+		let result = false;
+		let sight_angle = Math.abs(this.angle - this.pos.getAvgAngleDeg(checkPos));
+		if (sight_angle < this.properties.traits.visionAngle.value) {
+			result = true;
+		}
+		return result;
 	}
 }
