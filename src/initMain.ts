@@ -1,6 +1,7 @@
 import { webFrame } from "electron";
 import { creature } from "./creatureMain";
-import { cursors, initIdList, vector2 } from "./globals";
+import { initIdList, vector2 } from "./globals";
+import { clearGrid, initGrid } from "./handleGrid";
 
 export var appId : number;
 
@@ -11,11 +12,25 @@ export var isMouseDown : boolean;
 export var isPanning : boolean;
 export var windowInfo : Array<number> = [0,0];
 export var mousePos = new vector2(0,0);
+export var heldMousePos = new vector2(0,0);
 
 export var isPaused : boolean = false;
 
 export var creaturesList : Array<creature> = [];
 export var creaturesDict : { [key: string]: creature } = {};
+
+
+export var debugPrefs : { [key: string]: boolean } = {
+	"visionCone": false,
+	"hearingRange": false,
+	"senseArea": false,
+	"hitboxGrid": false,
+};
+
+export var isWheelShowing : boolean = false;
+var wheelSelection : number = 0;
+var wheelPos : vector2 = new vector2(mousePos.x,mousePos.y);
+var isConsoleOpen : boolean = false;
 
 function setupApp() {
 	ctx.lineCap = "round";
@@ -52,22 +67,107 @@ function setupApp() {
 	document.addEventListener("keydown", (event: KeyboardEvent) => {
 		if (event.key == "Escape") {
 			isPaused = !isPaused;
-			console.log(isPaused);
+		} else if (event.code == "Backquote" && !isWheelShowing) {
+			wheelPos = new vector2(mousePos.x,mousePos.y);
+			showWheel();
+		} else if (event.code == "Slash") {
+			toggleCommandBox();
+		} else if (event.code == "Enter") {
+			acceptCommand();
 		}
 	});
 
-	function navigateCanvas(event : MouseEvent) {
-		if (isPanning) {			
-			window.scrollBy(holdX - event.clientX, holdY - event.clientY);
-			updateViewportInfo();
-			canvas.style.cursor = "url('./assets/arrows-up-down-left-right-solid.svg') 8 8, move";
+	document.addEventListener("keyup", (event: KeyboardEvent) => {
+		if (event.code =="Backquote" && isWheelShowing) {
+			hideWheel();
 		}
-		holdX = event.clientX;
-		holdY = event.clientY;
+	});
+	initNavigation();
+}
+
+function toggleCommandBox() {
+	let commandbar = document.getElementById("commandbar") as HTMLInputElement;
+	if (commandbar != undefined) {
+		if (isConsoleOpen) {
+			isConsoleOpen = false;
+			isPaused = false;
+		} else {
+			commandbar.focus();
+			isConsoleOpen = true;
+			isPaused = true;
+
+			commandbar.value = "";
+		}
+	} else {
+		console.error("Could not find console/commandbar element!");
+	}
+}
+
+function acceptCommand() {
+	let commandbar = document.getElementById("commandbar") as HTMLInputElement;
+	if (commandbar != undefined) {
+		let command = (commandbar.value).replace("/","");
+		debugPrefs[command] = !debugPrefs[command];
+		toggleCommandBox();
+		commandbar.value = "";
+	} else {
+		console.error("Could not find console/commandbar element!");
+	}
+}
+
+function showWheel() {
+	if (wheel !== null) {
+		isWheelShowing = true;
+		
+		wheel.style.left = mousePos.x.toString();
+		wheel.style.top = mousePos.y.toString();
+		wheel.classList.add('on');
+		wheelPos = new vector2(mousePos.x,mousePos.y);
+	} else {
+		console.error("Could not find wheel element!");
+	}
+}
+
+function hideWheel() {
+	if (wheel !== null) {
+		isWheelShowing = false;
+		wheel.setAttribute("data-chosen", "0");
+		wheel.classList.remove("on");
+		
+		var tool = wheelSelection;
+			// let panel = document.getElementById("callout");
+			// if (panel != null && panel != undefined) {
+			// 	panel.style.display = "inline";
+			// }
+	} else {
+		console.error("Could not find wheel element!");
+	}
+}
+
+function updateWheel() {
+	let delta = mousePos.subtract(wheelPos);
+	let magnitude = delta.getMagnitude();
+	wheelSelection = 0;
+	
+	if (magnitude >= 5 && magnitude <= 250) {
+		let deg = Math.atan2(delta.y,delta.x) + 0.625 * Math.PI;
+		while (deg < 0) {
+			deg += Math.PI * 2;
+		}
+		wheelSelection = Math.floor(deg / Math.PI * 2) + 1;
 	}
 
-	initNavigation();
+wheel.setAttribute('data-chosen', wheelSelection.toString());
+}
 
+function navigateCanvas(event : MouseEvent) {
+	if (isRightMouseDown) {			
+		window.scrollBy(heldMousePos.x - event.clientX, heldMousePos.y - event.clientY);
+		updateViewportInfo();
+		canvas.style.cursor = "url('./assets/arrows-up-down-left-right-solid.svg') 8 8, move";
+	}
+	heldMousePos.x = event.clientX;
+	heldMousePos.y = event.clientY;
 }
 
 function initNavigation() {
@@ -86,6 +186,7 @@ function tick() : void {
 	updateViewportInfo();
 	clearCanvas();
 	drawGrid();
+	clearGrid();
 	renderCreatures();
 	requestAnimationFrame(() => tick());
 }
@@ -96,9 +197,9 @@ function clearCanvas() : void {
 }
 
 function drawGrid() {
-	ctx.strokeStyle = "#FAFAFA";
+	ctx.strokeStyle = "#D6D6D6";
 	ctx.lineWidth = 2;
-    ctx.beginPath(); 
+    ctx.beginPath();
     for (let i = 0; i <= canvas.width; i += 256) {
             ctx.moveTo(i, 0);
             ctx.lineTo(i, canvas.height);
@@ -119,19 +220,19 @@ function renderCreatures() {
 
 
 function addDemoCreatures() {
-	let crNo = (Math.random() * 2) + 4
-	crNo = 1;
+	let crNo = (Math.random() * 2) + 1;
 	for (let i = 0; i < crNo; i ++) {
 		let xOffset = (Math.random() * 1024) + 1024;
 		let yOffset = (Math.random() * 1024) + 1024;
-		creaturesList.push(new creature(new vector2(1280,1280),16,8,null));
+		creaturesList.push(new creature(new vector2(xOffset,yOffset),16,8,null));
 
 		document.getElementById("testpopout")!.innerHTML = (creaturesList.length).toString();
 	}
 }
 
 setupApp();
+initIdList();
+initGrid();
 tick();
 updateViewportInfo();
 addDemoCreatures();
-initIdList();

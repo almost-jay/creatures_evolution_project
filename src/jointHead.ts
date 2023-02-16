@@ -1,8 +1,10 @@
-import { vector2 } from "./globals";
+import { randRange, vector2 } from "./globals";
 import { creatureJoint } from "./jointBase";
 import { creatureBody } from "./jointBody";
-import { ctx, canvas, isLeftMouseDown, activeArea, mousePos, isPaused, creaturesList } from "./initMain";
+import { ctx, canvas, isLeftMouseDown, activeArea, mousePos, isPaused, creaturesList, creaturesDict, debugPrefs } from "./initMain";
 import { creatureTraits, relationship, trait } from "./creatureTraits";
+import { posGrid } from "./handleGrid";
+import { creature } from "./creatureMain";
 
 export class creatureHead extends creatureBody {
 	pos : vector2;
@@ -24,6 +26,8 @@ export class creatureHead extends creatureBody {
 		this.generatePath();
 		this.targetIndex = 0;
 		this.target = this.path[this.targetIndex];
+		this.isBlinking = false;
+		this.blinkIndex = Math.floor(randRange(-120,12));
 	}
 
 	followPath() {
@@ -49,6 +53,27 @@ export class creatureHead extends creatureBody {
 	drawEyes() {
 		this.angle = this.pos.getAvgAngleRad(this.childJoint.pos);
 		ctx.fillStyle = this.eyeColour;
+		if (!isPaused) {
+			if ((Math.random() < 0.01 && this.blinkIndex == 0) || this.blinkIndex < -120) {
+				this.isBlinking = true;
+				this.blinkIndex = 0;
+				ctx.fillStyle = this.colour;
+			}
+			else if (this.isBlinking) {
+				this.blinkIndex += 1;
+				ctx.fillStyle = this.colour;
+				if (this.blinkIndex > 12) {
+					this.isBlinking = false;
+				}
+			} else {
+				this.blinkIndex -= 1
+				ctx.fillStyle = this.eyeColour;
+			}
+		} else {
+			if (this.isBlinking) {
+				ctx.fillStyle = this.colour;
+			}
+		}
 		ctx.beginPath();
 		ctx.arc((this.eyeSpacing * Math.cos(this.angle - (Math.PI * 0.5))) + this.pos.x,(this.eyeSpacing * Math.sin(this.angle - (Math.PI * 0.5))) + this.pos.y,this.width * 0.22,0,2 * Math.PI);
 		ctx.fill();
@@ -60,14 +85,13 @@ export class creatureHead extends creatureBody {
 	updateJoint(maxDist : number, state: string): void {
 		super.updateJoint(maxDist, state);
 		//this.drawPath();
+		this.drawEyes();
 		if (!isPaused) {
 			switch(state) {
 				case "idle":
-					this.drawEyes();
 					this.followPath();
 					break;
 				case "mouseDragging":
-					this.drawEyes();
 					break;
 			}
 		}
@@ -206,29 +230,96 @@ export class creatureHead extends creatureBody {
 	}
 
 	checkSenses() {
-		for (let i = 0; i < creaturesList.length; i++) {
-			let checkDist = creaturesList[i].head.pos.distance(this.pos);
-			if (checkDist < this.properties.traits.visionDistance.value) {
-				if (this.castVision(creaturesList[i].head.pos)) {
-					if (this.properties.relationships[creaturesList[i].id] == undefined) {
-						this.properties.relationships[creaturesList[i].id] = new relationship(creaturesList[i],true,false);
+		let senseCreatures : Array<string> = this.getSlicedGrid();
+		let canSee = false;
+		let canHear = false;
+		for (let i = 0; i < senseCreatures.length; i++) {
+			let checkedCreature : creature = creaturesDict[senseCreatures[i]];
+			if (checkedCreature.head != this) {
+				let checkDist = checkedCreature.head.pos.distance(this.pos);
+				if (checkDist < this.properties.traits.visionDistance.value) {
+					if (this.castVision(checkedCreature.head.pos)) {
+						canSee = true;
+						if (this.properties.relationships[checkedCreature.id] == undefined) {
+							this.properties.relationships[checkedCreature.id] = new relationship(checkedCreature,true,false);
+						} else {
+							this.properties.relationships[checkedCreature.id].canSee = true;
+						}
+					}
+				} if (checkDist < this.properties.traits.hearingDistance.value) {
+					canHear = true;
+					if (this.properties.relationships[checkedCreature.id] == undefined) {
+						this.properties.relationships[checkedCreature.id] = new relationship(checkedCreature,false,true);
+						this.calcAttitude(checkedCreature.properties.traits,checkedCreature.id);
 					} else {
-						this.properties.relationships[creaturesList[i].id].canSee = true;
+						this.properties.relationships[checkedCreature.id].canHear = true;
 					}
 				}
-			} if (checkDist < this.properties.traits.hearingDistance.value) {
-				if (this.properties.relationships[creaturesList[i].id] == undefined) {
-					this.properties.relationships[creaturesList[i].id] = new relationship(creaturesList[i],false,true);
-					this.calcAttitude(creaturesList[i].properties.traits);
-				} else {
-					this.properties.relationships[creaturesList[i].id].canHear = true;
+			}
+		}
+
+		if (debugPrefs["visionCone"] == true) {
+			if (canSee) {
+				ctx.fillStyle = "#11FFCC11";
+			} else {
+				ctx.fillStyle = "#FFEEEE11";
+			}
+			ctx.beginPath();
+			ctx.moveTo(this.pos.x,this.pos.y);
+			ctx.arc(this.pos.x,this.pos.y,this.properties.traits.visionDistance.value,this.angle - (this.properties.traits.visionAngle.value), this.angle + (this.properties.traits.visionAngle.value));
+			ctx.lineTo(this.pos.x,this.pos.y);
+			ctx.closePath();
+			ctx.fill();
+		}
+
+		if (debugPrefs["hearingRange"] == true) {
+			if (canHear) {
+				ctx.fillStyle = "#FF660011";
+			} else {
+				ctx.fillStyle = "#FFAA2211";
+			}
+			ctx.beginPath();
+			ctx.arc(this.pos.x,this.pos.y,this.properties.traits.hearingDistance.value,0,2 * Math.PI);
+			ctx.fill();
+		}
+	}
+
+	getSlicedGrid() : Array<string> {
+		let maxSenseDist = Math.ceil(this.properties.traits.hearingDistance.value > this.properties.traits.visionDistance.value ? this.properties.traits.hearingDistance.value : this.properties.traits.visionDistance.value);
+		let startX = Math.round((this.pos.x - maxSenseDist) / 16);
+		let endX = Math.round((this.pos.x + maxSenseDist) / 16) + 1;
+		let startY = Math.round((this.pos.y - maxSenseDist) / 16);
+		let endY = Math.round((this.pos.y + maxSenseDist) / 16) + 1;
+		let senseArea = posGrid.slice(startX,endX).map(i => i.slice(startY,endY));
+		let senseCreatures : Array<string> = [];
+		for (let i = 0; i < senseArea.length; i++) {
+			for (let j = 0; j < senseArea[i].length; j++) {
+				let creatureId = senseArea[i][j];
+				if (creatureId != "") {
+					if (!senseCreatures.includes(creatureId)) {
+						senseCreatures.push(creatureId);
+					}
 				}
 			}
 		}
 	}
 
-	calcAttitude(creatureTraits: { [id: string] : trait }) {
-		
+	calcAttitude(creatureTraits: { [id: string] : trait }, id: string) {
+		let aggression = 0;
+		let respect = 0;
+		for (let key in creatureTraits) {
+			aggression += (creatureTraits[key].display * this.properties.traits[key].attitude[0]);
+			respect += (creatureTraits[key].display * this.properties.traits[key].attitude[1]);
+
+			let respectModifier = (creatureTraits[key].display - this.properties.traits[key].value) / (creatureTraits[key].display + 1);
+			respect += respectModifier;
+		}
+		let personality = this.properties.personality;
+		aggression += personality[0];
+		respect += personality[1];
+
+		this.properties.relationships[id].aggression += aggression; 
+		this.properties.relationships[id].aggression += respect; 
 	}
 
 	calcInteractions() {
@@ -237,7 +328,7 @@ export class creatureHead extends creatureBody {
 
 	castVision(checkPos: vector2) {
 		let result = false;
-		let sight_angle = Math.abs(this.angle - this.pos.getAvgAngleDeg(checkPos));
+		let sight_angle = Math.abs(checkPos.getAvgAngleRad(this.pos) - this.angle);
 		if (sight_angle < this.properties.traits.visionAngle.value) {
 			result = true;
 		}

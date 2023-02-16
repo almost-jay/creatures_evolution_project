@@ -1,0 +1,39 @@
+<html id = "_MAIN">
+<head>
+    <title>stickbugged</title>
+	<link rel = "stylesheet" href = "https://fonts.googleapis.com/css?family=Kanit">
+    <link rel = "stylesheet" href = "styles.css">
+	<link rel="stylesheet" href="all.css">
+</head>
+<body>
+	<div id = "holder">
+		<canvas id = "canvas" width = "4096" height = "4096" z-index = "-1"></canvas>
+	</div>
+    <div id="app"></div>
+
+	<div id = "popup"></div>
+	<div id = "sidenav" class = "sidenav">
+		<a id = "writeSave">Write Save</a>
+		<a id = "loadSave">Load Save</a>
+		<a id = "testpopout">Lorem Ipsum</a>
+	  </div>
+
+	<input id="commandbar" type="text" name="search" placeholder="">
+
+	  <div class="callout" id="callout">
+		<div class="closebtn" onclick="this.parentElement.style.display='none';">&times;</div>
+		<div class="callout-header">Lorem ipsum</div>
+		<div class="callout-container">
+			<p>Some text...</p>
+		</div>
+	</div>
+	<div class="wheel">
+		<div class="arc"><i class="fa-solid fa-hand-lizard"></i></div>
+		<div class="arc"><i class="fa-solid fa-magnifying-glass"></i></div>
+		<div class="arc"><i class="fa-solid fa-apple-whole"></i></div>
+		<div class="arc"><i class="fa-solid fa-pen"></i></div>
+	</div>
+</body>
+<script>
+    require("./compiled/initMain.js");
+</script>

@@ -23,13 +23,14 @@ export class creatureTraits {
 		} else {
 			this.personality = [(Math.random() - 0.5) * 2,(Math.random() - 0.5) * 2];
 			this.traits = {
-				"health": new trait(randRange(10,50),randRange(10,50),randRange(0,1),[randRange(-1,1),randRange(-1,1)]),
-				"strength": new trait(randRange(1,20),randRange(1,20),randRange(0,1),[randRange(-1,1),randRange(-1,1)]),
-				"diet": new trait(Math.floor(randRange(-1,1)),Math.floor(randRange(-1,1)),randRange(0,1),[randRange(-1,1),randRange(-1,1)]),
-				"speed": new trait(randRange(0.5,8),randRange(0.5,8),randRange(0,1),[randRange(-1,1),randRange(-1,1)]),
-				"visionDistance": new trait(randRange(8,256),randRange(8,256),randRange(0,1),[randRange(-1,1),randRange(-1,1)]),
-				"visionAngle": new trait(randRange(12,160),randRange(12,180),randRange(0,1),[randRange(-1,1),randRange(-1,1)]),
-				"toxicity": new trait(randRange(0,5),randRange(0,5),randRange(0,1),[randRange(-1,1),randRange(-1,1)]),
+				"health": new trait(10,50,randRange(0,1),[randRange(-1,1),randRange(-1,1)]),
+				"strength": new trait(1,20,randRange(0,1),[randRange(-1,1),randRange(-1,1)]),
+				"diet": new trait(-1,1,randRange(0,1),[randRange(-1,1),randRange(-1,1)]),
+				"speed": new trait(0.2,3,randRange(0,1),[randRange(-1,1),randRange(-1,1)]),
+				"visionDistance": new trait(12,512,randRange(0,1),[randRange(-1,1),randRange(-1,1)]),
+				"visionAngle": new trait(0.2,1.5,randRange(0,1),[randRange(-1,1),randRange(-1,1)]),
+				"hearingDistance": new trait(12,256,randRange(0,1),[randRange(-1,1),randRange(-1,1)]),
+				"toxicity": new trait(0,5,randRange(0,1),[randRange(-1,1),randRange(-1,1)]),
 			};
 		}
 	}

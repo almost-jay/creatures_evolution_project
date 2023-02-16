@@ -1,42 +1,44 @@
 {
-  "name": "creature_test",
-  "description": "just a test of electron",
-  "version": "1.0.0",
-  "author": "jensen grundy",
-  "main": "./compiled/index.js",
-  "build": {
-    "appId": "com.creature.test",
-    "icon": "assets/icon.ico",
-    "mac": {
-      "target": "zip",
-      "category": "your.app.category.type"
-    },
-    "win": {
-      "target": "zip"
-    },
-    "linux": {
-      "target": "AppImage"
-    }
-  },
-  "scripts": {
-    "start": "electron .",
-    "pack": "electron-builder --dir",
-    "dist": "electron-builder",
-    "package-mac": "electron-packager . --overwrite --platform=darwin --arch=x64 --icon=assets/icon.icns --prune=true --out=release-builds",
-    "package-win": "electron-packager . creatures_typescript_electron --overwrite --asar=true --platform=win32 --arch=ia32 --icon=assets/icon.ico --prune=true --out=release-builds --version-string.CompanyName=CE --version-string.FileDescription=CE --version-string.ProductName=\"Electron Tutorial App\"",
-    "package-linux": "electron-packager . creatures_typescript_electron --overwrite --asar=true --platform=linux --arch=x64 --icon=assets/icon.png --prune=true --out=release-builds",
-    "installer-mac": "electron-installer-dmg ./release-builds/creature_test-darwin-x64/creature_test.app creature_test --out=release-builds --overwrite --icon=assets/icon.icns"
-  },
-  "dependencies": {
-    "electron-squirrel-startup": "latest"
-  },
-  "devDependencies": {
-    "creature_test": "file:",
-    "electron": "latest",
-    "electron-builder": "^23.6.0",
-    "electron-packager": "^17.1.1",
-    "electron-squirrel-startup": "latest",
-    "eslint": "latest"
-  },
-  "postinstall": "electron-builder install-app-deps"
+	"name": "creature_test",
+	"description": "just a test of electron",
+	"version": "1.0.0",
+	"author": "jensen grundy <jayjayseven.g@gmail.com> (https://github.com/almost-jay/)",
+	"main": "./compiled/index.js",
+	"build": {
+		"appId": "com.creature.test",
+		"icon": "assets/icon.ico",
+		"mac": {
+			"target": "zip",
+			"category": "your.app.category.type"
+		},
+		"win": {
+			"target": "zip"
+		},
+		"linux": {
+			"category": "Simulation",
+			"icon": "assets/256x256.png",
+			"target": [
+				"AppImage"
+			]
+		}
+	},
+
+	"scripts": {
+		"start": "electron .",
+		"pack": "electron-builder --dir",
+		"dist": "electron-builder"
+	},
+	"dependencies": {
+		"electron-squirrel-startup": "latest",
+		"vue": "^3.2.47"
+	},
+	"devDependencies": {
+		"creature_test": "file:",
+		"electron": "latest",
+		"electron-builder": "^23.6.0",
+		"electron-packager": "^17.1.1",
+		"electron-squirrel-startup": "latest",
+		"eslint": "latest"
+	},
+	"postinstall": "electron-builder install-app-deps"
 }

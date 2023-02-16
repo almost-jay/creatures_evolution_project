@@ -1,4 +1,5 @@
 import { vector2 } from "./globals";
+import { posGrid } from "./handleGrid";
 import { ctx } from "./initMain";
 
 export class creatureLeg {
@@ -78,7 +79,6 @@ export class creatureLeg {
 			this.calcFootPos();
 		}
 		this.calcElbowPos();
-
 	}
 
 	calcFootPos() {

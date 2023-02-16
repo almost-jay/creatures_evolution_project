@@ -80,7 +80,7 @@ export class creature {
 	}
 
 	generateId() : void {
-		let idIndex = randRange(0,idList.length);
+		let idIndex = Math.floor(randRange(0,idList.length));
 		this.id = idList[idIndex];
 		idList.splice(idIndex,1);
 	}
@@ -131,12 +131,19 @@ export class creature {
 	}
 
 	update() {
-		this.checkMouse();
+		if (!isWheelShowing) {
+			this.checkMouse();
+		}
 		for (let i = this.length - 1; i >= 0; i --) {
 			this.segments[i].updateJoint(this.maxDist,this.state);
 			if (this.state == "mouseDragging") {
 				this.segments[i].moveByDrag(this.maxDist);
 			}
+			posGrid[Math.floor(this.segments[i].pos.x / 16)][Math.floor(this.segments[i].pos.y / 16)] = this.id;
+			posGrid[Math.floor((this.segments[i].pos.x + (this.segments[i].width / 2)) / 16)][Math.floor((this.segments[i].pos.y + (this.segments[i].width / 2)) / 16)] = this.id;
+			posGrid[Math.floor((this.segments[i].pos.x - (this.segments[i].width / 2)) / 16)][Math.floor((this.segments[i].pos.y + (this.segments[i].width / 2)) / 16)] = this.id;
+			posGrid[Math.floor((this.segments[i].pos.x + (this.segments[i].width / 2)) / 16)][Math.floor((this.segments[i].pos.y - (this.segments[i].width / 2)) / 16)] = this.id;
+			posGrid[Math.floor((this.segments[i].pos.x - (this.segments[i].width / 2)) / 16)][Math.floor((this.segments[i].pos.y - (this.segments[i].width / 2)) / 16)] = this.id;
 		}
 		this.pos = this.head.pos;
 	}
