@@ -29,6 +29,7 @@ export var debugPrefs : { [key: string]: boolean } = {
 	"hearingRange": false,
 	"senseArea": false,
 	"hitboxGrid": false,
+	"showId": false,
 };
 
 export var isWheelShowing : boolean = false;
@@ -128,9 +129,13 @@ function acceptCommand() {
 	let commandbar = document.getElementById("commandbar") as HTMLInputElement;
 	if (commandbar != undefined) {
 		let command = (commandbar.value).replace("/","");
-		debugPrefs[command] = !debugPrefs[command];
-		toggleCommandBox();
-		commandbar.value = "";
+		if (debugPrefs.hasOwnProperty(command)) {
+			debugPrefs[command] = !debugPrefs[command];
+			toggleCommandBox();
+			commandbar.value = "";
+		} else {
+			console.log("Command not recognised!");
+		}
 	} else {
 		console.error("Could not find console/commandbar element!");
 	}

@@ -1,7 +1,7 @@
 import { randRange, vector2 } from "./globals";
 import { creatureJoint } from "./jointBase";
 import { creatureBody } from "./jointBody";
-import { ctx, canvas, isLeftMouseDown, activeArea, mousePos, isPaused, creaturesList, creaturesDict, debugPrefs } from "./initMain";
+import { ctx, activeArea, mousePos, isPaused, creaturesDict, debugPrefs } from "./initMain";
 import { creatureTraits, relationship, trait } from "./creatureTraits";
 import { posGrid } from "./handleGrid";
 import { creature } from "./creatureMain";
@@ -91,6 +91,7 @@ export class creatureHead extends creatureBody {
 		//this.drawPath();
 		this.drawEyes();
 		if (!isPaused) {
+			this.checkSenses();
 			switch(state) {
 				case "idle":
 					this.followPath();
@@ -262,7 +263,7 @@ export class creatureHead extends creatureBody {
 			}
 		}
 
-		if (debugPrefs["visionCone"] == true) {
+		if (debugPrefs.visionCone) {
 			if (canSee) {
 				ctx.fillStyle = "#11FFCC11";
 			} else {
@@ -276,7 +277,7 @@ export class creatureHead extends creatureBody {
 			ctx.fill();
 		}
 
-		if (debugPrefs["hearingRange"] == true) {
+		if (debugPrefs.hearingRange) {
 			if (canHear) {
 				ctx.fillStyle = "#FF660011";
 			} else {
@@ -306,7 +307,25 @@ export class creatureHead extends creatureBody {
 				}
 			}
 		}
+
+		if (debugPrefs.senseArea) {
+			this.drawSenseArea(maxSenseDist,senseCreatures.length,senseCreatures);
+		}
 		return senseCreatures;
+	}
+
+	drawSenseArea(maxSenseDist: number,arrL : number,senseCreatures: Array<string>) {
+		let startX = Math.round((this.pos.x - maxSenseDist) / 16) * 16;
+		let startY = Math.round((this.pos.y - maxSenseDist) / 16) * 16;
+		let endX = Math.round((this.pos.x + maxSenseDist) / 16) * 16;
+		let endY = Math.round((this.pos.y + maxSenseDist) / 16) * 16;
+		
+		if (arrL > 1) {
+			ctx.fillStyle = "#11AAAA22";
+		} else {
+			ctx.fillStyle = "#22111166";
+		}
+		ctx.fillRect(startX,startY,endX - startX,endY - startY);
 	}
 
 	calcAttitude(creatureTraits: { [id: string] : trait }, id: string) {

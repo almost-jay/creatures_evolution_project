@@ -1,7 +1,7 @@
 import { creatureTraits } from "./creatureTraits";
 import { preColours, vector2, hexToRgb, idList, randRange } from "./globals"
 import { posGrid } from "./handleGrid";
-import { activeArea, canvas, creaturesDict, tool, isWheelShowing, isPaused, mousePos, isLeftMouseDown } from "./initMain";
+import { activeArea, canvas, creaturesDict, tool, isWheelShowing, isPaused, mousePos, isLeftMouseDown, debugPrefs, ctx } from "./initMain";
 import { creatureJoint } from "./jointBase";
 import { creatureBody } from "./jointBody";
 import { creatureHead } from "./jointHead";
@@ -134,7 +134,12 @@ export class creature {
 	}
 
 	update() {
-		if (!isWheelShowing) {
+		if (debugPrefs.showId) {
+			ctx.fillStyle = "#FAFAFA";
+			ctx.font ="12px mono";
+			ctx.fillText(this.id,this.segments[1].pos.x,this.segments[1].pos.y - this.head.width * 4);
+		}
+		if (!isWheelShowing && !isPaused) {
 			this.checkMouse();
 		}
 		for (let i = this.length - 1; i >= 0; i --) {
