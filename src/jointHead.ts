@@ -18,8 +18,11 @@ export class creatureHead extends creatureBody {
 	path : Array<vector2>;
 	target : vector2;
 	targetIndex : number;
+	isBlinking : boolean;
+	blinkIndex : number;
+	properties: creatureTraits;
 
-	constructor (pos : vector2, id : number, colour : string, width : number, eyeSpacing : number, eyeColour : string, hasLegs : boolean) {
+	constructor (pos : vector2, id : number, colour : string, width : number, eyeSpacing : number, eyeColour : string, hasLegs : boolean, properties : creatureTraits) {
 		super(pos, id, colour, width,hasLegs)
 		this.eyeSpacing = eyeSpacing;
 		this.eyeColour = eyeColour;
@@ -28,6 +31,7 @@ export class creatureHead extends creatureBody {
 		this.target = this.path[this.targetIndex];
 		this.isBlinking = false;
 		this.blinkIndex = Math.floor(randRange(-120,12));
+		this.properties = properties;
 	}
 
 	followPath() {
@@ -302,6 +306,7 @@ export class creatureHead extends creatureBody {
 				}
 			}
 		}
+		return senseCreatures;
 	}
 
 	calcAttitude(creatureTraits: { [id: string] : trait }, id: string) {

@@ -1,26 +1,18 @@
 <html id = "_MAIN">
 <head>
-    <title>stickbugged</title>
+    <title>start_screen</title>
 	<link rel = "stylesheet" href = "https://fonts.googleapis.com/css?family=Kanit">
 	<link rel="preconnect" href="https://fonts.googleapis.com">
 	<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira+Mono">
     <link rel = "stylesheet" href = "styles.css">
 </head>
 <body>
-	<div id = "popup"></div>
-	<div id = "sidenav" class = "sidenav">
-		<a id = "writeSave">Write Save</a>
-		<a id = "loadSave">Load Save</a>
-		<a id = "testpopout">Lorem Ipsum</a>
-	  </div>
-	
-	<div id = "holder">
-		<canvas id = "canvas" width = "4096" height = "4096" z-index = "-1"></canvas>
-	</div>
-    <div id="app"></div>
+	<img class="background" src="./assets/background-screen.svg"/>
+	<img class="screen_vector" src="./assets/icon-text.svg"/>
+	<button class="start_button"><a href="main_sim.html"><img src="./assets/start-text.svg"/></a></button>
+	<button class="load_file_button"><img src="./assets/load-file-text.svg"/></button>
+	<button class="preference_button"><img src="./assets/preferences-text.svg"/></button>
 
+	<button class="side_button help"><img src="./assets/question-solid.svg"></button>
+	<button class="side_button quit"><img src="./assets/power-off-solid.svg"></button>
 </body>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.9/dat.gui.js"></script>
-<script>
-    require("./compiled/initMain.js");
-</script>

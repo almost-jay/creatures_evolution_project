@@ -7,9 +7,13 @@ export var appId : number;
 
 export const canvas = document.getElementById("canvas") as HTMLCanvasElement;
 export const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
+
+export const wheel = document.querySelector('.wheel') as HTMLDivElement;
+export var tool: number = 0;
+
 export var activeArea : Array<vector2> = [];
-export var isMouseDown : boolean;
-export var isPanning : boolean;
+export var isLeftMouseDown : boolean = false;
+export var isRightMouseDown : boolean = false;
 export var windowInfo : Array<number> = [0,0];
 export var mousePos = new vector2(0,0);
 export var heldMousePos = new vector2(0,0);
@@ -35,26 +39,40 @@ var isConsoleOpen : boolean = false;
 function setupApp() {
 	ctx.lineCap = "round";
 	windowInfo = [window.innerWidth,window.innerHeight];
-	let holdX : number;
-	let holdY : number;
-	isMouseDown = false;
 	document.addEventListener("mousedown", (event) => {
 		updateViewportInfo();
-		if (!isMouseDown) {
-			isMouseDown = true;
+		if (!isLeftMouseDown) {
+			if (event.button == 0) {
+				isLeftMouseDown = true;
+			}			
+		}
+
+		if (event.button == 1) {
+			event.preventDefault();
+			showWheel();
+		}
+
+		if (!isRightMouseDown) {
 			if (event.button == 2) {
-				isPanning = true;
+				isRightMouseDown = true;
 			}
 			
 		}
 	});
 	document.addEventListener("mouseup", () => {
 		updateViewportInfo();
-		if (isMouseDown) {
-			isMouseDown = false;
-			isPanning = false;
+		if (isRightMouseDown) {
+			isRightMouseDown = false;
+		}
+		if (isLeftMouseDown) {
+			isLeftMouseDown = false;
+		}
+
+		if (!isLeftMouseDown && !isRightMouseDown) {
 			canvas.style.cursor = "url('./assets/arrow-pointer-solid.svg') 5 8, pointer";
 		}
+		
+		hideWheel()
 	});
 	
 	document.addEventListener("mousemove", (event : MouseEvent) => {
@@ -62,10 +80,13 @@ function setupApp() {
 		navigateCanvas(event);
 		mousePos.x = event.clientX;
 		mousePos.y = event.clientY;
+		if (isWheelShowing) {
+			updateWheel();
+		}
 	});
 
 	document.addEventListener("keydown", (event: KeyboardEvent) => {
-		if (event.key == "Escape") {
+		if (event.code == "Escape") {
 			isPaused = !isPaused;
 		} else if (event.code == "Backquote" && !isWheelShowing) {
 			wheelPos = new vector2(mousePos.x,mousePos.y);

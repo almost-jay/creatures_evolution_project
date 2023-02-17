@@ -1,6 +1,7 @@
+import { creature } from "./creatureMain";
 import { randRange } from "./globals";
 export class creatureTraits {
-	relationships: { [id : string] : number | string };
+	relationships: { [id : string] : relationship };
 	personality: Array<number>;
 	traits: { [id: string] : trait };
 	constructor(parentProps: Array<creatureTraits> | null) {
@@ -8,8 +9,8 @@ export class creatureTraits {
 
 		if (parentProps !== null) {
 		this.personality = [
-				((parentProps[0].personality[0] + parentProps[1].personality[0]) / 2) + ((Math.random() - 0.5) * 0.4),
-				((parentProps[0].personality[1] + parentProps[1].personality[1]) / 2) + ((Math.random() - 0.5) * 0.4)
+				((parentProps[0].personality[0] + parentProps[1].personality[0]) / 2) + ((Math.random() - 0.5) * 0.4), //aggression
+				((parentProps[0].personality[1] + parentProps[1].personality[1]) / 2) + ((Math.random() - 0.5) * 0.4) //respect
 			];
 
 			for (let key in parentProps[0].traits) {
@@ -50,14 +51,29 @@ export class trait {
 	display: number;
 	cost: number;
 	attitude: Array<number>;
-	constructor(value: number, display: number, cost : number, attitude : Array<number>) {
-		this.value = value;
+	constructor(min: number, max: number, cost : number, attitude : Array<number>) {
+		this.value = randRange(min,max);
 		if (Math.random() < 0.05) {
-			this.display = display;
+			this.display = randRange(min,max);
 		} else {
-			this.display = value;
+			this.display = this.value;
 		}
 		this.cost = cost;
 		this.attitude = attitude;
+	}
+}
+
+export class relationship {
+	reference: creature;
+	respect: number;
+	aggression: number;
+	canSee: boolean;
+	canHear: boolean;
+	constructor(reference: creature, canSee: boolean, canHear: boolean) {
+		this.reference = reference;
+		this.respect = 0;
+		this.aggression = 0;
+		this.canSee = canSee;
+		this.canHear = canHear;
 	}
 }

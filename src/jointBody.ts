@@ -1,5 +1,5 @@
 import { vector2 } from "./globals";
-import { activeArea, ctx, isPanning, isPaused } from "./initMain";
+import { activeArea, ctx, isPaused } from "./initMain";
 import { creatureJoint } from "./jointBase";
 import { creatureLeg } from "./limbLeg";
 
@@ -13,7 +13,7 @@ export class creatureBody extends creatureJoint {
 	legParentJoint : creatureJoint;
 
 	constructor (pos : vector2, id : number, colour : string, width : number, hasLegs : boolean) {
-		super(pos, id, colour, width)
+		super(pos, id, colour, width);
 		if (hasLegs) {
 			this.initLegs()
 		}
@@ -46,7 +46,7 @@ export class creatureBody extends creatureJoint {
 		let legWidth = 7.2;
 		let legLength = 14;
 		this.legs = [new creatureLeg(this.pos,this.colour,-1,legLength,legWidth,legAngle),new creatureLeg(this.pos,this.colour,1,legLength,legWidth,legAngle)];
-		this.legs[0].pair = this.legs[1]; //this.legs[0] is right
+		this.legs[0].pair = this.legs[1]; //this.legs[0] is the right leg
 		this.legs[1].pair = this.legs[0];
 	}
 

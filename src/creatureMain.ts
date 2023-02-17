@@ -1,6 +1,7 @@
 import { creatureTraits } from "./creatureTraits";
-import { idCharas, preColours, vector2, hexToRgb, idList, randRange } from "./globals"
-import { activeArea, canvas, creaturesDict, ctx, isMouseDown, mousePos } from "./initMain";
+import { preColours, vector2, hexToRgb, idList, randRange } from "./globals"
+import { posGrid } from "./handleGrid";
+import { activeArea, canvas, creaturesDict, tool, isWheelShowing, isPaused, mousePos, isLeftMouseDown } from "./initMain";
 import { creatureJoint } from "./jointBase";
 import { creatureBody } from "./jointBody";
 import { creatureHead } from "./jointHead";
@@ -21,7 +22,7 @@ export class creature {
 		this.pos = pos;
 		this.length = length;
 		this.maxDist = maxDist;
-		this.weights = Math.floor(this.properties.traits.speed.display / 4);
+		this.weights = Math.floor(this.properties.traits.speed.display * 1.8);
 		
 		this.segments = [];
 		this.initJoints();
@@ -37,7 +38,7 @@ export class creature {
 		let bodyColour = this.generateColours();
 		let baseWidth = 8;
 
-		this.head = new creatureHead(this.pos,0,bodyColour[0],baseWidth * 1.3,baseWidth * 0.5,"#FFFFFF",false);
+		this.head = new creatureHead(this.pos,0,bodyColour[0],baseWidth * 1.3,baseWidth * 0.5,"#FFFFFF",false,this.properties);
 		this.segments.push(this.head);
 		for (let i = 1; i < this.length - 1; i++ ) {
 			let jointPos = this.pos.add(new vector2(i * this.maxDist,i * this.maxDist));
@@ -113,20 +114,22 @@ export class creature {
 	}
 
 	checkMouse() {
-		let mouseCoordPos = new vector2(activeArea[0].x + 24 + mousePos.x,activeArea[0].y + 24 + mousePos.y);
-		if (this.pos.distance(mouseCoordPos) < this.head.width * 4 || this.state == "mouseDragging") {
-			if (isMouseDown) {
-				canvas.style.cursor = "url('./assets/hand-back-fist-solid.svg') 5 8, pointer";
-				this.state = "mouseDragging";
+		if (tool == 0) {
+			let mouseCoordPos = new vector2(activeArea[0].x + 24 + mousePos.x,activeArea[0].y + 24 + mousePos.y);
+			if (this.pos.distance(mouseCoordPos) < this.head.width * 4 || this.state == "mouseDragging") {
+				if (isLeftMouseDown) {
+					canvas.style.cursor = "url('./assets/hand-back-fist-solid.svg') 5 8, pointer";
+					this.state = "mouseDragging";
+				} else if (this.state == "mouseDragging") {
+					this.head.generatePath()
+					canvas.style.cursor = "url('./assets/hand-solid.svg') 5 8, pointer";
+					this.state = "idle";
+				}
 			} else if (this.state == "mouseDragging") {
-				this.head.generatePath()
-				canvas.style.cursor = "url('./assets/hand-solid.svg') 5 8, pointer";
+				this.head.generatePath();
+				canvas.style.cursor = "url('./assets/arrow-pointer-solid.svg') 5 8, pointer";
 				this.state = "idle";
 			}
-		} else if (this.state == "mouseDragging") {
-			this.head.generatePath();
-			canvas.style.cursor = "url('./assets/arrow-pointer-solid.svg') 5 8, pointer";
-			this.state = "idle";
 		}
 	}
 
@@ -136,7 +139,7 @@ export class creature {
 		}
 		for (let i = this.length - 1; i >= 0; i --) {
 			this.segments[i].updateJoint(this.maxDist,this.state);
-			if (this.state == "mouseDragging") {
+			if (this.state == "mouseDragging" && !isPaused) {
 				this.segments[i].moveByDrag(this.maxDist);
 			}
 			posGrid[Math.floor(this.segments[i].pos.x / 16)][Math.floor(this.segments[i].pos.y / 16)] = this.id;
