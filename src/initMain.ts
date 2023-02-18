@@ -1,7 +1,9 @@
 import { webFrame } from "electron";
 import { creature } from "./creatureMain";
-import { initIdList, vector2 } from "./globals";
-import { clearGrid, initGrid } from "./handleGrid";
+import { initIdList, preColours, randRange, vector2 } from "./globals";
+import { initGrid } from "./handleGrid";
+import { tick } from "./handleTick";
+import { food } from "./food";
 
 export var appId : number;
 
@@ -23,7 +25,11 @@ export var isPaused : boolean = false;
 export var creaturesList : Array<creature> = [];
 export var creaturesDict : { [key: string]: creature } = {};
 
+export var foodList : Array<food> = [];
 
+export var simPrefs : { [key: string]: number } = {
+	"foodSpawnRate": 5,
+} 
 export var debugPrefs : { [key: string]: boolean } = {
 	"visionCone": false,
 	"hearingRange": false,
@@ -202,45 +208,16 @@ function initNavigation() {
 	updateViewportInfo();
 }
 
-function updateViewportInfo() {
+export function updateViewportInfo() {
 	windowInfo = [window.innerWidth,window.innerHeight];
 	activeArea[0] = new vector2(window.scrollX - 24, window.scrollY - 24);
 	activeArea[1] = new vector2(activeArea[0].x + windowInfo[0] + 48,activeArea[0].y + windowInfo[1] + 48);
 }
 
-function tick() : void {
-	updateViewportInfo();
-	clearCanvas();
-	drawGrid();
-	clearGrid();
-	renderCreatures();
-	requestAnimationFrame(() => tick());
-}
-
-function clearCanvas() : void {
-	ctx.fillStyle = "#181818";
-	ctx.fillRect(activeArea[0].x,activeArea[0].y,activeArea[1].x - activeArea[0].x,activeArea[1].y - activeArea[0].y);
-}
-
-function drawGrid() {
-	ctx.strokeStyle = "#D6D6D6";
-	ctx.lineWidth = 2;
-    ctx.beginPath();
-    for (let i = 0; i <= canvas.width; i += 256) {
-            ctx.moveTo(i, 0);
-            ctx.lineTo(i, canvas.height);
-    }
-    
-    for (let i = 0; i <= canvas.height; i += 256) {
-            ctx.moveTo(0, i);
-            ctx.lineTo(canvas.width, i);
-    }
-    ctx.stroke(); 
-};
-
-function renderCreatures() {
-	for (let i = 0; i < creaturesList.length; i += 1) {
-		creaturesList[i].update();
+export function newFood() {
+	for (let i = 0; i < randRange(1,6); i++) {
+		let foodColor = preColours[randRange(0,preColours.length - 1)];
+		foodList.push(new food(new vector2(randRange(96,4000),randRange(96,4000)),randRange(2,50),foodColor));
 	}
 }
 
@@ -252,13 +229,13 @@ function addDemoCreatures() {
 		let yOffset = (Math.random() * 1024) + 1024;
 		creaturesList.push(new creature(new vector2(xOffset,yOffset),16,8,null));
 
-		document.getElementById("testpopout")!.innerHTML = (creaturesList.length).toString();
+		document.getElementById("load")!.innerHTML = (creaturesList.length).toString();
 	}
 }
 
 setupApp();
 initIdList();
 initGrid();
+
 tick();
-updateViewportInfo();
 addDemoCreatures();

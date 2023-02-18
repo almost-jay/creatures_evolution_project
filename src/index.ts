@@ -9,6 +9,8 @@ function createWindow() {
 		height: 720,
 		show: false,
 		icon:'./assets/favicon.ico',
+		fullscreen: true,
+		fullscreenable: true,
 		webPreferences: {
 			webSecurity: false,
 			nodeIntegration: true,
@@ -19,10 +21,15 @@ function createWindow() {
 	mainWindow.maximize();
 	//mainWindow.webContents.openDevTools();
 	mainWindow.show();
-
     mainWindow.on('closed', function () {
         mainWindow = null;
     });
+	// let quit_button = document.getElementById("quit_button") as HTMLButtonElement;
+	// if (quit_button != null) {
+	// 	quit_button.addEventListener("click", event => {
+	// 		console.log(Electron);
+	// 	});
+	// }
 }
 
 app.on('ready', createWindow);

@@ -116,7 +116,7 @@ export class creature {
 	checkMouse() {
 		if (tool == 0) {
 			let mouseCoordPos = new vector2(activeArea[0].x + 24 + mousePos.x,activeArea[0].y + 24 + mousePos.y);
-			if (this.pos.distance(mouseCoordPos) < this.head.width * 4 || this.state == "mouseDragging") {
+			if (this.pos.distance(mouseCoordPos) < this.head.width * 2.5 || this.state == "mouseDragging") {
 				if (isLeftMouseDown) {
 					canvas.style.cursor = "url('./assets/hand-back-fist-solid.svg') 5 8, pointer";
 					this.state = "mouseDragging";

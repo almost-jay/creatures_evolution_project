@@ -18,7 +18,7 @@
 			"category": "Simulation",
 			"icon": "assets/256x256.png",
 			"target": [
-				"AppImage"
+				"deb"
 			]
 		}
 	},

@@ -4,6 +4,7 @@
 }
 
 body {
+	background-color: #272727;
 	font-family: "Kanit", sans-serif;
 	overflow: hidden;
 	zoom: 100%;
@@ -18,15 +19,14 @@ h1 {
 }
 
 p {
+	color: #FAFAFA;
 	line-height: 1.2;
-	font-size: 24px;
+	font-size: 18px;
 	font-family: "Fira Mono", monospace;
 }
 
 button {
 	transition-duration: 0.1s;
-	left: 50%;
-	transform: translate(-50%,0);
 }
 
 button:active {
@@ -38,7 +38,7 @@ button:active:after {
 }
 
 button:focus {
-	outline: 8pt solid #ffffff66;
+	outline: 7pt solid #ffffff66;
 }
 
 button:hover {
@@ -46,8 +46,16 @@ button:hover {
 	cursor: url('./assets/hand-pointer-solid.svg') 7 8, pointer;
 }
 
-button img {
-	transform: scale(90%);
+.main_menu_button {
+	left: 50%;
+	width: 100%;
+	transform: translate(-50%,0);
+}
+
+.main_menu_button img {
+	position: relative;
+	transform-origin: 50% 50%;
+	transform: translate(10%, 10%);
 }
 
 .side_button {
@@ -55,20 +63,27 @@ button img {
 	border: none;
 	position: fixed;
 	border-radius: 1.6vw;
-	height: 6vw;
-	width: 6vw;
+	height: 5vw;
+	width: 5vw;
+	left: 5%
 }
 
+.side_button:focus {
+	outline: 5pt solid #ffffff66;
+}
+
+
 .side_button:hover {
-	outline: none;
-	border: none;
-	transform: scale(1.1);
+	outline: 6pt solid white;
 }
 
 .help {
 	background-color: #0B8A90;
-	left: 3%;
-	top: 74%;
+	top: 76%;
+}
+
+.help img {
+	margin-top: -18%;
 }
 
 
@@ -78,8 +93,11 @@ button img {
 
 .quit {
 	background-color: #7A3045;
-	left: 3%;
 	top: 86%;
+}
+
+.quit img {
+	margin-top: 0%;
 }
 
 .quit:hover {
@@ -108,13 +126,13 @@ button img {
 	border: none;
 	position: fixed;
 	left: 50%;
-	top: 56%;
+	top: 48%;
 	width: 22%;
 	height: 18%;
 }
 
 .start_button img {
-	margin-left: -21%;
+	margin-left: -20%;
 	margin-top: -8%;
 }
 
@@ -125,13 +143,14 @@ button img {
 	border: none;
 	position: fixed;
 	left: 50%;
-	top: 75%;
+	top: 70%;
 	width: 16%;
 	height: 12%;
 }
 
 .load_file_button img {
 	margin-left: -9%;
+	margin-top: -3%;
 }
 
 .preference_button {
@@ -141,59 +160,53 @@ button img {
 	border: none;
 	position: fixed;
 	left: 50%;
-	top: 90%;
+	top: 84%;
 	width: 16%;
 	height: 12%;
 }
 
-.preference_button img {
-	margin-left: -18%;
-}
-
-.sidenav {
-	position: fixed;
-}
-
 #sidenav a {
-	position: absolute;
-	left: -100px;
+	position: fixed;
+	left: -10%;
 	transition: 0.1s;
-	padding: 12px;
-	width: 80px;
+	padding: 15px;
+	width: 12%;
+	height: 10%;
+	max-height: 10%;
 	text-decoration: none;
-	font-size: 10px;
+	font-size: 20pt;
 	color: white;
-	border-radius: 0 4px 4px 0;
-	text-align: center;
+	border-radius: 0 24px 24px 0;
   }
   
   #sidenav a:hover {
-	left: -20px;
-	cursor: url('./assets/hand-pointer-solid.svg') 5 8, pointer;
-  }
-  
-  #writeSave {
-	top : 40px;
-	background-color: #4d9be6;
+	left: 0;
   }
 
-  #loadSave {
-	left : 100px;
-	top : 120px;
-	background-color: #e83b3b;
+  #save {
+	top: 15%;
+	background-color: #20BC73;
   }
   
-  #testpopout {
-	left : 100px;
-	top : 200px;
-	background-color: slateblue;
+  #load {
+	top: 35%;
+	background-color: #0EAF9D;
+  }
+  
+  #settings {
+	top: 55%;
+	background-color: #4D9BE6;
+  }
+  
+  #quit {
+	top: 75%;
+	background-color: #F25079;
   }
 
-  #infoPanel {
-	top : 20px;
-	left : 200px;
-	color : white;
-  }
+.preference_button img {
+	margin-left: -18%;
+	margin-top: -3%;
+}
 
  #popup {
 	visibility: hidden;
@@ -383,7 +396,7 @@ button img {
 		border: none;
 		width: 16%;
 		right: 8%;
-		bottom: -2%;
+		bottom: -12%;
 		background-color: #22222222;
 
 		transition: 0.1s ease-out;
