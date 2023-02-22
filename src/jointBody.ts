@@ -58,6 +58,7 @@ export class creatureBody extends creatureJoint {
 			delta = delta.multiply(maxDist);
 			
 			this.childJoint.pos = this.pos.subtract(delta);
+		
 		}
 	}
 

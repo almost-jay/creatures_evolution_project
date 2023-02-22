@@ -1,5 +1,5 @@
-import { clearGrid } from "./handleGrid";
-import { activeArea, canvas, creaturesList, ctx, foodList, newFood, simPrefs, updateViewportInfo } from "./initMain";
+import { clearGrid, posGrid } from "./handleGrid";
+import { activeArea, canvas, checkedCreature, creaturesList, ctx, entityDict, foodList, manageCursor, newFood, simPrefs, updateViewportInfo } from "./initMain";
 
 export var time: number = 0;
 
@@ -9,8 +9,11 @@ export function tick() : void {
 	drawGrid();
 	clearGrid();
 	spawnFoodCheck();
+	fillGrid();
 	renderFood();
 	renderCreatures();
+
+	manageCursor();
 	time += 0;
 	requestAnimationFrame(() => tick());
 }
@@ -18,6 +21,24 @@ export function tick() : void {
 function clearCanvas() : void {
 	ctx.fillStyle = "#181818";
 	ctx.fillRect(activeArea[0].x,activeArea[0].y,activeArea[1].x - activeArea[0].x,activeArea[1].y - activeArea[0].y);
+}
+
+function fillGrid() {
+	for (let i = 0; i < creaturesList.length; i++) {
+		let id = creaturesList[i].id;
+		for (let j = 0; j < creaturesList[i].segments.length; j++) {
+			let segment = creaturesList[i].segments[j];
+			posGrid[Math.floor(segment.pos.x / 16)][Math.floor(segment.pos.y / 16)] = id;
+
+			if (segment.width > 8) {
+				posGrid[Math.floor((segment.pos.x / 16 + 1))][Math.floor((segment.pos.y / 16) + 1)] = id;
+				posGrid[Math.floor((segment.pos.x / 16 + 1))][Math.floor((segment.pos.y / 16) - 1)] = id;
+				posGrid[Math.floor((segment.pos.x / 16 - 1))][Math.floor((segment.pos.y / 16) + 1)] = id;
+				posGrid[Math.floor((segment.pos.x / 16 - 1))][Math.floor((segment.pos.y / 16) - 1)] = id;
+			}
+			
+		}
+	}
 }
 
 function drawGrid() {
@@ -51,5 +72,8 @@ function renderFood() {
 function renderCreatures() {
 	for (let i = 0; i < creaturesList.length; i += 1) {
 		creaturesList[i].update();
+	}
+	if (checkedCreature != undefined) {
+		checkedCreature.updateInfoPanel()
 	}
 }

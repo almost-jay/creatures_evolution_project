@@ -75,6 +75,8 @@ export class creatureLeg {
 		
 		if (state == "mouseDragging") {
 			this.footPos = this.calcFootDragPos();
+		} else if (state == "dead") {
+			this.footPos = this.calcFootDeathPos();
 		} else {
 			this.calcFootPos();
 		}
@@ -133,6 +135,14 @@ export class creatureLeg {
 	calcFootDragPos() : vector2 {
 		let limbSpacing = this.length * 1.4;
 		let dragAngle = 1.1;
+		let footStepPos = new vector2(limbSpacing * Math.cos(this.jointAngle - (Math.PI * this.side)) + this.joinPos.x,limbSpacing * Math.sin(this.jointAngle - (Math.PI * this.side)) + this.joinPos.y);
+		return new vector2(limbSpacing * Math.cos(this.jointAngle - (Math.PI * dragAngle * this.side)) + footStepPos.x,limbSpacing * Math.sin(this.jointAngle - (Math.PI * dragAngle * this.side)) + footStepPos.y);
+	}
+
+	
+	calcFootDeathPos() : vector2 {
+		let limbSpacing = this.length * 1.4;
+		let dragAngle = 0.8;
 		let footStepPos = new vector2(limbSpacing * Math.cos(this.jointAngle - (Math.PI * this.side)) + this.joinPos.x,limbSpacing * Math.sin(this.jointAngle - (Math.PI * this.side)) + this.joinPos.y);
 		return new vector2(limbSpacing * Math.cos(this.jointAngle - (Math.PI * dragAngle * this.side)) + footStepPos.x,limbSpacing * Math.sin(this.jointAngle - (Math.PI * dragAngle * this.side)) + footStepPos.y);
 	}

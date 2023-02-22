@@ -18,13 +18,13 @@
 		<a href="#" id="quit"></a>
 
 	</div>
-	<input id="commandbar" type="text" name="search" placeholder="">
+	<input id="commandbar" class="commandbar" type="text" name="search" placeholder="">
 
 	  <div class="callout" id="callout">
 		<div class="closebtn" onclick="this.parentElement.style.display='none';">&times;</div>
-		<div class="callout-header">Lorem ipsum</div>
+		<div id="info-panel-header" class="callout-header">Information</div>
 		<div class="callout-container">
-			<p>Some text...</p>
+			<p id="info-panel">DISPLAY ERROR</p>
 		</div>
 	</div>
 	<div class="wheel">
@@ -33,6 +33,7 @@
 		<div class="arc"><i class="fa-solid fa-apple-whole"></i></div>
 		<div class="arc"><i class="fa-solid fa-pen"></i></div>
 	</div>
+
 </body>
 <script>
     require("./compiled/initMain.js");
