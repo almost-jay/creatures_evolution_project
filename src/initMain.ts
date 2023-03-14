@@ -37,12 +37,12 @@ export var simPrefs : { [key: string]: number } = {
 	"foodSpawnRate": 5,
 } 
 export var debugPrefs : { [key: string]: boolean } = {
-	"visionCone": true,
+	"visionCone": false,
 	"hearingRange": false,
 	"senseArea": false,
 	"hitboxGrid": false,
 	"showId": true,
-	"drawPath": true,
+	"drawPath": false,
 };
 
 
@@ -87,13 +87,13 @@ function setupApp() {
 				let entity = entityDict[posGrid[Math.floor(mousePos.x / 16)][Math.floor(mousePos.y / 16)]]
 				if (entity.getTypeOf() == "creature") {
 					entity = entity as creature;
-					entity.calcState();
 					entity.generatePath(4);
+					entity.behaviourTree();
 				} else {
 					for (let i = 0; i < creaturesList.length; i++) {
 						if (creaturesList[i].state == "mouseDragging") {
-							creaturesList[i].calcState();
 							creaturesList[i].generatePath(4);
+							creaturesList[i].behaviourTree();
 						}
 					}
 				}
@@ -101,8 +101,8 @@ function setupApp() {
 				for (let i = 0; i < creaturesList.length; i++) {
 					if (creaturesList[i].state == "mouseDragging") {
 						creaturesList[i].state = "idle";
-						creaturesList[i].calcState();
 						creaturesList[i].generatePath(4);
+						creaturesList[i].behaviourTree();
 					}
 				}
 			}
@@ -245,10 +245,6 @@ function handleTool() {
 							console.error("Could not find callout element!")
 						}
 					}
-				} else {
-					console.log(clickedEntityId);
-					console.log(entityDict);
-					console.log(posGrid);
 				}
 			}
 		} else {

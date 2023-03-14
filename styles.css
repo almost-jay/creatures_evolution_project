@@ -335,10 +335,10 @@ button:hover {
   .callout {
 	font-family: "Trashhand", sans-serif;
 	position: fixed;
-	 top: 30%;
+	 top: 20%;
 	  left: 20%;
-	  width: 20%;
-	  height: 60%;
+	  width: 35vh;
+	  height: 55vh;
 	  display: none;
 	  background-color: #537E63;
 	  border-radius: 12px;
@@ -347,8 +347,9 @@ button:hover {
 	.callout-header {
 	  padding: 5%;
 	  margin: 4%;
+	  margin-bottom: -8%;
 	  background-color: #32353A;
-	  font-size: 2rem;
+	  font-size: 6vh;
 	  text-align: center;
 	  vertical-align: middle;
 	  color: #B2BB90;
@@ -358,12 +359,13 @@ button:hover {
 	.callout-container {
 	  padding: 4%;
 	  color: #B2BB90;
-	  font-size: 0.9rem;
+	  font-size: 2.8vh;
 	  margin-left: 8%;
+	  top: 0;
 	}
 
 	.callout-label {
-		font-size: 1.2rem;
+		font-size: 3.2vh;
 		color: #32353A;
 	}
 	

@@ -65,7 +65,7 @@ function spawnFoodCheck() {
 
 function renderFood() {
 	for (let i = 0; i < foodList.length; i++) {
-		foodList[i].render();
+		foodList[i].update();
 	}
 }
 
@@ -73,7 +73,8 @@ function renderCreatures() {
 	for (let i = 0; i < creaturesList.length; i += 1) {
 		creaturesList[i].update();
 	}
-	if (checkedCreature != undefined) {
+	
+	if (checkedCreature != undefined) {		
 		checkedCreature.updateInfoPanel()
 	}
 }

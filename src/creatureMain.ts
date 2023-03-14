@@ -1,4 +1,4 @@
-import { creatureTraits, trait } from "./creatureTraits";
+import { creatureTraits, relationship, trait } from "./creatureTraits";
 import { food } from "./food";
 import { preColours, vector2, hexToRgb, generateId, randRange } from "./globals"
 import { isPaused, debugPrefs, ctx, entityDict } from "./initMain";
@@ -20,13 +20,21 @@ export class creature {
 	health : number = 1;
 	hunger : number = 0;
 	age : number = 0;
+	isMature : boolean = false;
 	path : Array<vector2> = [];
 	target : vector2 = new vector2(0,0);
 	targetIndex : number = 0;
 	tailStartIndex : number = 0;
+	energyPerTick : number = 0;
+	attacked : boolean = false;
+	attacker : string = "";
+	hasMate : boolean = false;
+	mate : string = "";
 
 	constructor(pos : vector2, length : number, maxDist : number, parentProps : Array<creatureTraits> | null) {
 		this.properties = new creatureTraits(parentProps);
+		this.energyPerTick = this.calcEnergyPerTick();
+
 		this.pos = pos;
 		this.length = length;
 		this.maxDist = maxDist;
@@ -43,6 +51,16 @@ export class creature {
 		this.health = this.properties.traits.health.value;
 	}
 
+	calcEnergyPerTick() : number {
+		let result = 0;
+
+		for (let key in this.properties.traits) {
+			result += this.properties.traits[key].cost;
+		}
+
+		return result;
+	}
+
 	getTypeOf() {
 		return "creature"; //now i could just use constructor.name, but this makes it much easier to understand
 	}
@@ -52,7 +70,14 @@ export class creature {
 		let bodyColour = this.generateColours();
 		let baseWidth = 8;
 
-		this.head = new creatureHead(this.pos,0,bodyColour[0],baseWidth * 1.3,baseWidth * 0.5,"#FFFFFF",false);
+		let eyeLightness = Math.round((1 - ((this.properties.traits.visionDistance.display - 16) / 500)) * 16).toString(16);
+		if (eyeLightness.length == 1) {
+			eyeLightness = "#"+eyeLightness+eyeLightness+eyeLightness+eyeLightness+eyeLightness+eyeLightness;
+		} else {
+			eyeLightness = "#"+eyeLightness+eyeLightness+eyeLightness;
+		}
+		
+		this.head = new creatureHead(this.pos,0,bodyColour[0],baseWidth * 1.3,baseWidth * 0.5 * ((this.properties.traits.visionAngle.display * 0.25) + 0.65),eyeLightness,false);
 		this.segments.push(this.head);
 		for (let i = 1; i < this.length - 1; i++ ) {
 			let jointPos = this.pos.add(new vector2(i * this.maxDist,i * this.maxDist));
@@ -83,6 +108,7 @@ export class creature {
 		}
 		return result;
 	}
+
 	calcTailWidth(bodyCount : number, x : number) {
 		let result = Math.abs(x / (this.length - bodyCount));
 		return result;
@@ -126,62 +152,62 @@ export class creature {
 
 	}
 
-	
 	generatePath(alpha : number) : void {
-		let pathLength = 32;
-		this.targetIndex = 0;
+		let pathLength = 32; //can be adjusted later
+		this.targetIndex = 0; //reset the target back to the path at 0
 		this.path = [new vector2(this.pos.x,this.pos.y)];
 		for (let i = 1; i < pathLength; i++) {
 			this.path[i] = new vector2(this.pos.x,this.pos.y);
 
-			let theta = Math.random() * 2 * Math.PI;
-			let f = (Math.random() ** (-1 / alpha)) + 128;
+			let theta = randRange(0,2 * Math.PI);
 
-			if (this.path[i - 1].x < 128) {
-				if (theta > Math.PI / 2 && theta < Math.PI) {
-					theta -= Math.random() * Math.PI / 2 * ((128 - this.path[i].x) / 1);
-				}
-				if (theta > Math.PI && theta < (3 * Math.PI) / 2) {
-					theta += Math.random() * Math.PI / 2 * ((128 - this.path[i].x) / 1);
-				}
-			}
+			let f = (Math.random() ** (-1 / alpha)) + 64;
 
-			if (this.path[i - 1].x > 3968) {
-				if (theta > 0 && theta < Math.PI / 2) {
-					theta -= Math.random() * Math.PI / 2 * ((this.path[i].x - 3968) / 1);
-				}
-				if (theta > (3 * Math.PI) / 2 && theta < 2 * Math.PI) {
-					theta += Math.random() * Math.PI / 2 * ((this.path[i].x - 3968) / 1);
-				}
-			}
+			// if (this.path[i - 1].x < 128) {
+			// 	if (theta > Math.PI / 2 && theta < Math.PI) {
+			// 		theta -= Math.random() * Math.PI / 2 * ((128 - this.path[i].x) / 1);
+			// 	}
+			// 	if (theta > Math.PI && theta < (3 * Math.PI) / 2) {
+			// 		theta += Math.random() * Math.PI / 2 * ((128 - this.path[i].x) / 1);
+			// 	}
+			// }
 
-			if (this.path[i - 1].y < 128) {
-				if (theta > Math.PI / 2 && theta < Math.PI) {
-					theta -= Math.random() * Math.PI / 2 * ((128 - this.path[i].y) / 1);
-				}
-				if (theta > Math.PI && theta < (3 * Math.PI) / 2) {
-					theta += Math.random() * Math.PI / 2 * ((128 - this.path[i].y) / 1);
-				}
-			}
+			// if (this.path[i - 1].x > 3968) {
+			// 	if (theta > 0 && theta < Math.PI / 2) {
+			// 		theta -= Math.random() * Math.PI / 2 * ((this.path[i].x - 3968) / 1);
+			// 	}
+			// 	if (theta > (3 * Math.PI) / 2 && theta < 2 * Math.PI) {
+			// 		theta += Math.random() * Math.PI / 2 * ((this.path[i].x - 3968) / 1);
+			// 	}
+			// }
 
-			if (this.path[i - 1].y > 3968) {
-				if (theta > 0 && theta < Math.PI / 2) {
-					theta -= Math.random() * Math.PI / 2 * ((this.path[i].y - 3968) / 1);
-				}
-				if (theta > (3 * Math.PI) / 2 && theta < 2 * Math.PI) {
-					theta += Math.random() * Math.PI / 2 * ((this.path[i].y - 3968) / 1);
-				}
-			}
+			// if (this.path[i - 1].y < 128) {
+			// 	if (theta > Math.PI / 2 && theta < Math.PI) {
+			// 		theta -= Math.random() * Math.PI / 2 * ((128 - this.path[i].y) / 1);
+			// 	}
+			// 	if (theta > Math.PI && theta < (3 * Math.PI) / 2) {
+			// 		theta += Math.random() * Math.PI / 2 * ((128 - this.path[i].y) / 1);
+			// 	}
+			// }
+
+			// if (this.path[i - 1].y > 3968) {
+			// 	if (theta > 0 && theta < Math.PI / 2) {
+			// 		theta -= Math.random() * Math.PI / 2 * ((this.path[i].y - 3968) / 1);
+			// 	}
+			// 	if (theta > (3 * Math.PI) / 2 && theta < 2 * Math.PI) {
+			// 		theta += Math.random() * Math.PI / 2 * ((this.path[i].y - 3968) / 1);
+			// 	}
+			// }
 
 			let xPos = this.path[i - 1].x + (f * Math.cos(theta));
-			let yPos = this.path[i - 1].x + (f * Math.sin(theta));
+			let yPos = this.path[i - 1].y + (f * Math.sin(theta));
 			
 			this.path[i].x = xPos;
 			this.path[i].y = yPos;
 		}
 		
 		this.linearSmoothPath();
-		this.interpolatePath(2);
+		this.interpolatePath(4);
 
 		for (let i = 0; i < this.path.length; i++) {
 			if (this.path[i].x >= 3968 ) {
@@ -200,6 +226,7 @@ export class creature {
 
 		}
 
+		this.action = "walk";
 		this.target = this.path[0];
 	}
 
@@ -318,6 +345,7 @@ export class creature {
 		result = result.concat("<a class='callout-label'> Position: </a>("+Math.floor(this.pos.x * 10) / 10+","+Math.floor(this.pos.y * 10) / 10+") <br>");
 		result = result.concat("<a class='callout-label'> State: </a>"+this.state+"<br>");
 		result = result.concat("<a class='callout-label'> Action: </a>"+this.action+"<br>");
+		result = result.concat("<a class='callout-label'> Energy cost: </a>"+(Math.floor(this.energyPerTick * 100) / 100)+"<br>");
 		result = result.concat("<a class='callout-label'> Age: </a>"+(Math.floor(this.age * 40) / 10)+"<br>");
 		result = result.concat("<a class='callout-label'> Can sense food: </a>"+this.head.canSeeFood+"<br>");
 		result = result.concat("<a class='callout-label'> Can sense foe: </a>"+this.head.canSenseFoe+"<br>");
@@ -350,6 +378,10 @@ export class creature {
 		totalHungerCost /= traitKeys.length;
 		totalHungerCost *= 0.05;
 		this.hunger += totalHungerCost;		
+
+		if (this.hunger > 100) {
+			this.health -= (this.hunger / 100) * 0.05;
+		}
 	}
 
 	behaviourTick() {
@@ -358,81 +390,93 @@ export class creature {
 			this.state = "dead";
 		} else {
 			this.head.checkSenses(this.id,this.properties.traits.hearingDistance.value,this.properties.traits.visionDistance.value,this.properties.traits.visionAngle.value);
-			this.calcState();
+			this.behaviourTree();
 			this.updateHunger();
 			this.age += 1 / 7200;
+			if (!this.isMature) {
+				if (this.age > 10) {
+					this.isMature = true;
+				} else if (this.age > 9) {
+					if (Math.random() < 0.9) {
+						this.isMature = true;
+					}
+				} else if (this.age > 8) {
+					if (Math.random() < 0.6) {
+						this.isMature = true;
+					}
+				} else if (this.age > 7) {
+					if (Math.random() < 0.12) {
+						this.isMature = true;
+					}
+				} else if (this.age > 6) {
+					if (Math.random() < 0.02) {
+						this.isMature = true;
+					}
+				}
+			}
 		}
 	}
 
-	huntFood() {
-
-	}
-
-	followEnemy() {
-
-	}
-
-	calcState() {
-		if (this.hunger > 80) {
-			if (this.hunger > 100) {
-				this.health -= (this.hunger / 100) * 0.2;
+	behaviourTree() {
+		if (this.attacked) {
+			if (this.attacker in this.head.relationships) {
+				this.head.relationships[this.attacker].aggression -= 0.2;
+			} else {
+				this.head.relationships[this.attacker] = new relationship(entityDict[this.attacker] as creature);
+				this.head.relationships[this.attacker].aggression -= 0.5;
 			}
-			if (this.head.canSenseFoe) {
+			if (this.head.relationships[this.attacker].respect > 0.2 || this.hunger > 80) {
 				this.state = "deferrent";
 				this.followEnemy();
 			} else {
-				//this.state = "hunting";
-				//this.huntFood();
-				this.lookForFood();
-				this.state = "foraging";
+				this.state = "defensive";
+				this.attackEnemy();
 			}
-		} else if (this.hunger > 40) {
-			if (this.head.canSenseFoe) {
-				this.state = "aggressive";
+		} else if (this.head.canSenseFoe) {
+			if (this.head.relationships[this.head.targetEnemy].respect > 0.2) {
+				this.state = "defensive";
 				this.attackEnemy();
 			} else {
-				this.lookForFood();
-				this.state = "foraging";
-			}
-		} else {
-			if (this.head.canSenseFoe) {
 				this.state = "aggressive";
-			} else if (this.head.canSenseFriend) {
-				this.state = "friendly";
-				this.followFriend();
-			} else {
-				this.state = "idle";
-				this.followPath();
+				this.attackEnemy();
 			}
-			
+		} else if (this.hunger > 40) {
+			this.state = "foraging";
+			this.lookForFood();
+		} else if (this.isMature) {
+			if (this.hasMate) {
+				if (Math.random() < 0.02) {
+					this.state = "mating";
+				}
+			} else {
+				this.state = "cloning";
+			}
+		} else if (this.head.canSenseFriend) {
+			this.state = "friendly";
+			this.followFriend();
+		} else {
+			this.state = "idle";
+			this.followPath();
 		}
 	}
 
 	lookForFood() {
-		if (this.action != "sniff" || this.targetIndex + 1 >= this.path.length) {
+		let targetFood : food | undefined = undefined;
+		if (this.action != "sniff") {
 			if (this.head.canSeeFood) {
 				if (this.head.targetFood != "") {
-					let targetFood = entityDict[this.head.targetFood] as food;
+					targetFood = entityDict[this.head.targetFood] as food;
 					if (!targetFood.isHeld) {
-						if (this.targetIndex + 1 < this.path.length) {
-							this.targetIndex = 0;
-							this.action = "sniff";
-							this.investigate(targetFood.pos);
-						} else {
-							console.log("eats!!");
-							let targetFood = entityDict[this.head.targetFood] as food;
-							this.action = "walk";
-							this.hunger -= targetFood.size * 4;
-							targetFood.isHeld = true;
-							targetFood.isHeldBy = this.id;
-							this.head.targetFood = "";
-							this.generatePath(4);
-						}
+						this.investigate(targetFood.pos);
+						this.targetIndex = 0;
 					} else {
 						if (targetFood.isHeldBy in this.head.relationships) {
 							if (this.head.relationships[targetFood.isHeldBy].respect < -0.2) {
 								this.head.relationships[targetFood.isHeldBy].aggression -= 0.05;
 							}
+						} else {
+							this.head.relationships[targetFood.isHeldBy] = new relationship(entityDict[targetFood.isHeldBy] as creature);
+							this.head.relationships[targetFood.isHeldBy].aggression -= 0.1;
 						}
 					}
 				} else {
@@ -444,15 +488,36 @@ export class creature {
 		} else {
 			this.followPath();
 		}
+
+		if (targetFood != undefined) {
+			if (this.pos.distance(targetFood.pos) < this.head.width) {
+				this.action = "walk";	
+				targetFood.isHeld = true;
+				targetFood.isHeldBy = this.id;
+				this.hunger -= targetFood.size * 4;
+				this.generatePath(4);
+			}
+		}
 	}
 
 	investigate(sniffPos: vector2) {
-		let sniffPath: Array<vector2> = [sniffPos];
+		let sniffPath: Array<vector2> = [];
+		
 		sniffPath.push(sniffPos);
-		for (let i = 1; i < 3 * Math.PI; i += 0.2) {
+
+		for (let i = Math.PI / 4; i < 3 * Math.PI; i += 0.2) {
 			sniffPath.push(new vector2((this.posFunc(i) * Math.cos(i)) + sniffPos.x,(this.posFunc(i) * Math.sin(i)) + sniffPos.y));
 		}
+
+		let interpGoal = sniffPath[sniffPath.length - 1];
+		
+		for (let i = 0; i < 1; i += 0.1) {
+			sniffPath.push((this.head.pos.multiply(i)).add(interpGoal.multiply(1 - i)));
+		}
+
 		sniffPath.reverse();
+
+		this.action = "sniff";
 		this.path = sniffPath;
 	}
 
@@ -486,23 +551,29 @@ export class creature {
 
 
 	attackEnemy() {
-		let targetEnemy = entityDict[this.head.targetEnemy];
+		let targetEnemy = entityDict[this.head.targetEnemy] as creature;
 		this.target = targetEnemy.pos;
 		//every turn, tiny lil chance of going NOM
 		//if its not going nom... walks aroudn enemy (stays distance away)
 
 	}
 
+	followEnemy() {
+		console.log(this.id+"Following enemy"+this.head.targetEnemy);
+		let targetEnemy = entityDict[this.head.targetEnemy] as creature;
+		if (targetEnemy.targetIndex > 4) {
+			this.path[Math.min(targetEnemy.targetIndex - 4 + this.targetIndex,this.path.length)] = targetEnemy.path[targetEnemy.targetIndex].add(new vector2((Math.random() - 0.5) * this.properties.traits.speed.value,(Math.random() - 0.5) * this.properties.traits.speed.value));
+		}
+	}
+
 	followFriend() {
-		//every turn, walks towards friend slightly
-		//will randomly (tiny chance) go n boop noses!!!
+		this.followPath();
 	}
 	
 	followPath() {
 		let targDist = this.head.pos.distance(this.target);
-		
 		if (targDist > this.head.width * 1.5) {
-			let delta = this.pos.subtract(this.target);
+			let delta = this.head.pos.subtract(this.target);
 			delta = delta.divide(this.head.width * 2);
 			delta = delta.multiply(this.properties.traits.speed.value);
 			this.head.pos = this.head.pos.subtract(delta);
@@ -514,10 +585,9 @@ export class creature {
 				this.generatePath(4);
 			}
 		}
-	} 	
+	}
 
 	update() {
-		this.pos = this.head.pos;
 		if (debugPrefs.drawPath) {
 			this.drawPath();
 		}
@@ -532,6 +602,7 @@ export class creature {
 			this.segments[i].updateJoint(this.maxDist,this.state);
 			if (this.state == "mouseDragging" && !isPaused) {
 				this.segments[i].moveByDrag(this.maxDist);
+				
 			}
 		}
 
@@ -540,5 +611,6 @@ export class creature {
 				this.behaviourTick();
 			}
 		}
+		this.pos = this.head.pos;
 	}
 }
