@@ -16,6 +16,8 @@ export class creatureTraits {
 				for (let i = 0; i < parentProps.length; i++) {
 					let parentTrait = parentProps[i].traits[key as string];
 					this.traits[key] = new trait(0,0,[0,0]);
+					this.traits[key].min = parentTrait.min;
+					this.traits[key].max = parentTrait.max;
 					this.traits[key].display += parentTrait.display * Math.abs(i - dist);
 					this.traits[key].cost += parentTrait.cost * Math.abs(i - dist);
 					this.traits[key].value += parentTrait.value * Math.abs(i - dist);
@@ -53,11 +55,13 @@ export class trait {
 	display: number;
 	cost: number;
 	attitude: Array<number>;
+	min : number;
+	max : number;
 	constructor(min: number, max: number, attitude : Array<number>) {
 		this.value = randRange(min,max);
 		
 		if (Number.isInteger(min)) {
-			this.value = Math.max(Math.min(Math.floor(this.value),max),min);
+			this.value = Math.floor(this.value);
 		}
 
 		if (Math.random() < 0.05) {
@@ -69,6 +73,8 @@ export class trait {
 		this.cost = ((this.value - min + 0.2) / (max - min + 0.2));
 		
 		this.attitude = attitude;
+		this.min = min;
+		this.max = max;
 	}
 }
 

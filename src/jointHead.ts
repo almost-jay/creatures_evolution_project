@@ -25,7 +25,7 @@ export class creatureHead extends creatureBody {
 	targetFriend: string = "";
 	targetFood: string = "";
 	relationships: { [id : string] : relationship } = {};
-
+	
 	constructor (pos : vector2, id : number, colour : string, width : number, eyeSpacing : number, eyeColour : string, hasLegs : boolean) {
 		super(pos, id, colour, width,hasLegs);
 		this.eyeSpacing = eyeSpacing;
@@ -124,14 +124,15 @@ export class creatureHead extends creatureBody {
 	}
 
 	//this function checks if the creature can hear or see anything (friend, foe, or food)
-	checkSenses(dictId: string, hearingDistance: number, visionDistance: number, visionAngle: number) {
+	checkSenses(dictId: string, hearingDistance: number, visionDistance: number, visionAngle: number) : Array<string> {
 		this.canSenseFoe = false; //first, assume it can't sense anything
 		this.canSenseFriend = false;
 		this.canSeeFood = false;
-
+		
 		let canSeeAnything = false; //these two variables control the debug vision cone/hearing radius circle
 		let canHearAnything = false;
 
+		let newRelationships: Array<string> = []; //array with all new relationships
 		let sensedEntities = this.getEntitiesInRange(dictId, hearingDistance,visionDistance); //get a list of all entities within range
 
 		for (let i = 0; i < sensedEntities.length; i++) { //iterate through all entities it might be able to detect
@@ -145,17 +146,43 @@ export class creatureHead extends creatureBody {
 						if (this.targetFood != "") { //if it doesn't have a target food already, it sets the checked food to be the new target
 							if (entityDict[this.targetFood].pos.distance(this.pos) > checkedEntity.pos.distance(this.pos)) {
 								this.targetFood = checkedEntity.id; //if the checked food is closer than the current food target, it becomes the new food target
-							}
+							}	
 						} else {
 							this.targetFood = checkedEntity.id;
 						}
 					}
 				} else if (checkedEntity.getTypeOf() == "creature") {
 					checkedEntity = checkedEntity as creature;
-					if (checkedEntity.id in this.relationships) {
+					if (!(checkedEntity.id in this.relationships)) {
+						newRelationships.push(checkedEntity.id);
+					} else {
 						if (this.relationships[checkedEntity.id].aggression < -0.2) { //creatures get aggressive if their aggression count is less than -0.2
 							this.canSenseFoe = true;
+							console.log("ENEMY",checkedEntity.id);
+							if (this.targetEnemy == "") {
+								this.targetEnemy = checkedEntity.id;
+							} else if (checkedEntity.pos.distance(this.pos) > (entityDict[this.targetEnemy] as creature).pos.distance(this.pos)) {
+								this.targetEnemy = checkedEntity.id;
+							}
+						} else if (this.relationships[checkedEntity.id].aggression > 0.2) { //creatures are friendly if aggression is > 0.2
+							this.canSenseFriend = true;
 							if (this.pos.distance(this.pos) > checkedEntity.pos.distance(this.pos)) {
+								this.targetFriend = checkedEntity.id;
+							}
+						}
+					}
+				}
+
+			} else if (checkedEntity.getTypeOf() == "creature") {
+				checkedEntity = checkedEntity as creature;
+				if (checkedEntity.pos.distance(this.pos) < hearingDistance) {
+					canHearAnything = true;
+					if (!(checkedEntity.id in this.relationships)) {
+						newRelationships.push(checkedEntity.id);
+					} else {
+						if (this.relationships[checkedEntity.id].aggression < -0.2) { //creatures get aggressive if their aggression count is less than -0.2
+							if (this.pos.distance(this.pos) > checkedEntity.pos.distance(this.pos)) {
+								this.canSenseFoe = true;
 								this.targetEnemy = checkedEntity.id;
 							}
 						} else if (this.relationships[checkedEntity.id].aggression > 0.2){ //creatures are friendly if aggression is > 0.2
@@ -164,13 +191,29 @@ export class creatureHead extends creatureBody {
 								this.targetFriend = checkedEntity.id;
 							}
 						}
-					} else {
-						this.relationships[checkedEntity.id] = new relationship(checkedEntity as creature); //if it's not already in the relationship object, adds a new relationship
+						
+						if (debugPrefs.drawRelations) {
+							let red = (Math.floor(16 - ((this.relationships[checkedEntity.id].aggression + 1) * 8))).toString(16);
+							let blue = (Math.floor((this.relationships[checkedEntity.id].respect + 1) * 8)).toString(16);
+							
+							if (red.length < 2) {
+								red = red+red;
+							}
+							
+							if (blue.length < 2) {
+								blue = blue+blue;
+							}
+		
+							ctx.strokeStyle = "#"+red+blue+"FFAA";
+							ctx.lineWidth = 2;
+		
+							ctx.beginPath();
+							ctx.moveTo(this.pos.x,this.pos.y);
+							ctx.lineTo(checkedEntity.head.pos.x,checkedEntity.head.pos.y);
+							ctx.stroke();
+							ctx.closePath();
+						}
 					}
-				}
-			} else if (checkedEntity.getTypeOf() == "creature") {
-				if (checkedEntity.pos.distance(this.pos) < hearingDistance) {
-					canHearAnything = true;
 				}
 				
 			}
@@ -200,6 +243,8 @@ export class creatureHead extends creatureBody {
 			ctx.arc(this.pos.x,this.pos.y,hearingDistance,0,2 * Math.PI);
 			ctx.fill();
 		}
+
+		return newRelationships; //send all new relationships back to the main body
 	}
 
 	getEntitiesInRange(dictId: string, hearingDistance: number, visionDistance: number) : Array<string> {

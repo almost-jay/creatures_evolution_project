@@ -1,6 +1,7 @@
 import { creatureTraits, relationship, trait } from "./creatureTraits";
 import { food } from "./food";
 import { preColours, vector2, hexToRgb, generateId, randRange } from "./globals"
+import { posGrid } from "./handleGrid";
 import { isPaused, debugPrefs, ctx, entityDict } from "./initMain";
 import { creatureJoint } from "./jointBase";
 import { creatureBody } from "./jointBody";
@@ -47,8 +48,14 @@ export class creature {
 		this.initJoints();
 		
 		this.generatePath(4);
+
 		
-		this.health = this.properties.traits.health.value;
+		if (this.properties.traits.health.value > this.health) {
+		
+			this.health = this.properties.traits.health.value;
+		} else {
+			console.log("No bealth on",this.id);
+		}
 	}
 
 	calcEnergyPerTick() : number {
@@ -160,47 +167,20 @@ export class creature {
 			this.path[i] = new vector2(this.pos.x,this.pos.y);
 
 			let theta = randRange(0,2 * Math.PI);
-
 			let f = (Math.random() ** (-1 / alpha)) + 64;
-
-			// if (this.path[i - 1].x < 128) {
-			// 	if (theta > Math.PI / 2 && theta < Math.PI) {
-			// 		theta -= Math.random() * Math.PI / 2 * ((128 - this.path[i].x) / 1);
-			// 	}
-			// 	if (theta > Math.PI && theta < (3 * Math.PI) / 2) {
-			// 		theta += Math.random() * Math.PI / 2 * ((128 - this.path[i].x) / 1);
-			// 	}
-			// }
-
-			// if (this.path[i - 1].x > 3968) {
-			// 	if (theta > 0 && theta < Math.PI / 2) {
-			// 		theta -= Math.random() * Math.PI / 2 * ((this.path[i].x - 3968) / 1);
-			// 	}
-			// 	if (theta > (3 * Math.PI) / 2 && theta < 2 * Math.PI) {
-			// 		theta += Math.random() * Math.PI / 2 * ((this.path[i].x - 3968) / 1);
-			// 	}
-			// }
-
-			// if (this.path[i - 1].y < 128) {
-			// 	if (theta > Math.PI / 2 && theta < Math.PI) {
-			// 		theta -= Math.random() * Math.PI / 2 * ((128 - this.path[i].y) / 1);
-			// 	}
-			// 	if (theta > Math.PI && theta < (3 * Math.PI) / 2) {
-			// 		theta += Math.random() * Math.PI / 2 * ((128 - this.path[i].y) / 1);
-			// 	}
-			// }
-
-			// if (this.path[i - 1].y > 3968) {
-			// 	if (theta > 0 && theta < Math.PI / 2) {
-			// 		theta -= Math.random() * Math.PI / 2 * ((this.path[i].y - 3968) / 1);
-			// 	}
-			// 	if (theta > (3 * Math.PI) / 2 && theta < 2 * Math.PI) {
-			// 		theta += Math.random() * Math.PI / 2 * ((this.path[i].y - 3968) / 1);
-			// 	}
-			// }
 
 			let xPos = this.path[i - 1].x + (f * Math.cos(theta));
 			let yPos = this.path[i - 1].y + (f * Math.sin(theta));
+
+			let gridPos = posGrid[Math.floor(xPos / 16)][Math.floor(yPos / 16)];
+			
+			while (gridPos != "" && gridPos != this.id) {
+				theta += Math.PI - (Math.random() * 0.5);
+				xPos = this.path[i - 1].x + (f * Math.cos(theta));
+				yPos = this.path[i - 1].y + (f * Math.sin(theta));
+				
+				gridPos = posGrid[Math.floor(xPos / 16)][Math.floor(yPos / 16)];
+			}
 			
 			this.path[i].x = xPos;
 			this.path[i].y = yPos;
@@ -377,7 +357,7 @@ export class creature {
 		}
 		totalHungerCost /= traitKeys.length;
 		totalHungerCost *= 0.05;
-		this.hunger += totalHungerCost;		
+		this.hunger += totalHungerCost;
 
 		if (this.hunger > 100) {
 			this.health -= (this.hunger / 100) * 0.05;
@@ -389,8 +369,12 @@ export class creature {
 			this.health = 0;
 			this.state = "dead";
 		} else {
-			this.head.checkSenses(this.id,this.properties.traits.hearingDistance.value,this.properties.traits.visionDistance.value,this.properties.traits.visionAngle.value);
-			this.behaviourTree();
+			let newRelationships = this.head.checkSenses(this.id,this.properties.traits.hearingDistance.value,this.properties.traits.visionDistance.value,this.properties.traits.visionAngle.value);
+			if (newRelationships.length > 0) {
+				for (let i = 0; i < newRelationships.length; i += 1) {
+					this.calcAttitude(newRelationships[i]);
+				}
+			}
 			this.updateHunger();
 			this.age += 1 / 7200;
 			if (!this.isMature) {
@@ -415,22 +399,25 @@ export class creature {
 				}
 			}
 		}
+		this.behaviourTree();
 	}
 
 	behaviourTree() {
 		if (this.attacked) {
 			if (this.attacker in this.head.relationships) {
 				this.head.relationships[this.attacker].aggression -= 0.2;
+				if (this.head.relationships[this.attacker].respect > 0.2 || this.hunger > 80) {
+					this.state = "deferrent";
+					this.followEnemy();
+				} else if (this.hunger > 40) {
+					this.state = "afraid";
+					this.fleeEnemy();
+				} else {
+					this.state = "defensive";
+					this.attackEnemy();
+				}
 			} else {
-				this.head.relationships[this.attacker] = new relationship(entityDict[this.attacker] as creature);
-				this.head.relationships[this.attacker].aggression -= 0.5;
-			}
-			if (this.head.relationships[this.attacker].respect > 0.2 || this.hunger > 80) {
-				this.state = "deferrent";
-				this.followEnemy();
-			} else {
-				this.state = "defensive";
-				this.attackEnemy();
+				this.calcAttitude(this.attacker);
 			}
 		} else if (this.head.canSenseFoe) {
 			if (this.head.relationships[this.head.targetEnemy].respect > 0.2) {
@@ -531,35 +518,170 @@ export class creature {
 		return result;
 	}
 
-	calcAttitude(creatureTraits: { [id: string] : trait }, id: string) {
+	calcAttitude(id: string) {
+		this.head.relationships[id] = new relationship(entityDict[id] as creature);
+		let creatureTraits = (entityDict[id] as creature).properties.traits;
 		let aggression = 0;
 		let respect = 0;
-		for (let key in creatureTraits) {
-			aggression += (creatureTraits[key].display * this.properties.traits[key].attitude[0]);
-			respect += (creatureTraits[key].display * this.properties.traits[key].attitude[1]);
 
-			let respectModifier = (creatureTraits[key].display - this.properties.traits[key].value) / (creatureTraits[key].display + 1);
-			respect += respectModifier;
+		for (let key in creatureTraits) {
+			aggression += ((creatureTraits[key].display / (creatureTraits[key].max - creatureTraits[key].min)) * this.properties.traits[key].attitude[0]);
+			respect += ((creatureTraits[key].display / (creatureTraits[key].max - creatureTraits[key].min)) * this.properties.traits[key].attitude[1]);
 		}
+		
 		let personality = this.properties.personality;
 		aggression += personality[0];
 		respect += personality[1];
 
+		let traitLength = (Object.keys(creatureTraits).length + 1);
+		aggression /= traitLength;
+		respect /= traitLength;
+
 		this.head.relationships[id].aggression += aggression; 
-		this.head.relationships[id].aggression += respect; 
+		this.head.relationships[id].respect += respect;
+		
+		//for debug only, remove this whole section from here to the next comment
+		if (Math.random() > 0.5) {
+			this.head.relationships[id].aggression = -0.4;
+		} else {
+			this.head.relationships[id].aggression = 0.4;
+		}
+		//the next comment
 	}
 
+	fleeEnemy() {
+		if (this.action != "fleeing") {
+			let attacker = entityDict[this.attacker] as creature;
+			let angleAway = -(attacker.pos.getAvgAngleRad(this.head.pos));
+			
+			let distanceToEnemy = attacker.pos.distance(this.head.pos);
+			let escapeRoute = [this.head.pos];
+			let i = 0;
+			while (distanceToEnemy < attacker.properties.traits.visionDistance.display) {
+				escapeRoute.push(escapeRoute[i].add(new vector2(this.properties.traits.speed.value * 2 * Math.cos(angleAway),this.properties.traits.speed.value * 2 * Math.sin(angleAway))));
+				i += 1;
+				distanceToEnemy = attacker.pos.distance(escapeRoute[i]);
+			}
+
+			this.targetIndex = 0;
+			this.path = escapeRoute;
+			this.action = "fleeing";
+		}
+		this.followPath();
+	}
 
 	attackEnemy() {
-		let targetEnemy = entityDict[this.head.targetEnemy] as creature;
-		this.target = targetEnemy.pos;
-		//every turn, tiny lil chance of going NOM
-		//if its not going nom... walks aroudn enemy (stays distance away)
+		if (this.head.targetEnemy != "") {
+			let targetEnemy = entityDict[this.head.targetEnemy] as creature;
 
+			let targetHeadPos = targetEnemy.pos;
+			let targetTailPos = targetEnemy.segments[targetEnemy.segments.length - 1].pos;
+			
+			let targetHeadAngle = Math.PI - targetEnemy.head.angle;
+			let goalDistance = Math.max(32,0.8 * targetEnemy.properties.traits.hearingDistance.display);
+
+			if (this.state == "defensive") {
+				//attempt to reach certain distance away, and if the enemy is not looking at u, LUNGE
+				//range distance is based on enemy's hearing range display
+
+				//get enemy head angle
+				//opposite of that angle, extend by enemy's visible hearing distance, * 1.5 OR 32, whichever is greater
+				//creat vector from current pos to that generated pos
+				//if the created vector is too close to enemy's head:
+				//get angle between created vector and enemy's head
+				//opposite of that, extend until distance is no longer too close
+				//then set that pos to be the current target
+
+				//check: checks if enemy can see me
+				//if true, begin attack!
+
+				if (this.action != "retreat") {
+					let behindPos = targetHeadPos.add(new vector2(goalDistance * Math.cos(targetHeadAngle),goalDistance * Math.sin(targetHeadAngle)));
+					let behindAngle = this.head.pos.getAvgAngleRad(behindPos);
+					let vectorToTarget = new vector2(this.properties.traits.speed.value * 0.2 * Math.cos(behindAngle),this.properties.traits.speed.value * 0.2 * Math.sin(behindAngle));
+					let fixedVectorToTarget: vector2 = vectorToTarget;
+
+					let checkedDistance = vectorToTarget.distance(targetTailPos);
+					let i = 0
+					while (checkedDistance < goalDistance) {
+						fixedVectorToTarget = new vector2(i * Math.cos(behindAngle),i * Math.sin(behindAngle)).add(vectorToTarget);
+						checkedDistance = vectorToTarget.distance(targetTailPos);
+						i -= this.properties.traits.speed.value * 0.2;
+					}
+
+					console.log(fixedVectorToTarget);
+					this.target = fixedVectorToTarget;
+					this.action = "retreat";
+				} else {
+					if (targetEnemy.head.targetEnemy != this.id) {
+						this.followPath();
+					} else {
+						this.target = targetTailPos;
+						let targDist = this.head.pos.distance(this.target);
+						if (targDist > this.head.width * 1.5) {
+							let delta = this.head.pos.subtract(this.target);
+							delta = delta.divide(this.head.width * 2);
+							delta = delta.multiply(this.properties.traits.speed.value);
+							this.head.pos = this.head.pos.subtract(delta);
+						} else {
+							this.state = "walk";
+							this.generatePath(4);
+							targetEnemy.attacker = this.id;
+							targetEnemy.head.relationships[this.id].respect += 0.3;
+							targetEnemy.attacked = true;
+
+							this.attacked = false;
+						}
+					}
+				}
+
+			} else if (this.state == "aggressive") {
+				if (this.action != "attack") {
+				let distance = this.head.pos.distance(targetTailPos);
+					if (distance > goalDistance) {
+						if (this.action != "stalk") {
+							let angleToTargetTail = this.head.pos.getAvgAngleRad(targetTailPos);
+
+							let creepPath: Array<vector2> = []
+							for (let i = 0; i < this.properties.traits.speed.value; i+= this.properties.traits.speed.value * 0.2) {
+								creepPath.push(this.head.pos.add(new vector2(i * Math.cos(-angleToTargetTail),i * Math.sin(-angleToTargetTail))));
+							}
+
+							creepPath.push((creepPath[creepPath.length - 1].add(targetTailPos)).divide(2));
+							for (let i = 0; i < Math.random(); i += 0.2) {
+								creepPath.push((creepPath[creepPath.length - 1].add(targetTailPos)).divide(2));
+							}
+							creepPath.push(targetTailPos);
+							this.targetIndex = 0;
+							this.path = creepPath;
+							this.action = "stalk";
+						} else {
+							this.followPath();
+						}
+					} else {
+						this.action = "attack";
+					}
+				} else {
+					this.target = targetTailPos;	
+					let targDist = this.head.pos.distance(this.target);
+					if (targDist > this.head.width * 1.5) {
+						let delta = this.head.pos.subtract(this.target);
+						delta = delta.divide(this.head.width * 2);
+						delta = delta.multiply(this.properties.traits.speed.value);
+						this.head.pos = this.head.pos.subtract(delta);
+					} else {
+						this.state = "walk";
+						this.generatePath(4);
+						targetEnemy.attacker = this.id;
+						targetEnemy.attacked = true;
+					
+					}
+				}
+			}
+		}
 	}
 
 	followEnemy() {
-		console.log(this.id+"Following enemy"+this.head.targetEnemy);
 		let targetEnemy = entityDict[this.head.targetEnemy] as creature;
 		if (targetEnemy.targetIndex > 4) {
 			this.path[Math.min(targetEnemy.targetIndex - 4 + this.targetIndex,this.path.length)] = targetEnemy.path[targetEnemy.targetIndex].add(new vector2((Math.random() - 0.5) * this.properties.traits.speed.value,(Math.random() - 0.5) * this.properties.traits.speed.value));
@@ -582,6 +704,7 @@ export class creature {
 				this.targetIndex += 1;
 				this.target = this.path[this.targetIndex];
 			} else {
+				this.action = "walk";
 				this.generatePath(4);
 			}
 		}
@@ -595,6 +718,12 @@ export class creature {
 			ctx.fillStyle = "#FAFAFA";
 			ctx.font ="12px mono";
 			ctx.fillText(this.id,this.segments[1].pos.x,this.segments[1].pos.y - this.head.width * 4);
+		}
+
+		if (debugPrefs.showState) {
+			ctx.fillStyle = "#FAFAFA";
+			ctx.font ="12px mono";
+			ctx.fillText(this.state,this.segments[1].pos.x,this.segments[1].pos.y + this.head.width * 4);
 		}
 
 		this.head.angle = this.head.pos.getAvgAngleRad(this.head.childJoint.pos);

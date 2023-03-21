@@ -42,7 +42,9 @@ export var debugPrefs : { [key: string]: boolean } = {
 	"senseArea": false,
 	"hitboxGrid": false,
 	"showId": true,
-	"drawPath": false,
+	"showState": true,
+	"drawPath": true,
+	"drawRelations": true,
 };
 
 
@@ -400,7 +402,6 @@ export function newFood() {
 		foodList.push(new food(new vector2(randRange(96,4000),randRange(96,4000)),randRange(4,12),foodColor));
 	}
 }
-
 
 function addDemoCreatures() {
 	let crNo = (Math.random() * 2) + 1;
