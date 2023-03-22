@@ -22,22 +22,21 @@
 			]
 		}
 	},
-
 	"scripts": {
 		"start": "electron .",
 		"pack": "electron-builder --dir",
 		"dist": "electron-builder"
 	},
 	"dependencies": {
-		"electron-squirrel-startup": "latest",
+		"typescript": "^5.0.2",
 		"vue": "^3.2.47"
 	},
 	"devDependencies": {
 		"creature_test": "file:",
-		"electron": "latest",
+		"electron": "^23.1.4",
 		"electron-builder": "^23.6.0",
 		"electron-packager": "^17.1.1",
-		"electron-squirrel-startup": "latest",
+		"electron-squirrel-startup": "^1.0.0",
 		"eslint": "latest"
 	},
 	"postinstall": "electron-builder install-app-deps"
