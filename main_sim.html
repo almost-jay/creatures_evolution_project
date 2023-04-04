@@ -9,24 +9,24 @@
 	<div id = "holder">
 		<canvas id = "canvas" width = "4096" height = "4096" z-index = "-1"></canvas>
 	</div>
-    <div id="app"></div>
 
 	<div id="sidenav" class="sidenav">
 		<a href="#" id="save"></a>
 		<a href="#" id="load"></a>
 		<a href="#" id="settings"></a>
 		<a href="#" id="quit"></a>
-
 	</div>
-	<input id="commandbar" class="commandbar" type="text" name="search" placeholder="">
 
-	  <div class="callout" id="callout">
+	<input id="commandbar" class="commandbar" type="text" name="search" placeholder="">
+	
+	<div class="callout" id="callout">
 		<div class="closebtn" onclick="this.parentElement.style.display='none';">&times;</div>
 		<div id="info-panel-header" class="callout-header">Information</div>
 		<div class="callout-container">
 			<p id="info-panel">DISPLAY ERROR</p>
 		</div>
 	</div>
+
 	<div class="wheel">
 		<div class="arc"><i class="fa-solid fa-hand-lizard"></i></div>
 		<div class="arc"><i class="fa-solid fa-magnifying-glass"></i></div>
@@ -34,7 +34,88 @@
 		<div class="arc"><i class="fa-solid fa-pen"></i></div>
 	</div>
 
+	<div class="callout" id="creatureEditor">
+		<div class="closebtn" onclick="this.parentElement.style.display='none';">&times;</div>
+		<div class="creatureEditor">
+			<h2>Editor</h2>
+			<div class = "sliderDiv">
+				<label for="health"><b>Max Health</b></label>
+				<input class="slider" value="30" type="range" min="10" max="50" name="health" step="1">
+				<span class="sliderVal"></span>
+			</div>
+			
+			<div class = "sliderDiv">
+				<label for="strength"><b>Strength</b></label>
+				<input class="slider" value="10" type="range" min="1" max="20" name="strength" step="0.1" required>
+				<span class="sliderVal"></span>
+			</div>
+	
+			<div class = "sliderDiv">
+				<label for="diet"><b>Diet</b></label>
+				<input class="slider" value="0" type="range" min="-1" max="1" name="diet" step="0.1" required>
+				<span class="sliderVal"></span>
+			</div>
+	
+			<div class = "sliderDiv">
+				<label for="speed"><b>Speed</b></label>
+				<input class="slider" value="1.6" type="range" min="0.2" max="3.0" name="speed" step="0.1" required>
+				<span class="sliderVal"></span>
+			</div>
+	
+			<div class = "sliderDiv">
+				<label for="visionDistance"><b>Vision Distance</b></label>
+				<input class="slider" value="262" type="range" min="12" max="512" name="visionDistance" step="1" required>
+				<span class="sliderVal"></span>
+			</div>
+	
+			<div class = "sliderDiv">
+				<label for="visionAngle"><b>Field of View</b></label>
+				<input class="slider" value="0.85" type="range" min="0.2" max="1.5" name="visionAngle" step="0.02" required>
+				<span class="sliderVal"></span>
+			</div>
+	
+			<div class = "sliderDiv">
+				<label for="hearingDistance"><b>Hearing Distance</b></label>
+				<input class="slider" value="134" type="range" min="12" max="256" name="hearingDistance" step="1" required>
+				<span class="sliderVal"></span>
+			</div>
+	
+			<div class = "sliderDiv">
+				<label for="toxicity"><b>Toxicity</b></label>
+				<input class="slider" value="2.5" type="range" min="0.0" max="5.0" name="toxicity" step="0.5" required>
+				<span class="sliderVal"></span>
+			</div>
+			
+			<div class="sliderDiv">
+				<input type="submit" value="Add Creature" id="addButton">
+			</div>
+		</div>
+	</div>
+
+	<div class="pauseOverlay" id="pauseOverlay"></div>
+
 </body>
 <script>
+	function initSliders() {
+		let slider = document.querySelectorAll(".sliderDiv");
+		let range = document.querySelectorAll(".slider");
+		let value = document.querySelectorAll(".sliderVal");
+
+		slider.forEach(currentSlider => {
+			value.forEach(currentVal => {
+				let val = currentVal.previousElementSibling.getAttribute("value");
+				currentVal.innerText = val;
+			});
+
+			range.forEach(e => {
+				e.addEventListener("input", eventArgs => {
+				e.nextElementSibling.innerText = eventArgs.target.value;
+				});
+			});
+		});
+	}
+
+	initSliders();
+
     require("./compiled/initMain.js");
 </script>

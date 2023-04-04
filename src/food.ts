@@ -1,3 +1,4 @@
+import { creature } from "./creatureMain";
 import { generateId, vector2 } from "./globals";
 import { posGrid } from "./handleGrid";
 import { ctx, entityDict } from "./initMain";
@@ -28,16 +29,14 @@ export class food {
 	}
 
 	update() {
-		if (this.isHeld) {
-			this.pos = entityDict[this.isHeldBy].pos;
+		if (!this.isHeld) {
+			this.render();
 		}
-		posGrid[Math.floor(this.pos.x / 16)][Math.floor(this.pos.y / 16)] = this.id;
-		this.render();
 	}
 	render() {
 		ctx.fillStyle = this.color;
 		ctx.beginPath();
-			ctx.arc(this.pos.x,this.pos.y,(this.size * 0.5) + 2,0,2 * Math.PI);
+			ctx.arc(this.pos.x,this.pos.y,this.size * 0.5,0,2 * Math.PI);
 		ctx.closePath();
 		ctx.fill();
 	}

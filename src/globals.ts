@@ -1,26 +1,26 @@
-export const idCharas : string = "ABCDEFGHIHKLMNOPQRSTUVWXYZ0123456789";
-export var idList : Array<string> = [];
+export const idCharas: string = "ABCDEFGHIHKLMNOPQRSTUVWXYZ0123456789";
+export var idList: Array<string> = [];
 export class vector2 {
-	x : number; 
-	y : number;
-	constructor(x : number, y : number) {
+	x: number; 
+	y: number;
+	constructor(x: number, y: number) {
 		this.x = x;
 		this.y = y;
 	}
 
-	public add(input : vector2) : vector2 {
+	public add(input: vector2): vector2 {
 		return new vector2(this.x + input.x, this.y + input.y);
 	}
 	
-	public subtract(input : vector2) : vector2 {
+	public subtract(input: vector2): vector2 {
 		return new vector2(this.x - input.x, this.y - input.y);
 	}
 
-	public multiply(input : number) : vector2 {
+	public multiply(input: number): vector2 {
 		return new vector2(this.x * input,this.y * input);
 	}
 	
-	public divide(input : number) : vector2 {
+	public divide(input: number): vector2 {
 		if (input === 0) {
 			console.error("Cannot divide by zero!")
 			return new vector2(0,0);
@@ -29,36 +29,36 @@ export class vector2 {
 		}
 	}
 
-	public getAngleRad() : number {
+	public getAngleRad(): number {
 		return Math.atan2(this.y,this.x);
 	}
 
-	public getAngleDeg() : number {
+	public getAngleDeg(): number {
 		return Math.atan2(this.y,this.x) * (180 / Math.PI);
 	}
 
-	public getAvgAngleRad(input : vector2) : number {
+	public getAvgAngleRad(input: vector2): number {
 		return Math.atan2(this.y - input.y,this.x - input.x);
 	}
 
-	public getAvgAngleDeg(input : vector2) : number {
+	public getAvgAngleDeg(input: vector2): number {
 		return Math.atan2(input.y - this.y,input.x - this.x) * (180 / Math.PI);
 	}
 
-	public distance(input : vector2) : number {
+	public distance(input: vector2): number {
 		return Math.abs(Math.sqrt(Math.pow(this.x - input.x,2) + Math.pow(this.y - input.y,2)));
 	}
 
-	public getAvgPos(input : vector2) : vector2 {
+	public getAvgPos(input: vector2): vector2 {
 		return new vector2((input.x + this.x) / 2, (input.y + this.y) / 2);
 	}
 
-	public getMagnitude() : number {
+	public getMagnitude(): number {
 		return Math.sqrt((this.x * this.x) + (this.y * this.y));
 	}
 
 	
-	public rotateAroundPoint(pivot: vector2, angle: number) : vector2 {
+	public rotateAroundPoint(pivot: vector2, angle: number): vector2 {
 		let aX = Math.cos(angle);
 		let aY = Math.sin(angle);
 
@@ -74,12 +74,12 @@ export class vector2 {
 	}
 };
 
-export function randRange(min : number, max : number) { //returns number between max and min, inclusive
+export function randRange(min: number, max: number) { //returns number between max and min, inclusive
 	let result = (Math.random() * (max - min)) + min;
 	return result;
 }
 
-export function hexToRgb(h : string) {
+export function hexToRgb(h: string) {
 	if (h == undefined) {
 		console.error("Hex undefined!",h);
 	}
@@ -105,7 +105,7 @@ export function initIdList() {
 	}
 }
 
-export function generateId() : string {
+export function generateId(): string {
 	let idIndex = Math.floor(randRange(0,idList.length));
 	let id = idList[idIndex];
 	idList.splice(idIndex,1);

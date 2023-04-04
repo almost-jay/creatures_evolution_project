@@ -11,11 +11,26 @@ body {
 	cursor: url('./assets/arrow-pointer-solid.svg') 5 8, pointer;
 }
 
+.cursors {
+	transform: scale(6.0);
+}
+
 h1 {
 	font-size: 100pt;
 	font-family: "Trashhand",sans-serif;
 	text-align: center;
-	margin-top: 10%;
+	margin-top: 10vh;
+}
+
+
+h2 {
+	font-size: 10vh;
+	font-family: "Trashhand",sans-serif;
+	text-align: center;
+	margin: -1vh 0 0 -2vh;
+	padding: 0;
+	font-weight: normal;
+	color: #374e4a;
 }
 
 .help-text {
@@ -43,12 +58,12 @@ button:focus {
 
 button:hover {
 	outline: 10pt solid white;
-	cursor: url('./assets/hand-pointer-solid.svg') 7 8, pointer;
+	cursor: url('./assets/hand-pointer-solid.svg') 16 16, pointer;
 }
 
 .main_menu_button {
-	left: 50%;
-	width: 100%;
+	left: 50vh;
+	width: 100vh;
 	transform: translate(-50%,0);
 }
 
@@ -127,8 +142,8 @@ button:hover {
 	position: fixed;
 	left: 50%;
 	top: 48%;
-	width: 22%;
-	height: 18%;
+	width: 40vh;
+	height: 18vh;
 }
 
 .start_button img {
@@ -144,8 +159,8 @@ button:hover {
 	position: fixed;
 	left: 50%;
 	top: 70%;
-	width: 16%;
-	height: 12%;
+	width: 28vh;
+	height: 12vh;
 }
 
 .load_file_button img {
@@ -161,8 +176,8 @@ button:hover {
 	position: fixed;
 	left: 50%;
 	top: 84%;
-	width: 16%;
-	height: 12%;
+	width: 28vh;
+	height: 12vh;
 }
 
 #sidenav a {
@@ -228,6 +243,87 @@ button:hover {
 	visibility: visible;
 	animation: fadein 0.6s, fadeout 0.6s 0.8s;
  }
+
+ .creatureEditor {
+	background-color: #b2ba90;
+	width: 35vh;
+	height: 65vh;
+	padding: 4vh;
+	border-radius: 12px;
+	display: block;
+ }
+
+ .sliderDiv {
+	display: inline-table;
+	width: 13vh;
+ }
+
+ label {
+	display: block;
+	padding: 0.4vh;
+	margin-top: 2.4vh;
+	color: #313638;
+	font-size: 1.8vh;
+ }
+
+ .slider {
+	appearance: none;
+	-webkit-appearance: none;
+	width: 8vh;
+	height: 1vh;
+	border-radius: 5px;  
+	background: #547e64;
+	outline: none;
+	opacity: 0.7;
+	-webkit-transition: .2s;
+	transition: opacity .2s;
+  }
+  
+  .slider::-webkit-slider-thumb {
+	-webkit-appearance: none;
+	appearance: none;
+	width: 1vh;
+	height: 2vh;
+	border-radius: 1.2vh;
+	background-color: #374e4a;
+	cursor: url('./assets/hand-pointer-solid.svg') 5 8, pointer;
+	transition: transform 0.1s;
+  }
+  
+  .slider::-webkit-slider-thumb:hover {
+	transform: scale(1.2);
+	cursor: url('./assets/hand-pointer-solid.svg') 5 8, pointer;
+	background-color: #313638;
+  }
+
+  .sliderVal {
+	margin-left: 0.4vh;
+	display: inline;
+	color: #374e4a;
+  }
+
+  input[type=submit] {
+	position: absolute;
+	margin-top: 2vh;
+	text-align: center;
+	color: #92a984;
+	background-color: #547e64;
+	font-family: 'Trashhand', sans-serif;
+	font-size: 2.8vh;
+	text-decoration: none;
+	border: none;
+	border-radius: 2vh;
+	cursor: url('./assets/hand-pointer-solid.svg') 5 8, pointer;
+	width: 14vh;
+	height: 6vh;
+	transition: transform 0.1s;
+  }
+
+  input[type=submit]:hover {
+	transform: scale(1.1);
+	background-color: #374e4a;
+	color: #b2ba90;
+  }
 
  @keyframes fadein {
 	from {bottom: 0; opacity: 0;}
@@ -340,7 +436,7 @@ button:hover {
 	  width: 35vh;
 	  height: 55vh;
 	  display: none;
-	  background-color: #537E63;
+	  background-color: #547e64;
 	  border-radius: 12px;
 	}
 	
@@ -411,4 +507,14 @@ button:hover {
 		right: 8%;
 		bottom: 8%;
 		background-color: #AAAAAAAA;
+	  }
+
+	  .pauseOverlay {
+		width: 100%;
+		height: 100%;
+		background-color: #1a141c88;
+		display: none;
+		position: fixed;
+		top: 0;
+		left: 0;
 	  }

@@ -4,63 +4,66 @@ import { initIdList, preColours, randRange, vector2 } from "./globals";
 import { initGrid, posGrid } from "./handleGrid";
 import { tick } from "./handleTick";
 import { food } from "./food";
+import { creatureTraits } from "./creatureTraits";
+import { particle } from "./particle";
 
-export var appId : number;
+export var appId: number;
 
-export const canvas = document.getElementById("canvas") as HTMLCanvasElement;
+export const canvas = document.getElementById("canvas") as HTMLCanvasElement; //setting up the usual HTML canvas context
 export const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
 
-export const wheel = document.querySelector('.wheel') as HTMLDivElement;
-export var tool: number = 0;
+export const wheel = document.querySelector('.wheel') as HTMLDivElement; //setting up the popup wheel
+export var tool: number = 0; //tools are 0 for nothing, 1 for grab hand, 2 for magnifying glass, 3 for food, 4 for editor
 
-export var activeArea : Array<vector2> = [];
-export var isLeftMouseDown : boolean = false;
-export var isRightMouseDown : boolean = false;
-export var windowInfo : Array<number> = [0,0];
-export var mousePos = new vector2(0,0);
-export var heldMousePos = new vector2(0,0);
+export var activeArea: [vector2,vector2] = [new vector2(0,0),new vector2(0,0)]; //the currently visible area of the canvas, plus some buffer
+export var isLeftMouseDown: boolean = false;
+export var isRightMouseDown: boolean = false;
+export var windowInfo: Array<number> = [0,0]; //the size of the window
+export var mousePos = new vector2(0,0); //the position of the mouse on the viewport 
+export var heldMousePos = new vector2(0,0); //the LAST position of the mouse on the viewport, used as a buffer
 
-export var isPaused : boolean = false;
+export var isPaused: boolean = false;
 
-export var creaturesList : Array<creature> = [];
-export var entityDict : { [key: string]: creature | food } = {};
+export var creaturesList: Array<creature> = []; //list of all creatures
+export var foodList: Array<food> = []; //list of all food
+export var particleList: Array<particle> = []; //list of all particles
+export var entityDict: { [key: string]: creature | food } = {}; //record of all entities
 
-export var foodList : Array<food> = [];
+export var cursorChoice: Array<boolean> = [false,false,false,false,false]; //stores the sort of cursor that should be used this frame, by priority, to avoid flickering
 
-export var cursorChoice : Array<boolean> = [false,false,false,false,false];
-
-export var highScores : { [key: string]: Array<string|number> } = {
+export var highScores: { [key: string]: Array<string|number> } = {
 	"longestLiving": ["",0],
 }
 
-export var simPrefs : { [key: string]: number } = {
+export var simPrefs: { [key: string]: number } = {
 	"foodSpawnRate": 5,
-} 
-export var debugPrefs : { [key: string]: boolean } = {
+}
+
+export var debugPrefs: { [key: string]: boolean } = { //these strings can be entered into the console to toggle each one on and off
 	"visionCone": false,
 	"hearingRange": false,
 	"senseArea": false,
 	"hitboxGrid": false,
-	"showId": true,
-	"showState": true,
-	"drawPath": true,
-	"drawRelations": true,
+	"showId": false,
+	"showState": false,
+	"drawPath": false,
+	"drawRelations": false,
 };
 
 
-export var checkedCreature: creature;
-var isGrabbing : boolean = false;
+export var checkedCreature: creature; //the creature currently being checked with the information/magnifying glass tool
+var isGrabbing: boolean = false; //whether a creature is currently being grabbed
 
-export var isWheelShowing : boolean = false;
-var wheelSelection : number = 0;
-var wheelPos : vector2 = new vector2(mousePos.x,mousePos.y);
-var isConsoleOpen : boolean = false;
+export var isWheelShowing: boolean = false; //whether or not the popup wheel is showing
+var wheelSelection: number = 0; //what the mouse is hovering over on the wheel
+var wheelPos: vector2 = new vector2(mousePos.x,mousePos.y); //the position of the wheel, as it may be different from the mouse position
+var isConsoleOpen: boolean = false;  //whether the debug console is showing
 
-function setupApp() {
+function setupApp() { //creates all the event listeners, triggers the rendering and setup
 	ctx.lineCap = "round";
 	windowInfo = [window.innerWidth,window.innerHeight];
 	document.addEventListener("mousedown", (event) => {
-		updateViewportInfo();
+		updateViewportInfo(); //every frame where the mouse is pressed down, update where the borders of the screen are recorded to be
 
 		if (event.button == 0) {
 			if (!isLeftMouseDown) {
@@ -74,24 +77,23 @@ function setupApp() {
 			showWheel();
 		}
 
-		if (!isRightMouseDown) {
-			if (event.button == 2) {
+		if (event.button == 2) {
+			if (!isRightMouseDown) {
 				isRightMouseDown = true;
 			}
-			
 		}
 	});
 	document.addEventListener("mouseup", () => {
 		updateViewportInfo();
-		if (isGrabbing) {
+		if (isGrabbing) { //if the mouse is released and it was previously grabbing a guy, it updates that guy
 			let entityId = posGrid[Math.floor(mousePos.x / 16)][Math.floor(mousePos.y / 16)];
 			if (entityId != "") {
 				let entity = entityDict[posGrid[Math.floor(mousePos.x / 16)][Math.floor(mousePos.y / 16)]]
-				if (entity.getTypeOf() == "creature") {
+				if (entity.getTypeOf() == "creature") { //checks it's ACTUALLY a creature currently being hovered over, in case there's something weird with the grid
 					entity = entity as creature;
 					entity.generatePath(4);
 					entity.behaviourTree();
-				} else {
+				} else { //if the mouse is currently not hovering over the right creature, it does a basic linear search through the creature list
 					for (let i = 0; i < creaturesList.length; i++) {
 						if (creaturesList[i].state == "mouseDragging") {
 							creaturesList[i].generatePath(4);
@@ -100,7 +102,7 @@ function setupApp() {
 					}
 				}
 			} else {
-				for (let i = 0; i < creaturesList.length; i++) {
+				for (let i = 0; i < creaturesList.length; i++) { //again, if it's not hovering over the correct one, it does a basic linear search to update the correct one properly
 					if (creaturesList[i].state == "mouseDragging") {
 						creaturesList[i].state = "idle";
 						creaturesList[i].generatePath(4);
@@ -120,13 +122,13 @@ function setupApp() {
 		}
 
 		if (!isLeftMouseDown && !isRightMouseDown) {
-			cursorChoice[0] = true;
+			cursorChoice[0] = true; //if neither mouse button is down, cursor is set to default choice
 		}
 		
 		hideWheel()
 	});
 	
-	document.addEventListener("mousemove", (event : MouseEvent) => {
+	document.addEventListener("mousemove", (event: MouseEvent) => {
 		updateViewportInfo();
 		navigateCanvas(event);
 		checkHover();
@@ -140,6 +142,12 @@ function setupApp() {
 	document.addEventListener("keydown", (event: KeyboardEvent) => {
 		if (event.code == "Escape") {
 			isPaused = !isPaused;
+			let overlay = document.getElementById("pauseOverlay") as HTMLDivElement;
+			if (isPaused) {
+				overlay.style.display = "block";
+			} else {
+				overlay.style.display = "none";
+			}
 		} else if (event.code == "Backquote" && !isWheelShowing) {
 			wheelPos = new vector2(mousePos.x,mousePos.y);
 			showWheel();
@@ -156,9 +164,14 @@ function setupApp() {
 		}
 	});
 	initNavigation();
+	initEditor();
 }
 
 export function manageCursor() {
+	if (isRightMouseDown) {
+		cursorChoice[1] = true;
+	}
+
 	let selected = 0;
 	for (let i = 0; i < 5; i++) {
 		if (cursorChoice[i]) {
@@ -168,24 +181,25 @@ export function manageCursor() {
 	if (isGrabbing) {
 		selected = 4
 	}
+
+	let size = "32 32";
 	switch (selected) {
 		case (0):
-			canvas.style.cursor = "url('./assets/arrow-pointer-solid.svg') 5 8, default";
+			canvas.style.cursor = "url('./assets/arrow-pointer-solid.svg') "+size+", default";
 			break;
 		case (1):
-			canvas.style.cursor = "url('./assets/arrows-up-down-left-right-solid.svg') 5 8, move";
+			canvas.style.cursor = "url('./assets/arrows-up-down-left-right-solid.svg') "+size+", move";
 			break;
 		case (2):
-			canvas.style.cursor = "url('./assets/hand-pointer-solid.svg') 5 8, pointer";
+			canvas.style.cursor = "url('./assets/hand-pointer-solid.svg') "+size+", pointer";
 			break;
 		case (3):
-			canvas.style.cursor = "url('./assets/hand-solid.svg') 5 8, grab";
+			canvas.style.cursor = "url('./assets/hand-solid.svg') "+size+", grab";
 			break;
 		case (4):
-			canvas.style.cursor = "url('./assets/hand-back-fist-solid.svg') 5 8, grabbing";
+			canvas.style.cursor = "url('./assets/hand-back-fist-solid.svg') "+size+", grabbing";
 			break;
 	}
-
 	cursorChoice = [false,false,false,false,false];
 }
 
@@ -206,7 +220,7 @@ function toggleCommandBox() {
 }
 
 function checkHover() {
-	if (!isPaused && !isWheelShowing) {
+	if (!isPaused && !isWheelShowing && tool == 1) {
 		let mouseCoordPos = new vector2(activeArea[0].x + 24 + mousePos.x,activeArea[0].y + 24 + mousePos.y);
 		mouseCoordPos.x = Math.max(Math.min(mouseCoordPos.x,4096),0);
 		mouseCoordPos.y = Math.max(Math.min(mouseCoordPos.y,4096),0);
@@ -216,7 +230,7 @@ function checkHover() {
 			for (let j = -1; j < 2; j++) {
 				if (posGrid[mouseGridPos.x + i][mouseGridPos.y + j] != "") {
 					if (entityDict[posGrid[mouseGridPos.x + i][mouseGridPos.y + j]].getTypeOf() == "creature") {
-						if (tool == 1) {
+						if (tool == 1) { 
 							cursorChoice[3] = true;
 						} else {
 							cursorChoice[2] = true;
@@ -240,11 +254,12 @@ function handleTool() {
 				if (entityDict[clickedEntityId] != undefined) {
 					if (entityDict[clickedEntityId].getTypeOf() == "creature") {
 						checkedCreature = entityDict[clickedEntityId] as creature;
+				
 						let panelDiv = document.getElementById("callout");
 						if (panelDiv != undefined) {
 							panelDiv.style.display = "inline";
 						} else {
-							console.error("Could not find callout element!")
+							console.error("Could not find callout element!");
 						}
 					}
 				}
@@ -262,16 +277,25 @@ function handleTool() {
 				if (clickedEntityId != "") {
 					if (entityDict[clickedEntityId].getTypeOf() == "creature") {
 						let draggedCreature = entityDict[clickedEntityId] as creature;
-						draggedCreature.state = "mouseDragging";
-						isGrabbing = true;
+
+						if (draggedCreature.state != "dead") {
+							draggedCreature.state = "mouseDragging";
+							isGrabbing = true;
+						}
 					}
 				}
 			} else if (tool == 3) {
 				let colorIndex = Math.floor(randRange(0,preColours.length - 1));
 				let foodColor = preColours[colorIndex];
-				foodList.push(new food(new vector2(mouseCoordPos.x,mouseCoordPos.y),randRange(4,12),foodColor));
+				foodList.push(new food(new vector2(mouseCoordPos.x,mouseCoordPos.y),randRange(4,6),foodColor));
+
 			} else if (tool == 4) {
-				//edit??
+				let editDiv = document.getElementById("creatureEditor");
+				if (editDiv != undefined) {
+					editDiv.style.display = "block";
+				} else {
+					console.error("Could not find editor element!");
+				}
 			}
 		}
 	}
@@ -373,11 +397,10 @@ function updateWheel() {
 wheel.setAttribute('data-chosen', wheelSelection.toString());
 }
 
-function navigateCanvas(event : MouseEvent) {
+function navigateCanvas(event: MouseEvent) {
 	if (isRightMouseDown) {			
 		window.scrollBy(heldMousePos.x - event.clientX, heldMousePos.y - event.clientY);
 		updateViewportInfo();
-		cursorChoice[1] = true;
 	}
 	heldMousePos.x = event.clientX;
 	heldMousePos.y = event.clientY;
@@ -399,7 +422,7 @@ export function newFood() {
 	for (let i = 0; i < randRange(1,4); i++) {
 		let colorIndex = Math.floor(randRange(0,preColours.length - 1));
 		let foodColor = preColours[colorIndex];
-		foodList.push(new food(new vector2(randRange(96,4000),randRange(96,4000)),randRange(4,12),foodColor));
+		foodList.push(new food(new vector2(randRange(96,4000),randRange(96,4000)),randRange(4,8),foodColor));
 	}
 }
 
@@ -412,6 +435,66 @@ function addDemoCreatures() {
 
 		document.getElementById("load")!.innerHTML = (creaturesList.length).toString();
 	}
+}
+
+function editorSubmit() {	
+	let newTraits = new creatureTraits(null);
+	let range = document.querySelectorAll(".slider");
+
+	range.forEach(protoSlider => {
+		let slider = protoSlider as HTMLInputElement;
+		let name = slider.name;
+		let value = Number(slider.value);
+
+		if (name != null && value != null) {
+			newTraits.editTrait(name,value);
+		}
+
+	});
+	let mouseCoordPos = new vector2(activeArea[0].x + 24 + mousePos.x,activeArea[0].y + 24 + mousePos.y);
+	mouseCoordPos.x = Math.max(Math.min(mouseCoordPos.x,4096),0);
+	mouseCoordPos.y = Math.max(Math.min(mouseCoordPos.y,4096),0);
+
+	creaturesList.push(new creature(mouseCoordPos,16,8,[newTraits]));
+}
+
+function initEditor() {
+	let addButton = document.getElementById("addButton") as HTMLInputElement;
+
+	if (addButton != null) {
+		addButton.onclick = function() { editorSubmit() };
+	}
+
+}
+
+export function sortList() {
+	creaturesList = quickSort(creaturesList);
+}
+
+export function quickSort(unsorted: Array<creature>): Array<creature> {
+	let result = unsorted;	
+	if (unsorted.length > 1) {
+		let pivot = Math.floor(unsorted.length / 2);
+		let small = [];
+		let equal = [];
+		let large = [];
+
+		for (let i = 0; i < unsorted.length; i++) {
+			if (unsorted[i].head.pos.y > unsorted[pivot].head.pos.y) {
+				large.push(unsorted[i]);
+			} else if (unsorted[i].head.pos.y < unsorted[pivot].head.pos.y) {
+				small.push(unsorted[i])
+			} else {
+				equal.push(unsorted[i]);
+			}
+
+			let small_sorted = quickSort(small);
+			let large_sorted = quickSort(large);
+
+			result = small_sorted.concat(equal).concat(large_sorted);
+		}
+	}
+	return result;
 }
 
 setupApp();

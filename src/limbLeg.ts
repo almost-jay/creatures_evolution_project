@@ -1,22 +1,21 @@
 import { vector2 } from "./globals";
-import { posGrid } from "./handleGrid";
-import { ctx } from "./initMain";
+import { ctx, isPaused } from "./initMain";
 
 export class creatureLeg {
-	length : number; //how long each part of the leg is
-	width : number; //width of the leg
-	legAngle : number; //how far forward and back the leg goes
-	joinPos : vector2;
-	elbowPos : vector2;
-	footPos : vector2;
-	lightColour : string;
-	darkColour : string;
-	side : number;
-	jointAngle : number;
-	isFootUp : boolean;
-	pair : creatureLeg;
+	length: number; //how long each part of the leg is
+	width: number; //width of the leg
+	legAngle: number; //how far forward and back the leg goes
+	joinPos: vector2;
+	elbowPos: vector2;
+	footPos: vector2;
+	lightColour: string;
+	darkColour: string;
+	side: number;
+	jointAngle: number;
+	isFootUp: boolean;
+	pair: creatureLeg;
 
-	constructor(joinPos : vector2, colour : string, side : number, length : number, width : number, legAngle : number) {
+	constructor(joinPos: vector2, colour: string, side: number, length: number, width: number, legAngle: number) {
 		this.length = length;
 		this.width = width;
 		this.legAngle = legAngle;
@@ -37,31 +36,45 @@ export class creatureLeg {
 		return result;
 	}
 
-	updateLimb(joinPos : vector2, childJointPos: vector2,state: string) {
-		this.updateLimbPos(joinPos,childJointPos,state);
+	updateLimb(joinPos: vector2, childJointPos: vector2, state: string) {
+		if (state != "dead" && !isPaused) {
+			this.updateLimbPos(joinPos,childJointPos, state);
+		}
 	}
 
-	renderLimb() {
+	renderLimb(isHurt: boolean) {
+		if (isHurt) {
+			ctx.fillStyle = "#FF4545";
+		}
+
 		ctx.lineWidth = this.width;
 
-		ctx.fillStyle = this.darkColour;
+		if (!isHurt) {
+			ctx.fillStyle = this.darkColour;
+		}
 		ctx.beginPath();
 		ctx.arc(this.footPos.x,this.footPos.y,this.width * 0.64,0, 2 * Math.PI);
 		ctx.fill();
 
-		ctx.strokeStyle = this.darkColour;
+		if (!isHurt) {
+			ctx.strokeStyle = this.darkColour;
+		}
 		ctx.beginPath();
 		ctx.moveTo(this.elbowPos.x,this.elbowPos.y);
 		ctx.lineTo(this.footPos.x,this.footPos.y);
 		ctx.stroke();
 		ctx.closePath();
 
-		ctx.fillStyle = this.lightColour;
+		if (!isHurt) {
+			ctx.fillStyle = this.lightColour;
+		}
 		ctx.beginPath();
 		ctx.arc(this.elbowPos.x,this.elbowPos.y,this.width * 0.64,0, 2 * Math.PI);
 		ctx.fill();
 
-		ctx.strokeStyle = this.lightColour;
+		if (!isHurt) {
+			ctx.strokeStyle = this.lightColour;
+		}
 		ctx.beginPath();
 		ctx.moveTo(this.joinPos.x,this.joinPos.y);
 		ctx.lineTo(this.elbowPos.x,this.elbowPos.y);
@@ -69,22 +82,21 @@ export class creatureLeg {
 		ctx.closePath();
 	}
 
-	updateLimbPos(joinPos : vector2, childJointPos : vector2,state: string) {
+	updateLimbPos(joinPos: vector2, childJointPos: vector2, state: string) {
 		this.joinPos = joinPos;
 		this.jointAngle = this.joinPos.getAvgAngleRad(childJointPos);
 		
 		if (state == "mouseDragging") {
 			this.footPos = this.calcFootDragPos();
-		} else if (state == "dead") {
-			this.footPos = this.calcFootDeathPos();
 		} else {
-			this.calcFootPos();
+			this.updateFootPos();
 		}
-		this.calcElbowPos();
+		this.elbowPos = this.calcElbowPos();
 	}
 
-	calcFootPos() {
+	updateFootPos(): void {
 		let footCheckPos = this.calcFootCheckPos()
+
 		let footDist = this.footPos.distance(footCheckPos);
 		if (footDist > this.length * 2.4 || this.elbowPos.distance(this.joinPos) < 0.6) {
 			if (this.pair.isFootUp == false || footDist > this.length * 4) {
@@ -103,27 +115,26 @@ export class creatureLeg {
 				this.footPos = footCheckPos;
 			}
 		}
-
 	}
 
-	calcFootCheckPos() : vector2 {
+	calcFootCheckPos(): vector2 {
 		let limbSpacing = this.length * 2;
 		let footStepPos = new vector2(limbSpacing * -1 * Math.cos(this.jointAngle - (Math.PI * this.side)) + this.joinPos.x,limbSpacing * -1 * Math.sin(this.jointAngle - (Math.PI * this.side)) + this.joinPos.y);
 		return new vector2(limbSpacing * Math.cos(this.jointAngle - (Math.PI * this.legAngle * this.side)) + footStepPos.x,limbSpacing * Math.sin(this.jointAngle - (Math.PI * this.legAngle * this.side)) + footStepPos.y);
 	}
 	
-	calcElbowPos() {
+	calcElbowPos(): vector2 {
 		let chi = this.footPos.x - this.joinPos.x;
 		let psi = this.footPos.y - this.joinPos.y;
 		let d = (chi ** 2) + (psi ** 2);
 		let a = Math.max(-1,Math.min(1,d / (2 * this.length * Math.sqrt(d))));
 		let theta = Math.atan2(psi,chi) - (Math.acos(a) * this.side);
 		
-		this.elbowPos.x = this.joinPos.x + (this.length * Math.cos(theta));
-		this.elbowPos.y = this.joinPos.y + (this.length * Math.sin(theta));
+		let result = new vector2(this.joinPos.x + (this.length * Math.cos(theta)),this.joinPos.y + (this.length * Math.sin(theta)));
+		return result;
 	}
 
-	moveFootForward(footCheckPos : vector2, footDist : number) {
+	moveFootForward(footCheckPos: vector2, footDist: number) {
 		let delta = this.footPos.subtract(footCheckPos);
 		delta = delta.divide(footDist);
 		delta = delta.multiply(this.length * 0.6);
@@ -132,7 +143,7 @@ export class creatureLeg {
 	}
 
 	
-	calcFootDragPos() : vector2 {
+	calcFootDragPos(): vector2 {
 		let limbSpacing = this.length * 1.4;
 		let dragAngle = 1.1;
 		let footStepPos = new vector2(limbSpacing * Math.cos(this.jointAngle - (Math.PI * this.side)) + this.joinPos.x,limbSpacing * Math.sin(this.jointAngle - (Math.PI * this.side)) + this.joinPos.y);
@@ -140,15 +151,10 @@ export class creatureLeg {
 	}
 
 	
-	calcFootDeathPos() : vector2 {
+	calcFootDeathPos(): vector2 {
 		let limbSpacing = this.length * 1.4;
 		let dragAngle = 0.8;
 		let footStepPos = new vector2(limbSpacing * Math.cos(this.jointAngle - (Math.PI * this.side)) + this.joinPos.x,limbSpacing * Math.sin(this.jointAngle - (Math.PI * this.side)) + this.joinPos.y);
 		return new vector2(limbSpacing * Math.cos(this.jointAngle - (Math.PI * dragAngle * this.side)) + footStepPos.x,limbSpacing * Math.sin(this.jointAngle - (Math.PI * dragAngle * this.side)) + footStepPos.y);
 	}
-
-	//1 is east
-	//2/pi is north
-	// - 2/pi is south
-	//-pi is west OR pi is west
 }

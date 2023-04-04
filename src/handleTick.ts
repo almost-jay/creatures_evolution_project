@@ -1,24 +1,28 @@
+import { creature } from "./creatureMain";
+import { vector2 } from "./globals";
 import { clearGrid, posGrid } from "./handleGrid";
-import { activeArea, canvas, checkedCreature, creaturesList, ctx, entityDict, foodList, manageCursor, newFood, simPrefs, updateViewportInfo } from "./initMain";
+import { activeArea, canvas, checkedCreature, creaturesList, ctx, entityDict, foodList, isPaused, manageCursor, newFood, particleList, simPrefs, sortList, updateViewportInfo } from "./initMain";
 
 export var time: number = 0;
 
-export function tick() : void {
+export function tick(): void {
 	updateViewportInfo();
 	clearCanvas();
 	drawGrid();
 	clearGrid();
-	spawnFoodCheck();
+	//spawnFoodCheck();
 	fillGrid();
-	renderFood();
+	//renderFood();
+	sortList();
 	renderCreatures();
+	renderParticles();
 
 	manageCursor();
 	time += 0;
 	requestAnimationFrame(() => tick());
 }
 
-function clearCanvas() : void {
+function clearCanvas(): void {
 	ctx.fillStyle = "#181818";
 	ctx.fillRect(activeArea[0].x,activeArea[0].y,activeArea[1].x - activeArea[0].x,activeArea[1].y - activeArea[0].y);
 }
@@ -28,13 +32,16 @@ function fillGrid() {
 		let id = creaturesList[i].id;
 		for (let j = 0; j < creaturesList[i].segments.length; j++) {
 			let segment = creaturesList[i].segments[j];
-			posGrid[Math.floor(segment.pos.x / 16)][Math.floor(segment.pos.y / 16)] = id;
+			let posX = Math.min(Math.max(Math.floor(segment.pos.x / 16),1),254)
+			let posY = Math.min(Math.max(Math.floor(segment.pos.y / 16),1),254);
+
+			posGrid[posX][posY] = id;
 
 			if (segment.width > 8) {
-				posGrid[Math.floor((segment.pos.x / 16 + 1))][Math.floor((segment.pos.y / 16) + 1)] = id;
-				posGrid[Math.floor((segment.pos.x / 16 + 1))][Math.floor((segment.pos.y / 16) - 1)] = id;
-				posGrid[Math.floor((segment.pos.x / 16 - 1))][Math.floor((segment.pos.y / 16) + 1)] = id;
-				posGrid[Math.floor((segment.pos.x / 16 - 1))][Math.floor((segment.pos.y / 16) - 1)] = id;
+				posGrid[posX + 1][posY + 1] = id;
+				posGrid[posX + 1][posY - 1] = id;
+				posGrid[posX - 1][posY + 1] = id;
+				posGrid[posX - 1][posY - 1] = id;
 			}
 			
 		}
@@ -76,5 +83,21 @@ function renderCreatures() {
 	
 	if (checkedCreature != undefined) {		
 		checkedCreature.updateInfoPanel()
+	}
+}
+
+function renderParticles() {
+	for (let i = 0; i < particleList.length; i++) {
+		if (particleList[i].age < particleList[i].life) {
+			if (particleList[i].pos.x > activeArea[0].x && particleList[i].pos.x < activeArea[1].x && particleList[i].pos.y > activeArea[0].y && particleList[i].pos.y < activeArea[1].y) {
+				if (!isPaused) {
+					particleList[i].advanceParticle();
+				}
+				particleList[i].render();
+			}
+		} else {
+			particleList.splice(i,1);
+			i--;
+		}
 	}
 }

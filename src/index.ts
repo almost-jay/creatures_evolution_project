@@ -1,8 +1,10 @@
 const electron = require('electron');
 const { app, BrowserWindow } = electron;
 
-export let mainWindow: Electron.BrowserWindow | null;
+export var mainWindow: Electron.BrowserWindow | null;
+
 if (require('electron-squirrel-startup')) app.quit();
+
 function createWindow() {
 	mainWindow = new BrowserWindow({ 
 		width: 1280, 
@@ -24,12 +26,6 @@ function createWindow() {
     mainWindow.on('closed', function () {
         mainWindow = null;
     });
-	// let quit_button = document.getElementById("quit_button") as HTMLButtonElement;
-	// if (quit_button != null) {
-	// 	quit_button.addEventListener("click", event => {
-	// 		console.log(Electron);
-	// 	});
-	// }
 }
 
 app.on('ready', createWindow);
