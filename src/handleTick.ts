@@ -10,9 +10,9 @@ export function tick(): void {
 	clearCanvas();
 	drawGrid();
 	clearGrid();
-	//spawnFoodCheck();
+	spawnFoodCheck();
 	fillGrid();
-	//renderFood();
+	renderFood();
 	sortList();
 	renderCreatures();
 	renderParticles();

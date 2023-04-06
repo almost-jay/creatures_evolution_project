@@ -126,9 +126,9 @@ export class creatureHead extends creatureBody {
 		super.moveByDrag(maxDist);
 		this.pos = new vector2(activeArea[0].x + 18 + mousePos.x,activeArea[0].y + 18 + mousePos.y);
 	}
-
+	
 	//this function checks if the creature can hear or see anything (friend, foe, or food)
-	checkSenses(dictId: string, hearingDistance: number, visionDistance: number, visionAngle: number): Array<string> {
+	checkSenses(dictId: string, hearingDistance: number, visionDistance: number, visionAngle: number) : Array<string> {
 		this.canSenseFoe = false; //first, assume it can't sense anything
 		this.canSenseFriend = false;
 		this.canSeeFood = false;
@@ -141,10 +141,18 @@ export class creatureHead extends creatureBody {
 
 		for (let i = 0; i < sensedEntities.length; i++) { //iterate through all entities it might be able to detect
 			let checkedEntity = entityDict[sensedEntities[i]]; //fetches the entity from the main dictionary
-			if (checkedEntity.getTypeOf() == "food") {
+			let checkedPosition = new vector2(0,0);
+			if (checkedEntity.getTypeOf() == "creature") {
+				checkedEntity = checkedEntity as creature;
+				checkedPosition = checkedEntity.head.pos;
+			} else if (checkedEntity.getTypeOf() == "food") {
 				checkedEntity = checkedEntity as food;
-				if (this.castVision(checkedEntity.pos,visionAngle)) { //checks if the entity is within the creature's field of fiew
-					canSeeAnything = true;
+				checkedPosition = checkedEntity.pos;
+			}
+			if (this.castVision(checkedPosition,visionAngle)) { //checks if the entity is within the creature's field of fiew
+				canSeeAnything = true;
+				if (checkedEntity.getTypeOf() == "food") { //if the entity is food, it can see food
+					checkedEntity = checkedEntity as food;
 					this.canSeeFood = true;
 					if (!checkedEntity.isHeld) {
 						if (this.targetFood != "") { //if it doesn't have a target food already, it sets the checked food to be the new target
@@ -155,72 +163,74 @@ export class creatureHead extends creatureBody {
 							this.targetFood = checkedEntity.id;
 						}
 					}
-				}
-			
-			} else if (checkedEntity.getTypeOf() == "creature") {
+				} else if (checkedEntity.getTypeOf() == "creature") {
 					checkedEntity = checkedEntity as creature;
-					if (this.castVision(checkedEntity.head.pos,visionAngle)) {
-						if (checkedEntity.state != "dead") {
-							if (!(checkedEntity.id in this.relationships)) {
-								newRelationships.push(checkedEntity.id);
-							} else {
-								if (this.relationships[checkedEntity.id].aggression < -0.2) { //creatures get aggressive if their aggression count is less than -0.2
-									this.canSenseFoe = true;
-									if (this.targetEnemy == "") {
-										this.targetEnemy = checkedEntity.id;
-									} else if (checkedEntity.head.pos.distance(this.pos) > (entityDict[this.targetEnemy] as creature).head.pos.distance(this.pos)) {
-										this.targetEnemy = checkedEntity.id;
-									}
-								} else if (this.relationships[checkedEntity.id].aggression > 0.2) { //creatures are friendly if aggression is > 0.2
-									this.canSenseFriend = true;
-									if (this.pos.distance(this.pos) > checkedEntity.head.pos.distance(this.pos)) {
-										this.targetFriend = checkedEntity.id;
-									}
-								}
-							}
-
-							if (debugPrefs.drawRelations) {
-								let red = (Math.floor(16 - ((this.relationships[checkedEntity.id].aggression + 1) * 8))).toString(16);
-								let blue = (Math.floor((this.relationships[checkedEntity.id].respect + 1) * 8)).toString(16);
-								
-								if (red.length < 2) {
-									red = red+red;
-								}
-								
-								if (blue.length < 2) {
-									blue = blue+blue;
-								}
-			
-								ctx.strokeStyle = "#"+red+blue+"FFAA";
-								ctx.lineWidth = 2;
-			
-								ctx.beginPath();
-								ctx.moveTo(this.pos.x,this.pos.y);
-								ctx.lineTo(checkedEntity.head.pos.x,checkedEntity.head.pos.y);
-								ctx.stroke();
-								ctx.closePath();
-							}
-						}
-					} else if (checkedEntity.head.pos.distance(this.pos) < hearingDistance) {
-						canHearAnything = true;
+					if (checkedEntity.state != "dead") {
 						if (!(checkedEntity.id in this.relationships)) {
 							newRelationships.push(checkedEntity.id);
 						} else {
 							if (this.relationships[checkedEntity.id].aggression < -0.2) { //creatures get aggressive if their aggression count is less than -0.2
-								if (this.pos.distance(this.pos) > checkedEntity.head.pos.distance(this.pos)) {
-									this.canSenseFoe = true;
+								this.canSenseFoe = true;
+								if (this.targetEnemy == "") {
+									this.targetEnemy = checkedEntity.id;
+								} else if (checkedPosition.distance(this.pos) > (entityDict[this.targetEnemy] as creature).head.pos.distance(this.pos)) {
 									this.targetEnemy = checkedEntity.id;
 								}
-							} else if (this.relationships[checkedEntity.id].aggression > 0.2){ //creatures are friendly if aggression is > 0.2
+							} else if (this.relationships[checkedEntity.id].aggression > 0.2) { //creatures are friendly if aggression is > 0.2
 								this.canSenseFriend = true;
-								if (this.pos.distance(this.pos) > checkedEntity.head.pos.distance(this.pos)) {
+								if (this.pos.distance(this.pos) > checkedPosition.distance(this.pos)) {
 									this.targetFriend = checkedEntity.id;
 								}
 							}
 						}
 					}
 				}
+
+			} else if (checkedEntity.getTypeOf() == "creature") {
+				checkedEntity = checkedEntity as creature;
+				if (checkedPosition.distance(this.pos) < hearingDistance) {
+					canHearAnything = true;
+					if (!(checkedEntity.id in this.relationships)) {
+						newRelationships.push(checkedEntity.id);
+					} else {
+						if (this.relationships[checkedEntity.id].aggression < -0.2) { //creatures get aggressive if their aggression count is less than -0.2
+							if (this.pos.distance(this.pos) > checkedPosition.distance(this.pos)) {
+								this.canSenseFoe = true;
+								this.targetEnemy = checkedEntity.id;
+							}
+						} else if (this.relationships[checkedEntity.id].aggression > 0.2){ //creatures are friendly if aggression is > 0.2
+							this.canSenseFriend = true;
+							if (this.pos.distance(this.pos) > checkedPosition.distance(this.pos)) {
+								this.targetFriend = checkedEntity.id;
+							}
+						}
+						
+						if (debugPrefs.drawRelations) {
+							let red = (Math.floor(16 - ((this.relationships[checkedEntity.id].aggression + 1) * 8))).toString(16);
+							let blue = (Math.floor((this.relationships[checkedEntity.id].respect + 1) * 8)).toString(16);
+							
+							if (red.length < 2) {
+								red = red+red;
+							}
+							
+							if (blue.length < 2) {
+								blue = blue+blue;
+							}
+		
+							ctx.strokeStyle = "#"+red+blue+"FFAA";
+							ctx.lineWidth = 2;
+		
+							ctx.beginPath();
+							ctx.moveTo(this.pos.x,this.pos.y);
+							ctx.lineTo(checkedEntity.head.pos.x,checkedEntity.head.pos.y);
+							ctx.stroke();
+							ctx.closePath();
+						}
+					}
+				}
+				
 			}
+		}
 
 		if (debugPrefs.visionCone) {
 			if (canSeeAnything) {

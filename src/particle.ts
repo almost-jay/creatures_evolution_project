@@ -27,7 +27,6 @@ export class particle {
 			opacity = "0"+opacity;
 		}
 		ctx.fillStyle = this.colour+opacity;
-		console.log(ctx.fillStyle);
 		ctx.beginPath();
 		ctx.arc(this.pos.x,this.pos.y,size,0,2 * Math.PI);
 		ctx.fill();

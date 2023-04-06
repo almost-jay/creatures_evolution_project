@@ -389,6 +389,10 @@ export class creature {
 					this.calcAttitude(newRelationships[i]);
 				}
 			}
+
+			if (this.attackCooldown > 0) {
+				this.attackCooldown--;
+			}
 			this.updateHunger();
 			this.age += 1 / 7200;
 			if (!this.isMature) {
@@ -429,7 +433,6 @@ export class creature {
 					this.state = "afraid";
 					this.fleeEnemy();
 				} else {
-					this.state = "defensive";
 					this.defendEnemy();
 				}
 			} else {
@@ -438,11 +441,12 @@ export class creature {
 		} else if (this.head.canSenseFoe) {
 			if (this.head.targetEnemy in this.head.relationships) {
 				if (this.head.relationships[this.head.targetEnemy].respect > 0.2) {
-					this.state = "defensive";
 					this.defendEnemy();
-				} else {
+				} else if (this.attackCooldown < 0) {
 					this.state = "aggressive";
 					this.attackEnemy();
+				} else {
+					this.defendEnemy();
 				}
 			} else {
 				this.state = "aggressive";
@@ -545,7 +549,7 @@ export class creature {
 			this.die();
 		} else {
 			this.deferCooldown = 60 * Math.random() + 300;
-			//this.health -= damage;
+			this.health -= damage;
 			this.attacker = attacker;
 			this.attacked = true;
 			if (!(attacker in this.head.relationships)) {
@@ -594,11 +598,13 @@ export class creature {
 		}
 		
 		//for debug only, remove this whole section from here to the next comment
-		if (Math.random() > 0.2) {
-			this.head.relationships[id].aggression = -0.4;
-		} else {
-			this.head.relationships[id].aggression = 0.4;
-		}
+		// if (Math.random() > 0.2) {
+		// 	this.head.relationships[id].aggression = -0.4;
+		// 	this.head.relationships[id].respect = 0.8;
+		// } else {
+		// 	this.head.relationships[id].aggression = 0.4;
+		// }
+
 		//the next comment
 	}
 
@@ -613,7 +619,7 @@ export class creature {
 		let angleAway = -(attacker.head.pos.getAvgAngleRad(this.head.pos));
 		let scale = this.properties.traits.speed.value * 50;
 		
-		if (attacker.head.targetEnemy == this.id || this.head.pos.distance(attacker.head.pos) < safeDistance) {
+		if (attacker.head.targetEnemy == this.id && this.head.pos.distance(attacker.head.pos) < safeDistance) {
 			this.target = this.head.pos.add(new vector2(Math.min(Math.max(scale * Math.cos(angleAway),128),3968),Math.min(Math.max(scale * Math.sin(angleAway),128),3968)));
 		} else {
 			this.backDown();
@@ -622,15 +628,16 @@ export class creature {
 	}
 
 	defendEnemy() {
+		this.state = "defensive";
 		if (this.head.targetEnemy != "") {
 			let targetEnemy = entityDict[this.head.targetEnemy] as creature;
 			if (targetEnemy.state != "dead") {
 				let targetHeadPos = targetEnemy.head.pos;
-
 				if (targetEnemy.head.canSenseFoe) {
-					this.circleEnemy(targetEnemy.head.pos);
+					this.circleEnemy(targetHeadPos,targetEnemy.head.angle);
 				} else {
-					if (this.circleEnemy(targetHeadPos)) {
+					let canAttack = this.circleEnemy(targetHeadPos,targetEnemy.head.angle);
+					if (canAttack && this.attackCooldown < 0) {
 						this.attemptAttack(targetEnemy);
 					}
 				}
@@ -642,18 +649,35 @@ export class creature {
 		}
 	}
 
-	circleEnemy(enemyPos: vector2): boolean {
-		let goalDistance = this.length * this.maxDist;
-		let currentAngle = this.head.pos.getAvgAngleRad(enemyPos);
+	circleEnemy(enemyPos: vector2, goalAngle: number): boolean {
+		this.path = [];
 		let result = false;
-		let angleStep = 0.2;
-		if (currentAngle < Math.PI - angleStep) {
-			this.target = new vector2(goalDistance * Math.cos(currentAngle - angleStep), goalDistance * Math.sin(currentAngle - angleStep)).add(this.head.pos);
-		} else if (currentAngle > Math.PI + angleStep) {
-			this.target = new vector2(goalDistance * Math.cos(currentAngle + angleStep), goalDistance * Math.sin(currentAngle + angleStep)).add(this.head.pos);
+		let distance = Math.max(this.head.pos.distance(enemyPos),this.maxDist * this.length);
+		goalAngle += Math.PI;
+		let currentAngle = enemyPos.getAvgAngleRad(this.head.pos);
+		let step = 0.2;
+
+		if (currentAngle > goalAngle) {
+			for (let i = currentAngle; i > goalAngle; i -= step) {
+				this.path.push(new vector2(distance * Math.cos(i),distance * Math.sin(i)).add(enemyPos));
+			}
+			this.path.push(this.head.pos.add(this.path[this.path.length - 1]).divide(2));
+			this.path.reverse();
 		} else {
-			result = true;
+			for (let i = currentAngle; i < goalAngle; i += step) {
+				this.path.push(new vector2(distance * Math.cos(i),distance * Math.sin(i)).add(enemyPos));
+			}
+			this.path.push(this.head.pos.add(this.path[0]).divide(2));
 		}
+
+		if (this.path.length < 2 || this.head.pos.distance(enemyPos) < this.maxDist * 4) {
+			result = true;
+			this.targetIndex = 0;
+		} else {
+			this.targetIndex = Math.min(this.targetIndex,this.path.length - 1);
+			this.target = this.path[this.targetIndex];
+		}
+
 		this.followPath();
 		return result;
 	}
@@ -675,10 +699,10 @@ export class creature {
 						this.target = targetTailPos;
 						if (targetEnemy.state == "afraid") {
 							if (targetEnemy.properties.traits.speed.display >= this.properties.traits.speed.value) {
-								this.head.relationships[targetEnemy.id].aggression = -0.2;
+								this.head.relationships[targetEnemy.id].aggression += 0.02;
 								this.backDown();
 							} else if (targetEnemy.head.pos.distance(this.head.pos) > this.properties.traits.visionDistance.value * 0.25) {
-								this.head.relationships[targetEnemy.id].aggression = -0.2;
+								this.head.relationships[targetEnemy.id].aggression += 0.02;
 								this.head.relationships[targetEnemy.id].respect += 0.1;
 								this.backDown();
 							} else {
@@ -694,9 +718,7 @@ export class creature {
 						this.followPath();
 						this.targetIndex = 0;
 					} else {
-						if (this.action == "backpedal") {
-							this.followPath();
-						} else if (this.action == "stalk") {
+						if (this.action == "stalk") {
 							this.target = this.getNearestSegment(targetEnemy.segments);
 							this.action = "attack"
 						} else if (this.action == "attack") {
@@ -752,18 +774,18 @@ export class creature {
 	}
 
 	attemptAttack(targetEnemy: creature) {
+		console.log("Attempting attack");
 		if (targetEnemy.hurtIndex < 0) {
 			this.createBloodParticles(this.target);
 			targetEnemy.takeDamage(this.properties.traits.strength.value,this.id);
 			this.head.relationships[targetEnemy.id].respect -= 0.05;
 			this.attacked = false;
-			this.action = "backpedal";
+			this.attackCooldown = 60;
 		}
 		this.generateRecoverPath(targetEnemy.head.pos);
 	}
 
 	generateRecoverPath(targetTailPos: vector2): void {
-		console.log(this.id);
 		let angleBack = this.head.pos.getAvgAngleRad(targetTailPos);
 		let backPath: Array<vector2> = [];
 		let lastDistanceAway = 0;

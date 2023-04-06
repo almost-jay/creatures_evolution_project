@@ -429,8 +429,8 @@ export function newFood() {
 function addDemoCreatures() {
 	let crNo = (Math.random() * 2) + 1;
 	for (let i = 0; i < crNo; i ++) {
-		let xOffset = (Math.random() * 1024) + 1024;
-		let yOffset = (Math.random() * 1024) + 1024;
+		let xOffset = randRange(1000,1800);
+		let yOffset = randRange(1000,1800);
 		creaturesList.push(new creature(new vector2(xOffset,yOffset),16,8,null));
 
 		document.getElementById("load")!.innerHTML = (creaturesList.length).toString();

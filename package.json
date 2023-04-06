@@ -1,7 +1,7 @@
 {
 	"name": "creature_test",
 	"description": "just a test of electron",
-	"version": "1.0.0",
+	"version": "0.12.02",
 	"author": "jensen grundy <jayjayseven.g@gmail.com> (https://github.com/almost-jay/)",
 	"main": "./compiled/index.js",
 	"build": {
@@ -9,23 +9,23 @@
 		"icon": "assets/icon.ico",
 		"mac": {
 			"target": "zip",
-			"category": "your.app.category.type"
+			"category": "public.app-category.games"
 		},
 		"win": {
-			"target": "zip"
+			"target": "portable"
 		},
 		"linux": {
 			"category": "Simulation",
 			"icon": "assets/256x256.png",
 			"target": [
-				"deb"
+				"zip"
 			]
 		}
 	},
 	"scripts": {
 		"start": "electron .",
 		"pack": "electron-builder --dir",
-		"dist": "electron-builder"
+		"dist": "electron-builder -wml"
 	},
 	"dependencies": {
 		"typescript": "^5.0.2",
