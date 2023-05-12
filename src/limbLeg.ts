@@ -36,9 +36,9 @@ export class creatureLeg {
 		return result;
 	}
 
-	updateLimb(joinPos: vector2, childJointPos: vector2, state: string) {
+	updateLimb(joinPos: vector2, childJointPos: vector2, state: string,isBackwards: boolean) {
 		if (state != "dead" && !isPaused) {
-			this.updateLimbPos(joinPos,childJointPos, state);
+			this.updateLimbPos(joinPos,childJointPos,state,isBackwards);
 		}
 	}
 
@@ -82,7 +82,7 @@ export class creatureLeg {
 		ctx.closePath();
 	}
 
-	updateLimbPos(joinPos: vector2, childJointPos: vector2, state: string) {
+	updateLimbPos(joinPos: vector2, childJointPos: vector2, state: string, isBackwards: boolean) {
 		this.joinPos = joinPos;
 		this.jointAngle = this.joinPos.getAvgAngleRad(childJointPos);
 		
@@ -91,7 +91,7 @@ export class creatureLeg {
 		} else {
 			this.updateFootPos();
 		}
-		this.elbowPos = this.calcElbowPos();
+		this.elbowPos = this.calcElbowPos(isBackwards);
 	}
 
 	updateFootPos(): void {
@@ -123,12 +123,16 @@ export class creatureLeg {
 		return new vector2(limbSpacing * Math.cos(this.jointAngle - (Math.PI * this.legAngle * this.side)) + footStepPos.x,limbSpacing * Math.sin(this.jointAngle - (Math.PI * this.legAngle * this.side)) + footStepPos.y);
 	}
 	
-	calcElbowPos(): vector2 {
+	calcElbowPos(isBackwards: boolean): vector2 {
+		let side = this.side;
+		if (isBackwards) {
+			side = this.side * -1;
+		}
 		let chi = this.footPos.x - this.joinPos.x;
 		let psi = this.footPos.y - this.joinPos.y;
 		let d = (chi ** 2) + (psi ** 2);
 		let a = Math.max(-1,Math.min(1,d / (2 * this.length * Math.sqrt(d))));
-		let theta = Math.atan2(psi,chi) - (Math.acos(a) * this.side);
+		let theta = Math.atan2(psi,chi) - (Math.acos(a) * side);
 		
 		let result = new vector2(this.joinPos.x + (this.length * Math.cos(theta)),this.joinPos.y + (this.length * Math.sin(theta)));
 		return result;

@@ -2,7 +2,7 @@ import { randRange, vector2 } from "./globals";
 import { creatureJoint } from "./jointBase";
 import { creatureBody } from "./jointBody";
 import { ctx, activeArea, mousePos, isPaused, entityDict, debugPrefs } from "./initMain";
-import { creatureTraits, relationship, trait } from "./creatureTraits";
+import { relationship } from "./creatureTraits";
 import { posGrid } from "./handleGrid";
 import { creature } from "./creatureMain";
 import { food } from "./food";
@@ -26,8 +26,8 @@ export class creatureHead extends creatureBody {
 	targetFood: string = "";
 	relationships: { [id: string]: relationship } = {};
 	
-	constructor (pos: vector2, id: number, colour: string, width: number, eyeSpacing: number, eyeColour: string, hasLegs: boolean) {
-		super(pos, id, colour, width,hasLegs);
+	constructor (pos: vector2, id: number, colour: string, width: number, eyeSpacing: number, eyeColour: string, hasLegs: boolean, legLength: number, legWidth: number) {
+		super(pos, id, colour, width,hasLegs, legLength, legWidth);
 		this.eyeSpacing = eyeSpacing;
 		this.eyeColour = eyeColour;
 		this.blinkIndex = Math.floor(randRange(-120,12));
@@ -109,17 +109,13 @@ export class creatureHead extends creatureBody {
 		ctx.stroke();
 	}
 
-	updateJoint(maxDist: number, state: string, isHurt: boolean): boolean {
-		let isVisible = false;
-		if (super.updateJoint(maxDist, state, isHurt)) {
-			isVisible = true;
-			if (state == "dead") {
-				this.drawCrossEyes();
-			} else {
-				this.drawEyes();
-			}
+	updateJoint(state: string, isHurt: boolean, isBackwards: boolean): void {
+		super.updateJoint(state, isHurt, isBackwards);
+		if (state == "dead") {
+			this.drawCrossEyes();
+		} else {
+			this.drawEyes();
 		}
-		return isVisible;
 	}
 
 	moveByDrag(maxDist: number): void {
@@ -169,14 +165,14 @@ export class creatureHead extends creatureBody {
 						if (!(checkedEntity.id in this.relationships)) {
 							newRelationships.push(checkedEntity.id);
 						} else {
-							if (this.relationships[checkedEntity.id].aggression < -0.2) { //creatures get aggressive if their aggression count is less than -0.2
+							if (this.relationships[checkedEntity.id].aggression < -0.1) {
 								this.canSenseFoe = true;
 								if (this.targetEnemy == "") {
 									this.targetEnemy = checkedEntity.id;
 								} else if (checkedPosition.distance(this.pos) > (entityDict[this.targetEnemy] as creature).head.pos.distance(this.pos)) {
 									this.targetEnemy = checkedEntity.id;
 								}
-							} else if (this.relationships[checkedEntity.id].aggression > 0.2) { //creatures are friendly if aggression is > 0.2
+							} else if (this.relationships[checkedEntity.id].aggression > 0.1) {
 								this.canSenseFriend = true;
 								if (this.pos.distance(this.pos) > checkedPosition.distance(this.pos)) {
 									this.targetFriend = checkedEntity.id;
@@ -193,12 +189,12 @@ export class creatureHead extends creatureBody {
 					if (!(checkedEntity.id in this.relationships)) {
 						newRelationships.push(checkedEntity.id);
 					} else {
-						if (this.relationships[checkedEntity.id].aggression < -0.2) { //creatures get aggressive if their aggression count is less than -0.2
+						if (this.relationships[checkedEntity.id].aggression < -0.1) { //creatures get aggressive if their aggression count is less than -0.2
 							if (this.pos.distance(this.pos) > checkedPosition.distance(this.pos)) {
 								this.canSenseFoe = true;
 								this.targetEnemy = checkedEntity.id;
 							}
-						} else if (this.relationships[checkedEntity.id].aggression > 0.2){ //creatures are friendly if aggression is > 0.2
+						} else if (this.relationships[checkedEntity.id].aggression > 0.1){ //creatures are friendly if aggression is > 0.2
 							this.canSenseFriend = true;
 							if (this.pos.distance(this.pos) > checkedPosition.distance(this.pos)) {
 								this.targetFriend = checkedEntity.id;
@@ -271,7 +267,7 @@ export class creatureHead extends creatureBody {
 		for (let i = 0; i < senseArea.length; i++) {
 			for (let j = 0; j < senseArea[i].length; j++) {
 				let entityId = senseArea[i][j];
-				if (entityId != "" && entityId != dictId) {
+				if (entityId != "" && entityId != dictId && entityId != "block") {
 					if (!senseCreatures.includes(entityId)) {
 						senseCreatures.push(entityId);
 					}

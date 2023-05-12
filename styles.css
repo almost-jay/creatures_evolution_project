@@ -6,13 +6,8 @@
 body {
 	background-color: #272727;
 	font-family: "Kanit", sans-serif;
-	overflow: hidden;
 	zoom: 100%;
-	cursor: url('./assets/arrow-pointer-solid.svg') 5 8, pointer;
-}
-
-.cursors {
-	transform: scale(6.0);
+	cursor: pointer;
 }
 
 h1 {
@@ -21,7 +16,6 @@ h1 {
 	text-align: center;
 	margin-top: 10vh;
 }
-
 
 h2 {
 	font-size: 10vh;
@@ -58,7 +52,7 @@ button:focus {
 
 button:hover {
 	outline: 10pt solid white;
-	cursor: url('./assets/hand-pointer-solid.svg') 16 16, pointer;
+	cursor: pointer;
 }
 
 .main_menu_button {
@@ -87,7 +81,6 @@ button:hover {
 	outline: 5pt solid #ffffff66;
 }
 
-
 .side_button:hover {
 	outline: 6pt solid white;
 }
@@ -100,7 +93,6 @@ button:hover {
 .help img {
 	margin-top: -18%;
 }
-
 
 .help:hover {
 	background-color: #8ff8e2;
@@ -125,7 +117,6 @@ button:hover {
 	left: 0;
 	top: 0;
 }
-
 
 .screen_vector {
 	position: fixed;
@@ -181,6 +172,7 @@ button:hover {
 }
 
 #sidenav a {
+	font-family: 'Trashhand', sans-serif;
 	position: fixed;
 	left: -10%;
 	transition: 0.1s;
@@ -189,7 +181,7 @@ button:hover {
 	height: 10%;
 	max-height: 10%;
 	text-decoration: none;
-	font-size: 20pt;
+	font-size: 10pt;
 	color: white;
 	border-radius: 0 24px 24px 0;
   }
@@ -203,7 +195,7 @@ button:hover {
 	background-color: #20BC73;
   }
   
-  #load {
+  #lookup {
 	top: 35%;
 	background-color: #0EAF9D;
   }
@@ -286,13 +278,13 @@ button:hover {
 	height: 2vh;
 	border-radius: 1.2vh;
 	background-color: #374e4a;
-	cursor: url('./assets/hand-pointer-solid.svg') 5 8, pointer;
+	cursor: pointer;
 	transition: transform 0.1s;
   }
   
   .slider::-webkit-slider-thumb:hover {
 	transform: scale(1.2);
-	cursor: url('./assets/hand-pointer-solid.svg') 5 8, pointer;
+	cursor: pointer;
 	background-color: #313638;
   }
 
@@ -313,7 +305,7 @@ button:hover {
 	text-decoration: none;
 	border: none;
 	border-radius: 2vh;
-	cursor: url('./assets/hand-pointer-solid.svg') 5 8, pointer;
+	cursor: pointer;
 	width: 14vh;
 	height: 6vh;
 	transition: transform 0.1s;
@@ -341,8 +333,8 @@ button:hover {
   
   .wheel {
 	position: fixed;
-	width: 500px;
-	height: 500px;
+	width: 80vh;
+	height: 80vh;
 	transform: translate(-50%, -50%);
 	transform-origin: 0% 0%;
 	z-index: -2;
@@ -374,7 +366,7 @@ button:hover {
 	position: absolute;
 	bottom: 22%;
 	left: 22%;
-	font-size: 3.6rem;
+	font-size: 4.6rem;
 	transform: rotate(calc(var(--rotation) * -1));
 	color: rgba(255, 255, 255, 1);
 	transition: color 0.1s;
@@ -389,9 +381,8 @@ button:hover {
 	color: #ffffff;
   }
   .wheel .arc:nth-child(1) {
-	--rotation: -22.5deg;
+	--rotation: -45deg;
   }
-  
   
   .wheel[data-chosen="2"] .arc:nth-child(2) {
 	opacity: 1;
@@ -401,9 +392,8 @@ button:hover {
 	color: #ffffff;
   }
   .wheel .arc:nth-child(2) {
-	--rotation: 67.5deg;
+	--rotation: 45deg;
   }
-  
   
   .wheel[data-chosen="3"] .arc:nth-child(3) {
 	opacity: 1;
@@ -413,9 +403,8 @@ button:hover {
 	color: #ffffff;
   }
   .wheel .arc:nth-child(3) {
-	--rotation: 157.5deg;
+	--rotation: 135deg;
   }
-  
   
   .wheel[data-chosen="4"] .arc:nth-child(4) {
 	opacity: 1;
@@ -425,7 +414,7 @@ button:hover {
 	color: #ffffff;
   }
   .wheel .arc:nth-child(4) {
-	--rotation: 247.5deg;
+	--rotation: 225deg;
   }
   
   .callout {
@@ -475,7 +464,7 @@ button:hover {
 	  background-color: #537E63;
 	  border-radius: 0 6px 6px 0;
 	  font-size: 4vh;
-	  cursor: url('./assets/hand-pointer-solid.svg') 5 8, pointer;
+	  cursor: pointer;
 	  font-family: sans-serif;
 	  text-align: center;
 	  vertical-align: middle;
@@ -492,7 +481,18 @@ button:hover {
 		box-sizing: border-box;
 	  }
 
-	   input[type=text] {
+	  .pauseOverlay {
+		width: 100%;
+		height: 100%;
+		background-color: #1a141c88;
+		display: none;
+		position: fixed;
+		top: 0;
+		left: 0;
+	  }
+
+	  #commandbar {
+		bottom: -10%;
 		border-radius: 1vh;
 		position: fixed;
 		padding: 0.5%;
@@ -505,16 +505,11 @@ button:hover {
 		border: none;
 		width: 16%;
 		right: 8%;
-		bottom: 8%;
 		background-color: #AAAAAAAA;
+		display: none;
 	  }
 
-	  .pauseOverlay {
-		width: 100%;
-		height: 100%;
-		background-color: #1a141c88;
-		display: none;
-		position: fixed;
-		top: 0;
-		left: 0;
+	  #commandbar.on {
+		bottom: 8%;
+		display: block;
 	  }

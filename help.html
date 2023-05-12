@@ -1,4 +1,4 @@
-<html id = "_MAIN">
+<html id = "help">
 <head>
     <title>start_screen</title>
 	<link rel = "stylesheet" href = "https://fonts.googleapis.com/css?family=Kanit">
@@ -8,21 +8,67 @@
 </head>
 <body style="margin-left: 10%;">
 	<div class = "help-text" style="margin-top: 10%">
-		<p>This is a WIP.</p>
-		<p>Only the Start and Help button work. Press Back to go back.</p>
-		<p>Inside the main sim, pan with the RMB, and hold the wheel OR hold ` to open a radial menu.</p>
-		<p>Click with the food tool (apple icon) to place food, drag a lizard by the head with the drag tool (lizard hand icon), and click on a lizard with the inspect tool (maginifying glass) to check a lizard's information.</p>
-		<p>Press ESC to pause.</p>
-		<p>You can also open the console with / and enter one of the following commands:</p>
-		<p>	
-			visionCone <br>
-			hearingRange <br>
-			senseArea <br>
-			hitboxGrid <br>
-			showId <br>
-			drawPath <br>
-			teleport OR tp <br>
-		</p>
+		<div>
+			<p>Outline</p>
+			<ul>
+				<li><a href="#instructions">Controls</a>
+				<li><a href="#bugs">Help! I found a bug!</a>
+				<li><a href="#commands">Command information</a>
+				<li><a href="#info">Code information</a>
+				<li><a href="#maths">Maths information</a>
+			</ul>
+		
+		
 	</div>
+
+	<li><a id="#instructions"><i><b>Controls</b></i></a>
+		<p><b>Right mouse button</b> to pan.<br>
+		<b>Left mouse button</b> to use a tool.<br>
+		Hold the <b>backtick key</b> or <b>middle mouse button</b> to open the tool selection menu<br>
+		Release the mouse while hovering over the desired tool to select it, or press the arrow keys. Tools are: <br>
+		<b>Drag tool</b> - drag things around.
+		<b>Inspect tool</b> - click on a creature to see information about it.
+		<b>Food tool</b> - click to place food.
+		<b>Editor tool</b> - add creatures with custom properties.
+		</p>
+		<br>
+
+	<li><a id="#bugs"><i><b>Help! I found a bug!</b></i></a>
+		<p>If possible, get a screenshot of it, and send it to me with a detailed description of how you triggered it or what you were doing when it happened.</p>
+		<br>
+
+	<li><a id="#commands"><i><b>Command information</b></i></a>
+		<p>
+			You can press the slash key to show and hide a command box. Within this box, you can toggle debug-only preferences:
+			<br>
+			"visionCone" (shows what creatures can see)
+			"hearingRange" (shows what creatures can hear)
+			"senseArea" (shows box being checked for other creatures)
+			"hitboxGrid" (shows a representation of the hitboxes)
+			"showId" (shows creature IDs as floating text)
+			"showState" (shows creature states)
+			"drawPath" (shows what paths creatures are following)
+			"drawRelations" (draws lines between creatures representing their attitudes to each other)
+			<br>
+			Example usage: <br>
+			<b>/showId</b> <br>
+			<b>drawPath</b> <br>
+			Note that these are case-sensitive. The slash doesn't matter; you can remove it.
+		</p>
+
+	<li><a id="#info"><i><b>Code information</b></i></a>
+		<p>
+			This is going to be long. <br>
+
+			This was written in TypeScript in Visual Studio Code. It uses the Electron framework. Version numbers are my own system, intended merely to convey the approximate number of bugs fixed/features added between each release. <br>
+			The canvas is the HTML5 canvas; I could've used WebGL but chose not to in favour of simplicity.
+		</p>
+	
+	<li><a id="#info"><i><b>Maths information</b></i></a>
+		<p>
+			This is completely procedurally generated, so there was a lot of maths involved. The biggest equations were the movement and the inverse kinematics systems.
+
+			
+		</p>
 	<button><a href="index.html">Back to home</a></button>
 </body>

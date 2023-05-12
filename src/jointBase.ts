@@ -1,5 +1,4 @@
 import { vector2 } from "./globals";
-import { ctx, activeArea } from "./initMain";
 
 export class creatureJoint {
 	pos: vector2;
@@ -7,6 +6,7 @@ export class creatureJoint {
 	colour: string;
 	width: number;
 	childJoint: creatureJoint;
+	backChildJoint: Array<creatureJoint> = [];
 
 	constructor (pos: vector2, id: number, colour: string, width: number) {
 		this.pos = pos;
@@ -15,15 +15,8 @@ export class creatureJoint {
 		this.width = width;
 	}
 
-	updateJoint(maxDist: number, state: string, isHurt: boolean): boolean {
-		let result = false;
-		if (this.pos.x > activeArea[0].x && this.pos.x < activeArea[1].x) {
-			if (this.pos.y > activeArea[0].y && this.pos.y < activeArea[1].y) {
-				result = true;
-			}
-		}
-		return result;
-	}
+	updateJoint(state: string, isHurt: boolean, isBackwards: boolean): void {}
+	move(maxDist: number, isBackwards: boolean) {};
 	moveByDrag(maxDist: number) {
 		this.pos.y += maxDist * 0.75;
 	}

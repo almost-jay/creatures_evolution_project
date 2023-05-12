@@ -5,19 +5,19 @@
     <link rel = "stylesheet" href = "styles.css">
 	<link rel="stylesheet" href="all.css">
 </head>
-<body>
+<body style="overflow: hidden">
 	<div id = "holder">
 		<canvas id = "canvas" width = "4096" height = "4096" z-index = "-1"></canvas>
 	</div>
 
 	<div id="sidenav" class="sidenav">
-		<a href="#" id="save"></a>
-		<a href="#" id="load"></a>
-		<a href="#" id="settings"></a>
-		<a href="#" id="quit"></a>
+		<a href="#" id="save">Quicksave</a>
+		<a href="#" id="lookup">Lookup</a>
+		<a href="#" id="settings">Settings</a>
+		<a href="./index.html" id="quit">Exit</a>
 	</div>
 
-	<input id="commandbar" class="commandbar" type="text" name="search" placeholder="">
+	<input id="commandbar" type="text" name="search" placeholder="">
 	
 	<div class="callout" id="callout">
 		<div class="closebtn" onclick="this.parentElement.style.display='none';">&times;</div>

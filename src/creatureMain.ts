@@ -12,11 +12,13 @@ export class creature {
 	length: number = 0;
 	maxDist: number = 0;
 	weights: number = 0;
+	size: number = 1;
 	id: string = "";
 	segments: Array<creatureJoint> = [];
 	limbs: Array<creatureJoint> = [];
-	head: creatureHead = new creatureHead(new vector2(0,0),0,"#000000",0,0,"#000000",false);
+	head: creatureHead = new creatureHead(new vector2(0,0),0,"#000000",0,0,"#000000",false,0,0);
 	properties: creatureTraits = new creatureTraits(null);
+	stateChangeCooldown: number = 90;
 	state: string = "idle";
 	action: string = "walk";
 	health: number = 1;
@@ -35,6 +37,7 @@ export class creature {
 	hurtIndex: number = -12;
 	deferCooldown: number = 0;
 	attackCooldown: number = 0;
+	isBackwards: boolean = false;
 
 	constructor(pos: vector2, length: number, maxDist: number, parentProps: Array<creatureTraits> | null) {
 		this.properties = new creatureTraits(parentProps);
@@ -47,12 +50,13 @@ export class creature {
 		this.id = generateId();
 		entityDict[this.id] = this;
 		
+		this.health = this.properties.traits.health.value;
+		this.size = (this.health / ((this.properties.traits.health.min + this.properties.traits.health.max) / 2)) + 0.2;
+
 		this.segments = [];
 		this.initJoints(pos);
 		
 		this.generatePath(4);
-
-		this.health = this.properties.traits.health.value;
 	}
 
 	calcEnergyPerTick(): number {
@@ -81,23 +85,32 @@ export class creature {
 			eyeLightness = "#"+eyeLightness+eyeLightness+eyeLightness;
 		}
 		
-		this.head = new creatureHead(pos,0,bodyColour[0],baseWidth * 1.3,baseWidth * 0.5 * ((this.properties.traits.visionAngle.display * 0.25) + 0.65),eyeLightness,false);
+		this.head = new creatureHead(pos,0,bodyColour[0],baseWidth * 1.3 * this.size,baseWidth * 0.5 * this.size * ((this.properties.traits.visionAngle.display * 0.25) + 0.65),eyeLightness,false, 0, 0);
 		this.segments.push(this.head);
 		for (let i = 1; i < this.length - 1; i++ ) {
-			let jointPos = pos.add(new vector2(i * this.maxDist,i * this.maxDist));
+			let jointPos = pos.add(new vector2(i * this.maxDist * this.size,i * this.maxDist * this.size));
 			if (i < bodyCount) {
 				let hasLegs = this.calcLegs(bodyCount, i);
 				if (hasLegs) {
 					this.tailStartIndex = i;
 				}
-				this.segments.push(new creatureBody(jointPos,i,bodyColour[i],Math.max(0.6,this.calcBodyWidth(bodyCount,i)) * baseWidth,hasLegs));
+				this.segments.push(new creatureBody(jointPos,i,bodyColour[i],Math.max(0.6,this.calcBodyWidth(bodyCount,i)) * baseWidth * this.size,hasLegs,this.size * baseWidth * 2, this.size * baseWidth));
 			} else {
-				this.segments.push(new creatureBody(jointPos,i,bodyColour[i],Math.max(0.4,this.calcTailWidth(bodyCount, this.length - i) + 0.1) * baseWidth,false));
+				this.segments.push(new creatureBody(jointPos,i,bodyColour[i],Math.max(0.4,this.calcTailWidth(bodyCount, this.length - i) + 0.1) * baseWidth * this.size,false,0,0));
 			}
 		}
-		this.segments.push(new creatureJoint(pos.add(new vector2(this.length * this.maxDist,this.length * this.maxDist)),this.length - 1,bodyColour[this.length - 1],this.calcTailWidth(bodyCount,this.length) * baseWidth));
+		this.segments.push(new creatureJoint(pos.add(new vector2(this.length * this.size * this.maxDist,this.length * this.size * this.maxDist)),this.length - 1,bodyColour[this.length - 1],this.calcTailWidth(bodyCount,this.length) * this.size * baseWidth));
+		
 		for (let i = 0; i < this.length - 1; i++) {
 			this.segments[i].childJoint = this.segments[i + 1];
+		}
+
+		for (let i = 1; i < this.tailStartIndex + 1; i++) {
+			this.segments[i].backChildJoint.push(this.segments[i - 1]);
+		}
+
+		for (let i = this.tailStartIndex; i < this.length - 1; i++) {
+			this.segments[i].backChildJoint.push(this.segments[i + 1])
 		}
 
 		this.segments[1].width *= 1.4;
@@ -157,6 +170,7 @@ export class creature {
 	}
 
 	generatePath(alpha: number): void {
+		this.isBackwards = false;
 		let pathLength = 32; //can be adjusted later
 		this.targetIndex = 0; //reset the target back to the path at 0
 		this.path = [new vector2(this.head.pos.x,this.head.pos.y)];
@@ -181,32 +195,16 @@ export class creature {
 			if (yPos <= 128) {
 				yPos += Math.pow(1.0385,128 - yPos);
 			}
-			
+
 			this.path[i].x = xPos;
 			this.path[i].y = yPos;
 		}
 		
-		this.linearSmoothPath();
 		this.interpolatePath(4);
 
 
 		this.action = "walk";
 		this.target = this.path[0];
-	}
-
-	linearSmoothPath() {
-		for (let i = 1; i < this.path.length - 1; i++) {
-			let roughAvg = (this.path[i - 1].add(this.path[i + 1])).divide(2);
-			let distance = this.path[i].distance(this.path[i - 1]) + this.path[i].distance(this.path[i + 1]);
-			if (distance > 128) {
-				let jump = Math.floor(distance / 128);
-				roughAvg = (this.path[Math.max(i - jump,0)].add(this.path[Math.min(i + jump,this.path.length - 1)])).divide(2);
-				this.path[i] = roughAvg;
-			} else {
-				let fineAvg = roughAvg.add(this.path[i]);
-				this.path[i] = fineAvg.divide(2);
-			}
-		}
 	}
 
 	drawPath() {
@@ -367,10 +365,10 @@ export class creature {
 			if (segment.legs.length > 0) {
 
 				segment.legs[0].footPos = segment.legs[0].calcFootDeathPos();
-				segment.legs[0].elbowPos = segment.legs[0].calcElbowPos(); 
+				segment.legs[0].elbowPos = segment.legs[0].calcElbowPos(this.isBackwards); 
 
 				segment.legs[1].footPos = segment.legs[1].calcFootDeathPos();
-				segment.legs[1].elbowPos = segment.legs[1].calcElbowPos();
+				segment.legs[1].elbowPos = segment.legs[1].calcElbowPos(this.isBackwards);
 			}
 		}
 	}
@@ -416,59 +414,86 @@ export class creature {
 					}
 				}
 			}
-			this.behaviourTree();
+			if (this.stateChangeCooldown < 0) {
+				this.stateChangeCooldown = 90;
+			} else {
+				this.stateChangeCooldown --;
+			}
+			this.stateMachineAction();
 		}
 	}
 
 	behaviourTree() {
+		this.isBackwards = false;
+		let newState = "idle";
 		if (this.attacked) {
 			if (this.attacker in this.head.relationships) {
 				this.head.relationships[this.attacker].aggression -= 0.2;
 				if (this.head.relationships[this.attacker].respect > 0.2 || this.hunger > 80) {
-					//this.state = "deferrent";
-					//this.followEnemy();
-					this.state = "afraid";
-					this.fleeEnemy();
+					newState = "deferrent";
 				} else if (this.hunger > 40) {
-					this.state = "afraid";
-					this.fleeEnemy();
+					newState = "afraid";
 				} else {
-					this.defendEnemy();
+					newState = "defensive";
 				}
 			} else {
 				this.calcAttitude(this.attacker);
 			}
 		} else if (this.head.canSenseFoe) {
 			if (this.head.targetEnemy in this.head.relationships) {
-				if (this.head.relationships[this.head.targetEnemy].respect > 0.2) {
-					this.defendEnemy();
-				} else if (this.attackCooldown < 0) {
-					this.state = "aggressive";
-					this.attackEnemy();
+				if ((this.head.relationships[this.head.targetEnemy].respect > 0.4 && (entityDict[this.head.targetEnemy] as creature).state == "aggressive") || this.attackCooldown >= 0) {
+					newState = "defensive";
 				} else {
-					this.defendEnemy();
+					newState = "aggressive";
 				}
 			} else {
-				this.state = "aggressive";
-				this.attackEnemy();
+				newState = "aggressive";
 			}
 		} else if (this.hunger > 40) {
-			this.state = "foraging";
-			this.lookForFood();
+			newState = "foraging";
 		} else if (this.isMature) {
 			if (this.hasMate) {
 				if (Math.random() < 0.02) {
-					this.state = "mating";
+					newState = "mating";
 				}
 			} else {
-				this.state = "cloning";
+				newState = "cloning";
 			}
 		} else if (this.head.canSenseFriend) {
-			this.state = "friendly";
-			this.followFriend();
+			newState = "friendly";
 		} else {
-			this.state = "idle";
-			this.followPath();
+			newState = "idle";
+		}
+
+		if (newState != this.state) {
+			this.state = newState;
+			this.generatePath(4);
+		}
+	}
+
+	stateMachineAction() {
+		switch (this.state) {
+			case "idle":
+				this.followPath();
+				break;
+			case "friendly":
+				this.followFriend();
+				break;
+			case "foraging":
+				this.lookForFood();
+				break;
+			case "aggressive":
+				this.attackEnemy();
+				break;
+			case "defensive":
+				this.defendEnemy();
+				break;
+			case "deferrent":
+				this.followEnemy();
+				break;
+			case "afraid":
+				this.fleeEnemy();
+				break;
 		}
 	}
 
@@ -510,13 +535,14 @@ export class creature {
 				this.generatePath(4);
 			}
 		}
+	
 	}
 
 	investigate(sniffPos: vector2) {
 		let sniffPath: Array<vector2> = [];
 		
 		sniffPath.push(sniffPos);
-
+		
 		for (let i = Math.PI / 4; i < 3 * Math.PI; i += 0.2) {
 			sniffPath.push(new vector2((this.posFunc(i) * Math.cos(i)) + sniffPos.x,(this.posFunc(i) * Math.sin(i)) + sniffPos.y));
 		}
@@ -596,16 +622,6 @@ export class creature {
 		if (this.attacker == id) {
 			this.head.relationships[id].respect += 0.2;
 		}
-		
-		//for debug only, remove this whole section from here to the next comment
-		// if (Math.random() > 0.2) {
-		// 	this.head.relationships[id].aggression = -0.4;
-		// 	this.head.relationships[id].respect = 0.8;
-		// } else {
-		// 	this.head.relationships[id].aggression = 0.4;
-		// }
-
-		//the next comment
 	}
 
 	fleeEnemy() {
@@ -628,17 +644,36 @@ export class creature {
 	}
 
 	defendEnemy() {
-		this.state = "defensive";
 		if (this.head.targetEnemy != "") {
 			let targetEnemy = entityDict[this.head.targetEnemy] as creature;
 			if (targetEnemy.state != "dead") {
 				let targetHeadPos = targetEnemy.head.pos;
-				if (targetEnemy.head.canSenseFoe) {
-					this.circleEnemy(targetHeadPos,targetEnemy.head.angle);
+				let angleAway = this.head.pos.getAvgAngleRad(targetHeadPos);
+				let goalDistance = this.length * this.maxDist * 0.75;
+				if (targetHeadPos.distance(this.head.pos) < goalDistance) {
+					if (targetEnemy.properties.traits.speed.display < this.properties.traits.speed.value) {
+						this.fleeEnemy();
+					} else {
+						this.isBackwards = true;
+						this.target = new vector2(goalDistance * Math.cos(angleAway),goalDistance * Math.sin(angleAway)).add(targetHeadPos);
+						this.followPath();
+					}
+					
 				} else {
-					let canAttack = this.circleEnemy(targetHeadPos,targetEnemy.head.angle);
-					if (canAttack && this.attackCooldown < 0) {
-						this.attemptAttack(targetEnemy);
+					if (this.attackCooldown < 0 && (!targetEnemy.head.canSenseFoe || targetEnemy.state == "defensive")) {
+						this.isBackwards = false;
+						this.followPath();
+						if (this.head.pos.distance(this.target) < this.maxDist * 6) {
+							this.attackEnemy();
+						}
+					} else {
+						let direction = 0.05;
+						if (angleAway - targetEnemy.head.angle - Math.PI > 0) {
+							direction *= -1;
+						}
+						this.isBackwards = true;
+						this.target = new vector2(goalDistance * Math.cos(angleAway + direction),goalDistance * Math.sin(angleAway + direction)).add(targetHeadPos);
+						this.followPath();
 					}
 				}
 			} else {
@@ -649,38 +684,6 @@ export class creature {
 		}
 	}
 
-	circleEnemy(enemyPos: vector2, goalAngle: number): boolean {
-		this.path = [];
-		let result = false;
-		let distance = Math.max(this.head.pos.distance(enemyPos),this.maxDist * this.length);
-		goalAngle += Math.PI;
-		let currentAngle = enemyPos.getAvgAngleRad(this.head.pos);
-		let step = 0.2;
-
-		if (currentAngle > goalAngle) {
-			for (let i = currentAngle; i > goalAngle; i -= step) {
-				this.path.push(new vector2(distance * Math.cos(i),distance * Math.sin(i)).add(enemyPos));
-			}
-			this.path.push(this.head.pos.add(this.path[this.path.length - 1]).divide(2));
-			this.path.reverse();
-		} else {
-			for (let i = currentAngle; i < goalAngle; i += step) {
-				this.path.push(new vector2(distance * Math.cos(i),distance * Math.sin(i)).add(enemyPos));
-			}
-			this.path.push(this.head.pos.add(this.path[0]).divide(2));
-		}
-
-		if (this.path.length < 2 || this.head.pos.distance(enemyPos) < this.maxDist * 4) {
-			result = true;
-			this.targetIndex = 0;
-		} else {
-			this.targetIndex = Math.min(this.targetIndex,this.path.length - 1);
-			this.target = this.path[this.targetIndex];
-		}
-
-		this.followPath();
-		return result;
-	}
 
 	attackEnemy() {
 		if (this.head.targetEnemy != "") {
@@ -724,6 +727,7 @@ export class creature {
 						} else if (this.action == "attack") {
 							if (this.head.pos.distance(this.target) < this.head.width * 4) {
 								this.attemptAttack(targetEnemy);
+								this.isBackwards = false;
 							} else {
 								this.followPath();
 							}
@@ -765,6 +769,7 @@ export class creature {
 	}
 
 	backDown() {
+		this.isBackwards = false;
 		this.attacked = false;
 		this.head.targetEnemy = "";
 		this.state = "idle";
@@ -774,7 +779,6 @@ export class creature {
 	}
 
 	attemptAttack(targetEnemy: creature) {
-		console.log("Attempting attack");
 		if (targetEnemy.hurtIndex < 0) {
 			this.createBloodParticles(this.target);
 			targetEnemy.takeDamage(this.properties.traits.strength.value,this.id);
@@ -783,6 +787,9 @@ export class creature {
 			this.attackCooldown = 60;
 		}
 		this.generateRecoverPath(targetEnemy.head.pos);
+		if (this.stateChangeCooldown < 0) {
+			this.behaviourTree();
+		}
 	}
 
 	generateRecoverPath(targetTailPos: vector2): void {
@@ -819,16 +826,35 @@ export class creature {
 	}
 
 	followFriend() {
+		if (this.head.targetFriend != "") {
+			let friend = entityDict[this.head.targetFriend] as creature;
+			if (friend.state == "idle" || friend.state == "foraging" || friend.state == "friendly") {
+				this.path = friend.path;
+				if (this.targetIndex == 0) {
+					for (let i = 1; i < this.path.length; i++) {
+						this.path[i].x += Math.random() * 8 + this.path[i - 1].x;
+						this.path[i].y += Math.random() * 8 + this.path[i - 1].y;
+					}
+				}
+			}
+		}
 		this.followPath();
 	}
 	
 	followPath() {
-		let targDist = this.head.pos.distance(this.target);
+		if (this.stateChangeCooldown < 0) {
+			this.behaviourTree();
+		}
+		let leader: creatureJoint = this.head;
+		if (this.isBackwards) {
+			leader = this.segments[this.tailStartIndex];
+		}
+		let targDist = leader.pos.distance(this.target);
 		if (targDist > this.head.width * 1.5) {
-			let delta = this.head.pos.subtract(this.target);
+			let delta = leader.pos.subtract(this.target);
 			delta = delta.divide(this.head.width * 2);
 			delta = delta.multiply(this.properties.traits.speed.value);
-			this.head.pos = this.head.pos.subtract(delta);
+			leader.pos = leader.pos.subtract(delta);
 		} else {
 			if (this.targetIndex + 1 < this.path.length) {
 				this.targetIndex += 1;
@@ -839,33 +865,6 @@ export class creature {
 			}
 		}
 	}
-
-	quickSortSegments(unsorted: Array<creatureJoint>): Array<creatureJoint> {
-		let result = unsorted;	
-		if (unsorted.length > 1) {
-			let pivot = Math.floor(unsorted.length / 2);
-			let small = [];
-			let equal = [];
-			let large = [];
-
-			for (let i = 0; i < unsorted.length; i++) {
-				if (unsorted[i].pos.y > unsorted[pivot].pos.y) {
-					large.push(unsorted[i]);
-				} else if (unsorted[i].pos.y < unsorted[pivot].pos.y) {
-					small.push(unsorted[i])
-				} else {
-					equal.push(unsorted[i]);
-				}
-
-				let small_sorted = this.quickSortSegments(small);
-				let large_sorted = this.quickSortSegments(large);
-
-				result = small_sorted.concat(equal).concat(large_sorted);
-			}
-		}
-		return result;
-	}
-
 
 	update() {
 		if (debugPrefs.drawPath) {
@@ -883,20 +882,15 @@ export class creature {
 			ctx.fillText(this.state,this.segments[1].pos.x,this.segments[1].pos.y + this.head.width * 4);
 		}
 		this.head.angle = this.head.pos.getAvgAngleRad(this.head.childJoint.pos);
-		let isVisible = false;
 		for (let i = this.length - 1; i >= 0; i --) {
-			if (this.segments[i].updateJoint(this.maxDist,this.state,this.hurtIndex >= 0)) {
-				isVisible = true;
+			this.segments[i].updateJoint(this.state,this.hurtIndex >= 0,this.isBackwards);
+			if (!isPaused) {
+				this.segments[i].move(this.maxDist * this.size,this.isBackwards);
 			}
 			if (this.state == "mouseDragging" && !isPaused) {
-				this.segments[i].moveByDrag(this.maxDist);
+				this.segments[i].moveByDrag(this.maxDist * this.size);
 			}
 		}
-
-		if (isVisible) {
-			this.segments = this.quickSortSegments(this.segments);
-		}
-
 		if (!isPaused && this.state != "mouseDragging") {
 			if (this.state != "dead") {
 				this.behaviourTick();

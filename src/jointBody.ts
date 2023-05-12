@@ -1,5 +1,5 @@
 import { vector2 } from "./globals";
-import { activeArea, ctx, isPaused } from "./initMain";
+import { ctx } from "./initMain";
 import { creatureJoint } from "./jointBase";
 import { creatureLeg } from "./limbLeg";
 
@@ -9,17 +9,18 @@ export class creatureBody extends creatureJoint {
 	colour: string;
 	width: number;
 	childJoint: creatureJoint;
+	backChildJoint: Array<creatureJoint> = [];
 	legs: Array<creatureLeg> = [];
 	legParentJoint: creatureJoint;
 
-	constructor (pos: vector2, id: number, colour: string, width: number, hasLegs: boolean) {
+	constructor (pos: vector2, id: number, colour: string, width: number, hasLegs: boolean, legLength: number, legWidth: number) {
 		super(pos, id, colour, width);
 		if (hasLegs) {
-			this.initLegs()
+			this.initLegs(legLength,legWidth)
 		}
 	}
 
-	renderSegment(isHurt: boolean) {
+	renderSegment(state: string, isHurt: boolean) {
 		if (!isHurt) {
 			ctx.strokeStyle = this.colour;
 		} else {
@@ -33,10 +34,10 @@ export class creatureBody extends creatureJoint {
 		ctx.closePath();
 	}
 
-	updateLegs(state: string, isHurt: boolean) {
+	updateLegs(state: string, isHurt: boolean,isBackwards: boolean) {
 		if (this.legs !== undefined) {
 			for (let i = 0; i < this.legs.length; i++) {
-				this.legs[i].updateLimb(this.pos,this.childJoint.pos, state);
+				this.legs[i].updateLimb(this.pos,this.childJoint.pos, state,isBackwards);
 				this.legs[i].renderLimb(isHurt);
 				if (this.legs[i].isFootUp) {
 					this.skewBodyByFoot(this.legs[i].elbowPos);
@@ -45,45 +46,54 @@ export class creatureBody extends creatureJoint {
 		}
 	}
 
-	initLegs() {
+	initLegs(legLength: number, legWidth: number) {
 		let legAngle = 0.8;
-		let legWidth = 7.2;
-		let legLength = 14;
 		this.legs = [new creatureLeg(this.pos,this.colour,-1,legLength,legWidth,legAngle),new creatureLeg(this.pos,this.colour,1,legLength,legWidth,legAngle)];
 		this.legs[0].pair = this.legs[1]; //this.legs[0] is the right leg
 		this.legs[1].pair = this.legs[0];
 	}
 
-	move(maxDist: number) {
+	move(maxDist: number, isBackwards: boolean) {
 		let childDist = this.pos.distance(this.childJoint.pos);
-		if (childDist > maxDist) {
-			if (childDist > maxDist * 4) {
-				let angle = this.pos.getAvgAngleRad(this.childJoint.pos);
-				let delta = new vector2(maxDist * 0.5 * Math.cos(angle), maxDist * 0.5 * Math.sin(angle));
-				this.childJoint.pos = this.pos.subtract(delta);
-			} else {
-				let delta = this.pos.subtract(this.childJoint.pos);
-				delta = delta.divide(childDist);
-				delta = delta.multiply(maxDist);
-				
-				this.childJoint.pos = this.pos.subtract(delta);
+		if (isBackwards) {
+			for (let i = 0; i < this.backChildJoint.length; i++) {
+				let movedJoint = this.backChildJoint[i];
+				let childDist = this.pos.distance(movedJoint.pos);
+				if (childDist > maxDist) {
+					if (childDist > maxDist * 4) {
+						let angle = this.pos.getAvgAngleRad(movedJoint.pos);
+						let delta = new vector2(maxDist * 0.5 * Math.cos(angle), maxDist * 0.5 * Math.sin(angle));
+						movedJoint.pos = this.pos.subtract(delta);
+					} else if (childDist < maxDist) {
+						let angle = this.pos.getAvgAngleRad(movedJoint.pos) + Math.PI;
+						let delta = new vector2(maxDist * 0.5 * Math.cos(angle), maxDist * 0.5 * Math.sin(angle));
+						movedJoint.pos = this.pos.subtract(delta);
+					} else {
+						let delta = this.pos.subtract(movedJoint.pos);
+						delta = delta.divide(childDist);
+						delta = delta.multiply(maxDist);
+						
+						movedJoint.pos = this.pos.subtract(delta);
+					}
+				}
 			}
-		
+		} else if (childDist > maxDist * 4) {
+			let angle = this.pos.getAvgAngleRad(this.childJoint.pos);
+			let delta = new vector2(maxDist * 0.5 * Math.cos(angle), maxDist * 0.5 * Math.sin(angle));
+			this.childJoint.pos = this.pos.subtract(delta);
+		} else {
+			let delta = this.pos.subtract(this.childJoint.pos);
+			delta = delta.divide(childDist);
+			delta = delta.multiply(maxDist);
+			
+			this.childJoint.pos = this.pos.subtract(delta);
 		}
 	}
 
-	updateJoint(maxDist: number, state: string, isHurt: boolean): boolean {
-		let isVisible = false;
-		if (!isPaused) {
-			this.move(maxDist);
-		}
-		
-		if (super.updateJoint(maxDist, state, isHurt)) {
-			this.updateLegs(state,isHurt);
-			this.renderSegment(isHurt);
-			isVisible = true;
-		}
-		return isVisible;
+
+	updateJoint(state: string, isHurt: boolean, isBackwards: boolean): void {
+		this.renderSegment(state,isHurt);
+		this.updateLegs(state,isHurt,isBackwards);
 	}
 
 	skewBodyByFoot(elbowPos: vector2): void {

@@ -1,6 +1,6 @@
 import { creature } from "./creatureMain";
 import { vector2 } from "./globals";
-import { clearGrid, posGrid } from "./handleGrid";
+import { clearGrid, fillGrid, posGrid } from "./handleGrid";
 import { activeArea, canvas, checkedCreature, creaturesList, ctx, entityDict, foodList, isPaused, manageCursor, newFood, particleList, simPrefs, sortList, updateViewportInfo } from "./initMain";
 
 export var time: number = 0;
@@ -8,7 +8,7 @@ export var time: number = 0;
 export function tick(): void {
 	updateViewportInfo();
 	clearCanvas();
-	drawGrid();
+	drawBoard();
 	clearGrid();
 	spawnFoodCheck();
 	fillGrid();
@@ -27,28 +27,7 @@ function clearCanvas(): void {
 	ctx.fillRect(activeArea[0].x,activeArea[0].y,activeArea[1].x - activeArea[0].x,activeArea[1].y - activeArea[0].y);
 }
 
-function fillGrid() {
-	for (let i = 0; i < creaturesList.length; i++) {
-		let id = creaturesList[i].id;
-		for (let j = 0; j < creaturesList[i].segments.length; j++) {
-			let segment = creaturesList[i].segments[j];
-			let posX = Math.min(Math.max(Math.floor(segment.pos.x / 16),1),254)
-			let posY = Math.min(Math.max(Math.floor(segment.pos.y / 16),1),254);
-
-			posGrid[posX][posY] = id;
-
-			if (segment.width > 8) {
-				posGrid[posX + 1][posY + 1] = id;
-				posGrid[posX + 1][posY - 1] = id;
-				posGrid[posX - 1][posY + 1] = id;
-				posGrid[posX - 1][posY - 1] = id;
-			}
-			
-		}
-	}
-}
-
-function drawGrid() {
+function drawBoard() {
 	ctx.strokeStyle = "#D6D6D6";
 	ctx.lineWidth = 2;
     ctx.beginPath();
