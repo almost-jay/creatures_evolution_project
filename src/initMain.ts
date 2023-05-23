@@ -6,6 +6,7 @@ import { tick } from "./handleTick";
 import { food } from "./food";
 import { creatureTraits } from "./creatureTraits";
 import { particle } from "./particle";
+import { initSidenav } from "./saveLoadHandler";
 
 export var appId: number;
 
@@ -31,12 +32,12 @@ export var entityDict: { [key: string]: creature | food } = {}; //record of all 
 
 export var cursorChoice: Array<boolean> = [false,false,false,false,false]; //stores the sort of cursor that should be used this frame, by priority, to avoid flickering
 
-export var highScores: { [key: string]: Array<string|number> } = {
+export var highScores: { [key: string]: [string,number] } = {
 	"longestLiving": ["",0],
 }
 
 export var simPrefs: { [key: string]: number } = {
-	"foodSpawnRate": 5,
+	"foodSpawnRate": 20,
 }
 
 export var userPrefs: { [key: string]: number } = {
@@ -49,9 +50,9 @@ export var debugPrefs: { [key: string]: boolean } = { //these strings can be ent
 	"senseArea": false,
 	"hitboxGrid": false,
 	"showId": false,
-	"showState": true,
-	"drawPath": true,
-	"drawRelations": true,
+	"showState": false,
+	"drawPath": false,
+	"drawRelations": false,
 };
 
 
@@ -65,6 +66,7 @@ var isConsoleOpen: boolean = true;  //whether the debug console is showing
 
 function setupApp() { //creates all the event listeners, triggers the rendering and setup
 	toggleCommandBox();
+	initSidenav();
 	ctx.lineCap = "round";
 	windowInfo = [window.innerWidth,window.innerHeight];
 	document.addEventListener("mousedown", (event) => {
@@ -92,13 +94,13 @@ function setupApp() { //creates all the event listeners, triggers the rendering 
 		updateViewportInfo();
 		if (isGrabbing) { //if the mouse is released and it was previously grabbing a guy, it updates that guy
 			let entityId = posGrid[Math.floor(mousePos.x / 16)][Math.floor(mousePos.y / 16)];
-			if (entityId != "" && entityId != "block") {
+			if (entityId != "") {
 				let entity = entityDict[posGrid[Math.floor(mousePos.x / 16)][Math.floor(mousePos.y / 16)]]
 				if (entity.getTypeOf() == "creature") { //checks it's ACTUALLY a creature currently being hovered over, in case there's something weird with the grid
 					entity = entity as creature;
 					entity.generatePath(4);
 					entity.behaviourTree();
-				} else { //if the mouse is currently not hovering over the right creature, it does a basic linear search through the creature list
+				} else { //if the mouse is currently not hovering over the right creature, it does a basic linear search through the creature list for the right one
 					for (let i = 0; i < creaturesList.length; i++) {
 						if (creaturesList[i].state == "mouseDragging") {
 							creaturesList[i].generatePath(4);
@@ -247,8 +249,8 @@ function toggleCommandBox() {
 function checkHover() {
 	if (!isPaused && !isWheelShowing && tool == 1) {
 		let mouseCoordPos = new vector2(activeArea[0].x + 24 + mousePos.x,activeArea[0].y + 24 + mousePos.y);
-		mouseCoordPos.x = Math.max(Math.min(mouseCoordPos.x,4096),0);
-		mouseCoordPos.y = Math.max(Math.min(mouseCoordPos.y,4096),0);
+		mouseCoordPos.x = Math.max(Math.min(mouseCoordPos.x,4095),1);
+		mouseCoordPos.y = Math.max(Math.min(mouseCoordPos.y,4095),1);
 		let mouseGridPos = new vector2(Math.floor(mouseCoordPos.x / 16),Math.floor(mouseCoordPos.y / 16));
 
 		for (let i = -1; i < 2; i++) {
@@ -270,8 +272,8 @@ function checkHover() {
 function handleTool() {
 	if (!isPaused && !isWheelShowing) {
 		let mouseCoordPos = new vector2(activeArea[0].x + 24 + mousePos.x,activeArea[0].y + 24 + mousePos.y);
-		mouseCoordPos.x = Math.max(Math.min(mouseCoordPos.x,4096),0);
-		mouseCoordPos.y = Math.max(Math.min(mouseCoordPos.y,4096),0);
+		mouseCoordPos.x = Math.max(Math.min(mouseCoordPos.x,4095),1);
+		mouseCoordPos.y = Math.max(Math.min(mouseCoordPos.y,4095),1);
 		let mouseGridPos = new vector2(Math.floor(mouseCoordPos.x / 16),Math.floor(mouseCoordPos.y / 16));
 		if (tool ==  2) {
 			let clickedEntityId = posGrid[mouseGridPos.x][mouseGridPos.y];
@@ -299,7 +301,7 @@ function handleTool() {
 
 			if (tool == 1) {
 				let clickedEntityId = posGrid[mouseGridPos.x][mouseGridPos.y];
-				if (clickedEntityId != "" && clickedEntityId != "block") {
+				if (clickedEntityId != "" && clickedEntityId) {
 					if (entityDict[clickedEntityId].getTypeOf() == "creature") {
 						let draggedCreature = entityDict[clickedEntityId] as creature;
 
@@ -451,10 +453,11 @@ export function newFood() {
 
 function addDemoCreatures() {
 	let crNo = (Math.random() * 2) + 1;
+	crNo = 0;
 	for (let i = 0; i < crNo; i ++) {
 		let xOffset = randRange(1000,1800);
 		let yOffset = randRange(1000,1800);
-		creaturesList.push(new creature(new vector2(xOffset,yOffset),16,8,null));
+		creaturesList.push(new creature(new vector2(xOffset,yOffset),Math.round(randRange(8,24)),Math.round(randRange(4,16)),null));
 
 		document.getElementById("save")!.innerHTML = (creaturesList.length).toString();
 	}
@@ -475,8 +478,8 @@ function editorSubmit() {
 
 	});
 	let mouseCoordPos = new vector2(activeArea[0].x + 24 + mousePos.x,activeArea[0].y + 24 + mousePos.y);
-	mouseCoordPos.x = Math.max(Math.min(mouseCoordPos.x,4096),0);
-	mouseCoordPos.y = Math.max(Math.min(mouseCoordPos.y,4096),0);
+	mouseCoordPos.x = Math.max(Math.min(mouseCoordPos.x,4095),1);
+	mouseCoordPos.y = Math.max(Math.min(mouseCoordPos.y,4095),1);
 
 	creaturesList.push(new creature(mouseCoordPos,16,8,[newTraits]));
 }

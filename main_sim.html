@@ -11,7 +11,7 @@
 	</div>
 
 	<div id="sidenav" class="sidenav">
-		<a href="#" id="save">Quicksave</a>
+		<a id="save">Quicksave</a>
 		<a href="#" id="lookup">Lookup</a>
 		<a href="#" id="settings">Settings</a>
 		<a href="./index.html" id="quit">Exit</a>
@@ -96,6 +96,7 @@
 
 </body>
 <script>
+	require("./compiled/initMain.js");
 	function initSliders() {
 		let slider = document.querySelectorAll(".sliderDiv");
 		let range = document.querySelectorAll(".slider");
@@ -114,8 +115,6 @@
 			});
 		});
 	}
-
+	
 	initSliders();
-
-    require("./compiled/initMain.js");
 </script>

@@ -12,11 +12,11 @@ export function tick(): void {
 	clearGrid();
 	spawnFoodCheck();
 	fillGrid();
-	renderFood();
+	updateFood();
 	sortList();
 	renderCreatures();
 	renderParticles();
-
+	
 	manageCursor();
 	time += 0;
 	requestAnimationFrame(() => tick());
@@ -49,7 +49,7 @@ function spawnFoodCheck() {
 	}
 }
 
-function renderFood() {
+function updateFood() {
 	for (let i = 0; i < foodList.length; i++) {
 		foodList[i].update();
 	}

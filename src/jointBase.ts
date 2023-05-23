@@ -5,6 +5,7 @@ export class creatureJoint {
 	id: number;
 	colour: string;
 	width: number;
+	displayedWidth: number;
 	childJoint: creatureJoint;
 	backChildJoint: Array<creatureJoint> = [];
 
@@ -13,6 +14,7 @@ export class creatureJoint {
 		this.id = id;
 		this.colour = colour;
 		this.width = width;
+		this.displayedWidth = this.width * 0.1;
 	}
 
 	updateJoint(state: string, isHurt: boolean, isBackwards: boolean): void {}

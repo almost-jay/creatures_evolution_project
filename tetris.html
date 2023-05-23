@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="">
+  <head>
+    <meta charset="utf-8">
+    <title></title>
+  </head>
+  <style>
+	.infobox {
+		position: absolute;
+		margin: 0;
+		bottom: 150px;
+		left: 22%;
+		width: 12%;
+		height: 280px;
+		text-align: center;
+		vertical-align: middle;
+		border-radius: 20px;
+		background-color: #1A1016;
+		color: #FAFAFAAA;
+		padding: 10px;
+	}
+
+	h1 {
+		font-size: 25px;
+		line-height: 0px;
+		padding: 0px 0 18px 0;
+	}
+
+
+	h4 {
+		font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+		padding: 4px 0 0 0;
+		font-size: 12px;
+		color: white;
+		letter-spacing: 2px;
+	}
+
+
+	body {
+		margin-top: 2px;
+		margin-left: 25%;
+		margin-right: 25%;
+		overflow: hidden;
+		font-family: "Lucida Console", monospace;
+	}
+
+	canvas {
+		position: inherit;
+	}
+
+	#holder {
+		width: 300px;
+		height: 600px;
+		top: 2px;
+		margin-left: 200px;
+		position: absolute;
+	}
+
+	.pauseOverlay {
+		width: 300px;
+		height: 600px;
+		background-color: #2A2A2AAA;
+		display: none;
+		z-index: 2;
+		position: inherit;
+	}
+
+	.heldPiece {
+		margin: 0;
+		background-color: #1A1016;
+		position: absolute;
+		top: 50px;
+		left: 25%;
+	}
+
+	.preview {
+		margin: 0;
+		background-color: #1A1016;
+		position: absolute;
+		top: 75px;
+		left: 61%;
+	}
+
+	/* The switch - the box around the slider */
+.switch {
+  position: relative;
+  margin-left: 40px;
+  display: inline-block;
+  width: 60px;
+  height: 34px;
+  left: 40px;
+  top: 210px;
+}
+
+/* Hide default HTML checkbox */
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+/* The slider */
+.slider {
+border-radius: 34px;
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 26px;
+  width: 26px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  -webkit-transition: .4s;
+  transition: .4s;
+  border-radius: 50%;
+}
+
+input:checked + .slider {
+  background-color: #74c99e;
+}
+
+input:focus + .slider {
+  box-shadow: 0 0 1px #74c99e;
+}
+
+input:checked + .slider:before {
+  -webkit-transform: translateX(26px);
+  -ms-transform: translateX(26px);
+  transform: translateX(26px);
+}
+
+.helptext {
+	margin-top: 30%;
+	width: 30%;
+	font-size: 70%;
+	margin-left: 100%;
+}
+
+h2 {
+	font-size: 15px;
+	display: inline;
+	margin-left: -120px;
+}
+
+#circle {
+	--percent: 0%;
+  position: relative;
+  width: 80px;
+  height: 80px;
+  margin-left: 50px;
+  border-radius: 50%;
+  background: #ccc;
+  background-image: conic-gradient(#1e8875, var(--percent, 100), #ccc 0);
+}
+
+#circle .inner {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 60px;
+  height: 60px;
+  background: #000;
+  border-radius: 50%;
+  font-size: 1.85em;
+  font-weight: 300;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+  </style>
+  <body>
+	<canvas class = "heldPiece" id="heldPiece" width="150" height="150"></canvas>
+	<canvas class = "preview" id="preview" width="150" height="450"></canvas>
+	<label class="switch">
+		<h2>Toggle ghost</h2>
+		<input id="prevToggle" onclick="showPreview = !showPreview;" type="checkbox">
+		<span class="slider"></span>
+	</label>
+	<div id="holder">
+		<div id="pausePopup" class="pauseOverlay"></div>
+		<canvas id="canvas" width="300" height="800"></canvas>
+	</div>
+	<div class="infobox">
+		<h4>SCORE</h4>
+		<h1 id="score">0</h1>
+		<h4>LEVEL</h4>
+		<div id="circle">
+			<div class="inner">
+				<h5 id="level">0</h5>
+			</div>
+		</div>
+		<h4>LINES CLEARED</h4>
+		<h1 id="lines">0</h1>
+	</div>
+
+	<div class="helptext">
+		<h3><b><i>Controls:</i></b></h3>
+		<p><b>LEFT/RIGHT ARROW</b> to move.<br><b>DOWN ARROW</b> to soft drop.<br><b>SPACE</b> to hard drop.<br><b>UP ARROW</b> to rotate.<br><b>SHIFT</b> to swap held piece.<br><b>ESC</b> to toggle pause.</p>
+	</div>
+  </body>
+  <script src="tetris_script.js"></script>
+</html>

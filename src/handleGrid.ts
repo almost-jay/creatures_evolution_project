@@ -1,4 +1,4 @@
-import { activeArea, debugPrefs, ctx, creaturesList } from "./initMain";
+import { activeArea, debugPrefs, ctx, creaturesList, isPaused } from "./initMain";
 
 export var posGrid: Array<Array<string>>;
 
@@ -13,7 +13,7 @@ export function clearGrid() {
 			if (debugPrefs.hitboxGrid) {
 				if (i * 16 > activeArea[0].x && i * 16 < activeArea[1].x) {
 					if (j * 16 > activeArea[0].y && j * 16 < activeArea[1].y) {
-						if (posGrid[i][j] != "" && posGrid[i][j] != "block") {
+						if (posGrid[i][j] != "" && posGrid[i][j]) {
 							ctx.fillStyle = "green";
 							ctx.fillRect(i * s, j * s,s,s);
 						} else {

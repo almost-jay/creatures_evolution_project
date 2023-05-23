@@ -26,7 +26,7 @@ export class creatureBody extends creatureJoint {
 		} else {
 			ctx.strokeStyle = "#FF4545";
 		}
-		ctx.lineWidth = this.width;
+		ctx.lineWidth = this.displayedWidth;
 		ctx.beginPath();
 		ctx.moveTo(this.pos.x,this.pos.y);
 		ctx.lineTo(this.childJoint.pos.x,this.childJoint.pos.y);
@@ -37,6 +37,7 @@ export class creatureBody extends creatureJoint {
 	updateLegs(state: string, isHurt: boolean,isBackwards: boolean) {
 		if (this.legs !== undefined) {
 			for (let i = 0; i < this.legs.length; i++) {
+				this.legs[i].size = (this.displayedWidth / this.width);
 				this.legs[i].updateLimb(this.pos,this.childJoint.pos, state,isBackwards);
 				this.legs[i].renderLimb(isHurt);
 				if (this.legs[i].isFootUp) {

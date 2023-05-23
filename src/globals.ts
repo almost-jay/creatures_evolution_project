@@ -75,7 +75,7 @@ export class vector2 {
 };
 
 export function randRange(min: number, max: number) { //returns number between max and min, inclusive
-	let result = (Math.random() * (max - min)) + min;
+	let result = (Math.random() * ((max + 1) - min)) + min;
 	return result;
 }
 

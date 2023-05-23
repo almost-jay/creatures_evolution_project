@@ -4,6 +4,7 @@ import { ctx, isPaused } from "./initMain";
 export class creatureLeg {
 	length: number; //how long each part of the leg is
 	width: number; //width of the leg
+	size: number;
 	legAngle: number; //how far forward and back the leg goes
 	joinPos: vector2;
 	elbowPos: vector2;
@@ -47,13 +48,13 @@ export class creatureLeg {
 			ctx.fillStyle = "#FF4545";
 		}
 
-		ctx.lineWidth = this.width;
+		ctx.lineWidth = this.width * this.size;
 
 		if (!isHurt) {
 			ctx.fillStyle = this.darkColour;
 		}
 		ctx.beginPath();
-		ctx.arc(this.footPos.x,this.footPos.y,this.width * 0.64,0, 2 * Math.PI);
+		ctx.arc(this.footPos.x,this.footPos.y,this.width * 0.64 * this.size,0, 2 * Math.PI);
 		ctx.fill();
 
 		if (!isHurt) {
@@ -69,7 +70,7 @@ export class creatureLeg {
 			ctx.fillStyle = this.lightColour;
 		}
 		ctx.beginPath();
-		ctx.arc(this.elbowPos.x,this.elbowPos.y,this.width * 0.64,0, 2 * Math.PI);
+		ctx.arc(this.elbowPos.x,this.elbowPos.y,this.width * 0.64 * this.size,0, 2 * Math.PI);
 		ctx.fill();
 
 		if (!isHurt) {
@@ -98,9 +99,9 @@ export class creatureLeg {
 		let footCheckPos = this.calcFootCheckPos()
 
 		let footDist = this.footPos.distance(footCheckPos);
-		if (footDist > this.length * 2.4 || this.elbowPos.distance(this.joinPos) < 0.6) {
-			if (this.pair.isFootUp == false || footDist > this.length * 4) {
-				if (footDist > this.length * 4) {
+		if (footDist > this.length * 2.4 * this.size || this.elbowPos.distance(this.joinPos) < 0.6) {
+			if (this.pair.isFootUp == false || footDist > this.length * 4 * this.size) {
+				if (footDist > this.length * 4 * this.size) {
 					this.footPos = new vector2(footCheckPos.x,footCheckPos.y);
 				} else {
 					this.isFootUp = true;
@@ -110,7 +111,7 @@ export class creatureLeg {
 
 		if (this.isFootUp) {
 			this.moveFootForward(footCheckPos,footDist);
-			if (footDist < this.length * 0.6) {
+			if (footDist < this.length * 0.6 * this.size) {
 				this.isFootUp = false;	
 				this.footPos = footCheckPos;
 			}
@@ -118,7 +119,7 @@ export class creatureLeg {
 	}
 
 	calcFootCheckPos(): vector2 {
-		let limbSpacing = this.length * 2;
+		let limbSpacing = this.length * 2 * this.size;
 		let footStepPos = new vector2(limbSpacing * -1 * Math.cos(this.jointAngle - (Math.PI * this.side)) + this.joinPos.x,limbSpacing * -1 * Math.sin(this.jointAngle - (Math.PI * this.side)) + this.joinPos.y);
 		return new vector2(limbSpacing * Math.cos(this.jointAngle - (Math.PI * this.legAngle * this.side)) + footStepPos.x,limbSpacing * Math.sin(this.jointAngle - (Math.PI * this.legAngle * this.side)) + footStepPos.y);
 	}
@@ -131,24 +132,24 @@ export class creatureLeg {
 		let chi = this.footPos.x - this.joinPos.x;
 		let psi = this.footPos.y - this.joinPos.y;
 		let d = (chi ** 2) + (psi ** 2);
-		let a = Math.max(-1,Math.min(1,d / (2 * this.length * Math.sqrt(d))));
+		let a = Math.max(-1,Math.min(1,d / (2 * this.length * this.size * Math.sqrt(d))));
 		let theta = Math.atan2(psi,chi) - (Math.acos(a) * side);
 		
-		let result = new vector2(this.joinPos.x + (this.length * Math.cos(theta)),this.joinPos.y + (this.length * Math.sin(theta)));
+		let result = new vector2(this.joinPos.x + (this.length * this.size * Math.cos(theta)),this.joinPos.y + (this.length * this.size * Math.sin(theta)));
 		return result;
 	}
 
 	moveFootForward(footCheckPos: vector2, footDist: number) {
 		let delta = this.footPos.subtract(footCheckPos);
 		delta = delta.divide(footDist);
-		delta = delta.multiply(this.length * 0.6);
+		delta = delta.multiply(this.length * 0.6 * this.size);
 		
 		this.footPos = this.footPos.subtract(delta);
 	}
 
 	
 	calcFootDragPos(): vector2 {
-		let limbSpacing = this.length * 1.4;
+		let limbSpacing = this.length * 1.4 * this.size;
 		let dragAngle = 1.1;
 		let footStepPos = new vector2(limbSpacing * Math.cos(this.jointAngle - (Math.PI * this.side)) + this.joinPos.x,limbSpacing * Math.sin(this.jointAngle - (Math.PI * this.side)) + this.joinPos.y);
 		return new vector2(limbSpacing * Math.cos(this.jointAngle - (Math.PI * dragAngle * this.side)) + footStepPos.x,limbSpacing * Math.sin(this.jointAngle - (Math.PI * dragAngle * this.side)) + footStepPos.y);
@@ -156,7 +157,7 @@ export class creatureLeg {
 
 	
 	calcFootDeathPos(): vector2 {
-		let limbSpacing = this.length * 1.4;
+		let limbSpacing = this.length * 1.4 * this.size;
 		let dragAngle = 0.8;
 		let footStepPos = new vector2(limbSpacing * Math.cos(this.jointAngle - (Math.PI * this.side)) + this.joinPos.x,limbSpacing * Math.sin(this.jointAngle - (Math.PI * this.side)) + this.joinPos.y);
 		return new vector2(limbSpacing * Math.cos(this.jointAngle - (Math.PI * dragAngle * this.side)) + footStepPos.x,limbSpacing * Math.sin(this.jointAngle - (Math.PI * dragAngle * this.side)) + footStepPos.y);
