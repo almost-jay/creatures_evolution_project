@@ -4,19 +4,30 @@ export class creatureTraits {
 	personality: Array<number>;
 	traits: { [id: string]: trait };
 	constructor(parentProps: Array<creatureTraits> | null) {
+		this.traits = {
+			"health": new trait(10,50,[randRange(-1,1),randRange(-1,1)],1),
+			"strength": new trait(1,20,[randRange(-1,1),randRange(-1,1)],1),
+			"diet": new trait(-1.0,1.0,[randRange(-1,1),randRange(-1,1)],0),
+			"speed": new trait(0.2,3.0,[randRange(-1,1),randRange(-1,1)],1),
+			"visionDistance": new trait(12,512,[randRange(-1,1),randRange(-1,1)],0.5),
+			"visionAngle": new trait(0.2,1.5,[randRange(-1,1),randRange(-1,1)],0.8),
+			"hearingDistance": new trait(12,256,[randRange(-1,1),randRange(-1,1)],0.5),
+			"toxicity": new trait(0.0,5.0,[randRange(-1,1),randRange(-1,1)],0.2),
+		};
 		if (parentProps !== null) {
 			if (parentProps.length != 1) {
 			this.personality = [
 					((parentProps[0].personality[0] + parentProps[1].personality[0]) / 2) + ((Math.random() - 0.5) * 0.4), //aggression
 					((parentProps[0].personality[1] + parentProps[1].personality[1]) / 2) + ((Math.random() - 0.5) * 0.4) //respect
 				];
-
+				
 				for (let key in parentProps[0].traits) {
 					let mutation = (Math.random() - 0.5) * 0.2;
 					let dist = Math.random() / parentProps.length;
+					this.traits[key] = new trait(0,1,[0,0],1);
 					for (let i = 0; i < parentProps.length; i++) {
 						let parentTrait = parentProps[i].traits[key as string];
-						this.traits[key] = new trait(0,0,[0,0],1);
+
 						this.traits[key].min = parentTrait.min;
 						this.traits[key].max = parentTrait.max;
 						this.traits[key].display += parentTrait.display * Math.abs(i - dist);
@@ -32,16 +43,6 @@ export class creatureTraits {
 			}
 		} else {
 			this.personality = [(Math.random() - 0.5) * 2,(Math.random() - 0.5) * 2];
-			this.traits = {
-				"health": new trait(10,50,[randRange(-1,1),randRange(-1,1)],1),
-				"strength": new trait(1,20,[randRange(-1,1),randRange(-1,1)],1),
-				"diet": new trait(-1.0,1.0,[randRange(-1,1),randRange(-1,1)],0),
-				"speed": new trait(0.2,3.0,[randRange(-1,1),randRange(-1,1)],1),
-				"visionDistance": new trait(12,512,[randRange(-1,1),randRange(-1,1)],0.5),
-				"visionAngle": new trait(0.2,1.5,[randRange(-1,1),randRange(-1,1)],0.8),
-				"hearingDistance": new trait(12,256,[randRange(-1,1),randRange(-1,1)],0.5),
-				"toxicity": new trait(0.0,5.0,[randRange(-1,1),randRange(-1,1)],0.2),
-			};
 		}
 	}
 

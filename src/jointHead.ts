@@ -21,9 +21,9 @@ export class creatureHead extends creatureBody {
 	blinkIndex: number;
 	canSenseCreatures: boolean = false;
 	sensedCreatures: Array<creature> = [];
-	targetEnemy: null|creature;
-	targetFriend: null|creature;
-	targetFood: null|food;
+	targetEnemy: null|creature = null;
+	targetFriend: null|creature = null;
+	targetFood: null|food = null;
 	relationships: { [id: string]: relationship } = {};
 	
 	constructor (pos: vector2, id: number, colour: string, width: number, eyeSpacing: number, eyeColour: string, hasLegs: boolean, legLength: number, legWidth: number) {
@@ -139,18 +139,18 @@ export class creatureHead extends creatureBody {
 		for (let i = 0; i < sensedEntities.length; i++) { //iterate through all entities it might be able to detect
 			let checkedEntity = entityDict[sensedEntities[i]]; //fetches the entity from the main dictionary
 			let checkedPosition = new vector2(0,0);
-			if (checkedEntity.getTypeOf() == "creature") {
+			if (checkedEntity.entityType == "creature") {
 				checkedEntity = checkedEntity as creature;
 				this.sensedCreatures.push(checkedEntity);
 				this.canSenseCreatures = true;
 				checkedPosition = checkedEntity.head.pos;
-			} else if (checkedEntity.getTypeOf() == "food") {
+			} else if (checkedEntity.entityType == "food") {
 				checkedEntity = checkedEntity as food;
 				checkedPosition = checkedEntity.pos;
 			}
 			if (this.castVision(checkedPosition,visionAngle)) { //checks if the entity is within the creature's field of view
 				canSeeAnything = true;
-				if (checkedEntity.getTypeOf() == "food") { //if the entity is food, it can see food
+				if (checkedEntity.entityType == "food") { //if the entity is food, it can see food
 					checkedEntity = checkedEntity as food;
 					if (checkedEntity.isHeldBy == null && !checkedEntity.isEaten) {
 						if (this.targetFood != null) { //if it doesn't have a target food already, it sets the checked food to be the new target
@@ -161,7 +161,7 @@ export class creatureHead extends creatureBody {
 							this.targetFood = checkedEntity;
 						}
 					}
-				} else if (checkedEntity.getTypeOf() == "creature") {
+				} else if (checkedEntity.entityType == "creature") {
 					checkedEntity = checkedEntity as creature;
 					if (checkedEntity.state != "dead") {
 						this.sensedCreatures.push(checkedEntity);
@@ -186,7 +186,7 @@ export class creatureHead extends creatureBody {
 					}
 				}
 
-			} else if (checkedEntity.getTypeOf() == "creature") {
+			} else if (checkedEntity.entityType == "creature") {
 				checkedEntity = checkedEntity as creature;
 				if (checkedPosition.distance(this.pos) < hearingDistance) {
 					canHearAnything = true;
@@ -231,7 +231,7 @@ export class creatureHead extends creatureBody {
 					}
 				}
 				
-			} else if (checkedEntity.getTypeOf() == "food") {
+			} else if (checkedEntity.entityType == "food") {
 				checkedEntity = checkedEntity as food;
 				if (checkedEntity.isHeldBy == null && !checkedEntity.isEaten) {
 					if (this.targetFood == null) {

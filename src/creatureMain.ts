@@ -9,13 +9,12 @@ import { creatureHead } from "./jointHead";
 import { particle } from "./particle";
 
 export class creature {
-	length: number = 0;
+	bodyLength: number = 0;
 	maxDist: number = 0;
 	weights: number = 0;
 	size: number = 1;
 	id: string = "";
 	segments: Array<creatureJoint> = [];
-	limbs: Array<creatureJoint> = [];
 	head: creatureHead = new creatureHead(new vector2(0,0),0,"#000000",0,0,"#000000",false,0,0);
 	properties: creatureTraits = new creatureTraits(null);
 	stateChangeCooldown: number = 90;
@@ -37,16 +36,21 @@ export class creature {
 	attackCooldown: number = 0;
 	isBackwards: boolean = false;
 	heldFood: null|food;
+	entityType: string = "creature";
 
-	constructor(pos: vector2, length: number, maxDist: number, parentProps: Array<creatureTraits> | null) {
+	constructor(pos: vector2, bodyLength: number, maxDist: number, parentProps: Array<creatureTraits> | null, id: string) {
 		this.properties = new creatureTraits(parentProps);
 		this.energyPerTick = this.calcEnergyPerTick();
 
-		this.length = length;
+		this.bodyLength = bodyLength;
 		this.maxDist = maxDist;
 		this.weights = Math.floor(this.properties.traits.speed.display * 1.8);
 		
-		this.id = generateId();
+		if (id != "") {
+			this.id = id;
+		} else {
+			this.id = generateId();
+		}
 		entityDict[this.id] = this;
 		
 		this.health = this.properties.traits.health.value;
@@ -56,6 +60,14 @@ export class creature {
 		this.initJoints(pos);
 		
 		this.generatePath(4);
+	}
+
+	loadProperty(key: string, rawValue: any) {
+		if (this.hasOwnProperty(key)) {
+			let alteredProp = this[key as keyof creature];
+			let value = rawValue as typeof alteredProp;
+			alteredProp = value;
+		}
 	}
 
 	calcEnergyPerTick(): number {
@@ -68,12 +80,8 @@ export class creature {
 		return result;
 	}
 
-	getTypeOf() {
-		return "creature"; //now i could just use ``constructor.name``, but this makes it much easier to understand
-	}
-
 	initJoints(pos: vector2) {
-		let bodyCount = Math.floor(0.6 * this.length);
+		let bodyCount = Math.floor(0.6 * this.bodyLength);
 		let bodyColour = this.generateColours();
 		let baseWidth = 8;
 
@@ -86,7 +94,7 @@ export class creature {
 
 		this.head = new creatureHead(pos,0,bodyColour[0],baseWidth * 1.3 * this.size,baseWidth * 0.5 * this.size * ((this.properties.traits.visionAngle.display * 0.25) + 0.65),eyeLightness,false, 0, 0);
 		this.segments.push(this.head);
-		for (let i = 1; i < this.length - 1; i++ ) {
+		for (let i = 1; i < this.bodyLength - 1; i++ ) {
 			let jointPos = pos.add(new vector2(i * this.maxDist * this.size,i * this.maxDist * this.size));
 			if (i < bodyCount) {
 				let hasLegs = this.calcLegs(bodyCount, i);
@@ -95,12 +103,12 @@ export class creature {
 				}
 				this.segments.push(new creatureBody(jointPos,i,bodyColour[i],Math.max(0.6,this.calcBodyWidth(bodyCount,i)) * baseWidth * this.size,hasLegs,this.size * baseWidth * 2, this.size * baseWidth));
 			} else {
-				this.segments.push(new creatureBody(jointPos,i,bodyColour[i],Math.max(0.4,this.calcTailWidth(bodyCount, this.length - i) + 0.1) * baseWidth * this.size,false,0,0));
+				this.segments.push(new creatureBody(jointPos,i,bodyColour[i],Math.max(0.4,this.calcTailWidth(bodyCount, this.bodyLength - i) + 0.1) * baseWidth * this.size,false,0,0));
 			}
 		}
-		this.segments.push(new creatureJoint(pos.add(new vector2(this.length * this.size * this.maxDist,this.length * this.size * this.maxDist)),this.length - 1,bodyColour[this.length - 1],this.calcTailWidth(bodyCount,this.length) * this.size * baseWidth));
+		this.segments.push(new creatureJoint(pos.add(new vector2(this.bodyLength * this.size * this.maxDist,this.bodyLength * this.size * this.maxDist)),this.bodyLength - 1,bodyColour[this.bodyLength - 1],this.calcTailWidth(bodyCount,this.bodyLength) * this.size * baseWidth));
 		
-		for (let i = 0; i < this.length - 1; i++) {
+		for (let i = 0; i < this.bodyLength - 1; i++) {
 			this.segments[i].childJoint = this.segments[i + 1];
 		}
 
@@ -108,7 +116,7 @@ export class creature {
 			this.segments[i].backChildJoint.push(this.segments[i - 1]);
 		}
 
-		for (let i = this.tailStartIndex; i < this.length - 1; i++) {
+		for (let i = this.tailStartIndex; i < this.bodyLength - 1; i++) {
 			this.segments[i].backChildJoint.push(this.segments[i + 1])
 		}
 
@@ -126,7 +134,7 @@ export class creature {
 	}
 
 	calcTailWidth(bodyCount: number, x: number) {
-		let result = Math.abs(x / (this.length - bodyCount));
+		let result = Math.abs(x / (this.bodyLength - bodyCount));
 		return result;
 	}
 
@@ -157,8 +165,8 @@ export class creature {
 		let colour2 = hexToRgb(preColours[colourInd2]);
 
 		let colourRes: Array<string> = [];
-		let inc = 1 / this.length; //reciprocal of length
-		for (let i = 0; i < this.length; i++) { //creates gradient between two given colours, pushing the results into an array
+		let inc = 1 / this.bodyLength; //reciprocal of length
+		for (let i = 0; i < this.bodyLength; i++) { //creates gradient between two given colours, pushing the results into an array
 			let r = Math.round(Math.max(Math.min((colour1[0] * (1 - (inc * i)) + (colour2[0] * (inc * i))) * (this.properties.traits["strength"].display / this.properties.traits["strength"].max), 255), 0));
 			let g = Math.round(Math.max(Math.min((colour1[1] * (1 - (inc * i)) + (colour2[1] * (inc * i))) * (this.properties.traits["toxicity"].display / this.properties.traits["toxicity"].max), 255), 0));
 			let b = Math.round(Math.max(Math.min((colour1[2] * (1 - (inc * i)) + (colour2[2] * (inc * i))) * ((this.properties.traits["diet"].display + 1) / (this.properties.traits["diet"].max + 1)), 255), 0));
@@ -202,14 +210,13 @@ export class creature {
 		
 		this.interpolatePath(4);
 
-
 		this.action = "walk";
 		this.target = this.path[0];
 	}
 
 	drawPath() {
 		ctx.strokeStyle = this.head.colour;
-		ctx.fillStyle = this.segments[this.length - 1].colour;
+		ctx.fillStyle = this.segments[this.bodyLength - 1].colour;
 		ctx.lineWidth = 2;
 		ctx.beginPath();
 		ctx.moveTo(this.path[this.targetIndex].x,this.path[this.targetIndex].y);
@@ -315,11 +322,19 @@ export class creature {
 		result = result.concat("<a class='callout-label'> Energy cost: </a>"+(Math.floor(this.energyPerTick * 100) / 100)+"<br>");
 		result = result.concat("<a class='callout-label'> Age: </a>"+(Math.floor(this.age * 40) / 10)+"<br>");
 		result = result.concat("<a class='callout-label'> Is mature: </a>"+this.isMature+"<br>");
-		result = result.concat("<a class='callout-label'>Target food: </a>"+this.head.targetFood+"<br>");
-		result = result.concat("<a class='callout-label'>Target enemy: </a>"+this.head.targetEnemy+"<br>");
+		if (this.head.targetFood != null) {
+			result = result.concat("<a class='callout-label'>Target food: </a>"+this.head.targetFood.id+"<br>");
+		}
+		if (this.head.targetEnemy != null) {
+			result = result.concat("<a class='callout-label'>Target enemy: </a>"+this.head.targetEnemy.id+"<br>");
+		}
 		result = result.concat("<a class='callout-label'>Diet: </a>"+this.properties.traits["diet"].value+"<br>");
-		result = result.concat("<a class='callout-label'>Held food: </a>"+this.heldFood+"<br>");
-		result = result.concat("<a class='callout-label'>Mate: </a>"+this.mate+"<br>");
+		if (this.heldFood != null) {
+			result = result.concat("<a class='callout-label'>Held food: </a>"+this.heldFood.id+"<br>");
+		}
+		if (this.mate != null) {
+			result = result.concat("<a class='callout-label'>Mate: </a>"+this.mate.id+"<br>");
+		}
 
 		return result;
 	}
@@ -460,10 +475,10 @@ export class creature {
 					newState = "aggressive";
 				}
 			}
-		} else if (this.isMature && Math.random() < 0.04) {
+		} else if (this.isMature && Math.random() < 0.8) {
 			if (this.mate != null) {
 				newState = "mating";
-			} else if ( Math.random() < 0.02){
+			} else if (Math.random() < 0.02){
 				newState = "cloning";
 			}
 		} else if (this.head.targetFriend != null) {
@@ -515,6 +530,7 @@ export class creature {
 			this.heldFood.isEaten = true;
 			this.hunger -= this.heldFood.size * 4;
 			this.heldFood = null;
+			this.head.targetFood = null;
 			this.behaviourTree();
 		} else {
 			if (this.action != "sniff") {
@@ -647,7 +663,7 @@ export class creature {
 		}
 		
 		if (this.attacker != null) {
-			let safeDistance = Math.max(this.attacker.properties.traits.visionDistance.display * 1.2,this.attacker.properties.traits.hearingDistance.display * 1.2) + (this.attacker.maxDist * this.attacker.length);
+			let safeDistance = Math.max(this.attacker.properties.traits.visionDistance.display * 1.2,this.attacker.properties.traits.hearingDistance.display * 1.2) + (this.attacker.maxDist * this.attacker.bodyLength);
 			let angleAway = -(this.attacker.head.pos.getAvgAngleRad(this.head.pos));
 			let scale = this.properties.traits.speed.value * 50 * this.size;
 			
@@ -675,7 +691,7 @@ export class creature {
 				ctx.stroke();
 
 				let angleAway = this.head.pos.getAvgAngleRad(targetHeadPos);
-				let goalDistance = this.length * this.maxDist * 0.75;
+				let goalDistance = this.bodyLength * this.maxDist * 0.75;
 				if (targetHeadPos.distance(this.head.pos) < goalDistance) {
 					if (this.head.targetEnemy.properties.traits.speed.display < this.properties.traits.speed.value * this.size) {
 						this.attacker = this.head.targetEnemy;
@@ -721,7 +737,6 @@ export class creature {
 
 	attackEnemy() {
 		if (this.head.targetEnemy == null) {
-			console.log("had to fail");
 			if (this.properties.traits["diet"].value < randRange(-0.5,0.5) && this.hunger > 40 && this.head.canSenseCreatures) {
 				if (this.head.sensedCreatures.length > 0) {
 					let shortestDist = this.head.pos.distance(this.head.sensedCreatures[0].head.pos);
@@ -853,7 +868,7 @@ export class creature {
 		let lastDistanceAway = 0;
 		backPath.push(new vector2(this.properties.traits.speed.value * Math.cos(angleBack),this.properties.traits.speed.value * Math.sin(angleBack)).add(this.head.pos));
 		
-		while (lastDistanceAway < this.length * this.maxDist * 2) {
+		while (lastDistanceAway < this.bodyLength * this.maxDist * 2) {
 			let newPos = new vector2(this.properties.traits.speed.value * 30 * Math.cos(angleBack),this.properties.traits.speed.value * 30 * Math.sin(angleBack));
 			newPos = newPos.add(backPath[backPath.length - 1]);
 			backPath.push(newPos);
@@ -887,25 +902,20 @@ export class creature {
 							this.head.targetFriend.hunger -= this.heldFood.size * 4;
 							this.heldFood.isEaten = true;
 							this.heldFood = null;
+							this.head.targetFood = null;
 						} else {
 							this.target = this.head.targetFriend.head.pos;
 						}
 					}
 				}
-				this.path = this.head.targetFriend.path;
-				if (this.targetIndex == 0) {
-					for (let i = 1; i < this.path.length; i++) {
-						this.path[i].x += Math.random() * 8 + this.path[i - 1].x;
-						this.path[i].y += Math.random() * 8 + this.path[i - 1].y;
-					}
-				}
+				
+				this.target = (this.path[this.targetIndex].add(this.head.targetFriend.head.pos)).divide(2);
 
 				if (this.isMature) {
 					if (this.id in this.head.targetFriend.head.relationships) {
-						if (this.head.relationships[this.head.targetFriend.id].respect + this.head.relationships[this.head.targetFriend.id].aggression >= 0.8) {
-							if (this.head.targetFriend.head.relationships[this.id].respect + this.head.targetFriend.head.relationships[this.id].aggression >= 0.8) {
+						if (this.head.relationships[this.head.targetFriend.id].respect + this.head.relationships[this.head.targetFriend.id].aggression >= 0.7) {
+							if (this.head.targetFriend.head.relationships[this.id].respect + this.head.targetFriend.head.relationships[this.id].aggression >= 0.7) {
 								if (this.head.targetFriend.mate == null) {
-									console.log("mate state achieved");
 									this.mate = this.head.targetFriend;
 
 									this.head.targetFriend.mate = this;
@@ -921,13 +931,14 @@ export class creature {
 	
 	followPath() {
 		if (this.heldFood == null && this.properties.traits["diet"].value > randRange(-0.5,0.5)) {
-			if (this.head.targetFood != null) {
+			if (this.head.targetFood != null && !this.head.targetFood.isEaten) {
 				if (this.head.pos.distance(this.head.targetFood.pos) < 128) {
 					if (this.head.pos.distance(this.head.targetFood.pos) > this.maxDist) {
 						this.target = this.head.targetFood.pos;
 					} else {
 						this.heldFood = this.head.targetFood;
 						this.head.targetFood.isHeldBy = this;
+						this.head.targetFood = null;
 						this.generatePath(4);
 					}
 				}
@@ -957,9 +968,11 @@ export class creature {
 
 	attemptMate() {
 		if (this.mate != null) {
+			console.log("pass 1")
 			if (this.mate.state == "mating") {
+				console.log("pass 2");
 				this.path = [];
-				let r = ((this.length * this.maxDist * 0.5) / Math.PI / 2) + ((this.mate.length * this.mate.maxDist * 0.5) / Math.PI / 2);
+				let r = ((this.bodyLength * this.maxDist * 0.5) / Math.PI / 2) + ((this.mate.bodyLength * this.mate.maxDist * 0.5) / Math.PI / 2);
 				let avgPos = new vector2(0,0);
 				for (let i = 0; i < Math.PI * 2; i += 0.1) {
 					this.path.push(new vector2(r * Math.cos(i), r * Math.sin(i)));
@@ -968,7 +981,7 @@ export class creature {
 				avgPos = avgPos.divide(this.path.length);
 				if (this.targetIndex >= this.path.length - 1) {
 					for (let i = 0; i < randRange(0,3); i++) {
-						creaturesList.push(new creature(avgPos,this.length,this.maxDist,[this.properties,this.mate.properties]));
+						creaturesList.push(new creature(avgPos,this.bodyLength,this.maxDist,[this.properties,this.mate.properties],""));
 					}
 				}
 				
@@ -985,18 +998,19 @@ export class creature {
 	}
 
 	cloneSelf() {
+		console.log("cloned")
 		this.path = [];
-		let r = (this.length * this.maxDist * 0.5) / Math.PI / 2;
+		let r = (this.bodyLength * this.maxDist * 0.5) / Math.PI / 2;
 		let avgPos = new vector2(0,0);
 		for (let i = 0; i < Math.PI * 2; i++) {
-			this.path.push(new vector2(r * Math.cos(this.head.angle + i), r * Math.sin(this.head.angle + i)));
+			this.path.push((new vector2(r * Math.cos(this.head.angle + i), r * Math.sin(this.head.angle + i))).add(this.head.pos));
 			avgPos = avgPos.add(this.path[this.path.length - 1]);
 		}
 		avgPos = avgPos.divide(this.path.length);
 
 		if (this.targetIndex >= this.path.length - 1) {
 			for (let i = 0; i < randRange(1,3); i += 0.1) {
-				creaturesList.push(new creature(avgPos,this.length,this.maxDist,[this.properties,this.properties]));
+				creaturesList.push(new creature(avgPos,this.bodyLength,this.maxDist,[this.properties,this.properties],""));
 			}
 			this.die();
 		}
@@ -1020,8 +1034,9 @@ export class creature {
 			ctx.fillText(this.state,this.segments[1].pos.x,this.segments[1].pos.y + this.head.width * 4);
 			ctx.fillText(this.action,this.segments[1].pos.x,this.segments[1].pos.y + this.head.width * 6);
 		}
+		
 		this.head.angle = this.head.pos.getAvgAngleRad(this.head.childJoint.pos);
-		for (let i = this.length - 1; i >= 0; i --) {
+		for (let i = this.bodyLength - 1; i >= 0; i --) {
 			this.segments[i].updateJoint(this.state,this.hurtIndex >= 0,this.isBackwards);
 			if (!isPaused) {
 				this.segments[i].move(this.maxDist * this.size,this.isBackwards);

@@ -1,12 +1,15 @@
 import { webFrame } from "electron";
 import { creature } from "./creatureMain";
+import { creatureHead } from "./jointHead";
 import { initIdList, preColours, randRange, vector2 } from "./globals";
 import { initGrid, posGrid } from "./handleGrid";
 import { tick } from "./handleTick";
 import { food } from "./food";
 import { creatureTraits } from "./creatureTraits";
 import { particle } from "./particle";
-import { initSidenav } from "./saveLoadHandler";
+import { initSidenav, loadState } from "./saveLoadHandler";
+import { creatureBody } from "./jointBody";
+import { creatureLeg } from "./limbLeg";
 
 export var appId: number;
 
@@ -96,7 +99,7 @@ function setupApp() { //creates all the event listeners, triggers the rendering 
 			let entityId = posGrid[Math.floor(mousePos.x / 16)][Math.floor(mousePos.y / 16)];
 			if (entityId != "") {
 				let entity = entityDict[posGrid[Math.floor(mousePos.x / 16)][Math.floor(mousePos.y / 16)]]
-				if (entity.getTypeOf() == "creature") { //checks it's ACTUALLY a creature currently being hovered over, in case there's something weird with the grid
+				if (entity.entityType == "creature") { //checks it's ACTUALLY a creature currently being hovered over, in case there's something weird with the grid
 					entity = entity as creature;
 					entity.generatePath(4);
 					entity.behaviourTree();
@@ -193,6 +196,14 @@ function setupApp() { //creates all the event listeners, triggers the rendering 
 	initEditor();
 }
 
+function checkForLoad() {
+	let currentUrl = new URL(window.location.toLocaleString());
+	let isLoading = currentUrl.searchParams.get("load");
+	if (isLoading != "false" && isLoading != null) {
+		loadState(isLoading);
+	}
+}
+
 export function manageCursor() {
 	if (isRightMouseDown) {
 		cursorChoice[1] = true;
@@ -256,7 +267,7 @@ function checkHover() {
 		for (let i = -1; i < 2; i++) {
 			for (let j = -1; j < 2; j++) {
 				if (posGrid[mouseGridPos.x + i][mouseGridPos.y + j] != "" && posGrid[mouseGridPos.x + i][mouseGridPos.y + j]) {
-					if (entityDict[posGrid[mouseGridPos.x + i][mouseGridPos.y + j]].getTypeOf() == "creature") {
+					if (entityDict[posGrid[mouseGridPos.x + i][mouseGridPos.y + j]].entityType == "creature") {
 						if (tool == 1) { 
 							cursorChoice[3] = true;
 						} else {
@@ -279,7 +290,7 @@ function handleTool() {
 			let clickedEntityId = posGrid[mouseGridPos.x][mouseGridPos.y];
 			if (clickedEntityId != "") {
 				if (entityDict[clickedEntityId] != undefined) {
-					if (entityDict[clickedEntityId].getTypeOf() == "creature") {
+					if (entityDict[clickedEntityId].entityType == "creature") {
 						checkedCreature = entityDict[clickedEntityId] as creature;
 				
 						let panelDiv = document.getElementById("callout");
@@ -302,7 +313,7 @@ function handleTool() {
 			if (tool == 1) {
 				let clickedEntityId = posGrid[mouseGridPos.x][mouseGridPos.y];
 				if (clickedEntityId != "" && clickedEntityId) {
-					if (entityDict[clickedEntityId].getTypeOf() == "creature") {
+					if (entityDict[clickedEntityId].entityType == "creature") {
 						let draggedCreature = entityDict[clickedEntityId] as creature;
 
 						if (draggedCreature.state != "dead") {
@@ -314,7 +325,7 @@ function handleTool() {
 			} else if (tool == 3) {
 				let colorIndex = Math.floor(randRange(0,preColours.length - 1));
 				let foodColor = preColours[colorIndex];
-				foodList.push(new food(new vector2(mouseCoordPos.x,mouseCoordPos.y),randRange(4,6),foodColor));
+				foodList.push(new food(new vector2(mouseCoordPos.x,mouseCoordPos.y),randRange(4,6),foodColor,""));
 
 			} else if (tool == 4) {
 				let editDiv = document.getElementById("creatureEditor");
@@ -339,37 +350,13 @@ function acceptCommand() {
 			let splitCommand = command.split(" ");
 			if (splitCommand[0] == "teleport" || splitCommand[0] == "tp") {
 				let affectedCreature = entityDict[splitCommand[1]]
-				if (affectedCreature.getTypeOf() == "creature" ) {
+				if (affectedCreature.entityType == "creature" ) {
 					affectedCreature = affectedCreature as creature;
 					let xGoal = parseInt(splitCommand[2]);
 					let yGoal = parseInt(splitCommand[3]);
 
 					affectedCreature.head.pos = new vector2(xGoal,yGoal);
 					affectedCreature.generatePath(4);
-				} else {
-					alert("Creature not found.");
-				}
-			} else if (splitCommand[0] == "edit") {
-				let affectedCreature = entityDict[splitCommand[1]]
-				if (affectedCreature.getTypeOf() == "creature" ) {
-					affectedCreature = affectedCreature as creature;
-					
-					if (splitCommand[2] in affectedCreature) {
-						let key = splitCommand[2] as keyof creature;
-						let propType = typeof affectedCreature[key];
-						if (typeof affectedCreature[key] == "string") {
-							let edit = affectedCreature[key];
-							edit = splitCommand[3];
-						}
-						if (typeof affectedCreature[key] == "number") {
-							let edit = affectedCreature[key];
-							edit = Number.parseInt(splitCommand[3]);
-						} else {
-							alert("Property is of type "+propType+"! Can only edit numbers or strings!");
-						}
-					} else {
-						alert("Property "+splitCommand[2]+" not valid.");
-					}
 				} else {
 					alert("Creature not found.");
 				}
@@ -447,19 +434,18 @@ export function newFood() {
 	for (let i = 0; i < randRange(1,4); i++) {
 		let colorIndex = Math.floor(randRange(0,preColours.length - 1));
 		let foodColor = preColours[colorIndex];
-		foodList.push(new food(new vector2(randRange(96,4000),randRange(96,4000)),randRange(4,8),foodColor));
+		foodList.push(new food(new vector2(randRange(96,4000),randRange(96,4000)),randRange(4,8),foodColor,""));
 	}
 }
 
 function addDemoCreatures() {
 	let crNo = (Math.random() * 2) + 1;
-	crNo = 0;
+	crNo = 1;
 	for (let i = 0; i < crNo; i ++) {
 		let xOffset = randRange(1000,1800);
 		let yOffset = randRange(1000,1800);
-		creaturesList.push(new creature(new vector2(xOffset,yOffset),Math.round(randRange(8,24)),Math.round(randRange(4,16)),null));
+		creaturesList.push(new creature(new vector2(xOffset,yOffset),Math.round(randRange(8,24)),Math.round(randRange(4,16)),null,""));
 
-		document.getElementById("save")!.innerHTML = (creaturesList.length).toString();
 	}
 }
 
@@ -481,7 +467,7 @@ function editorSubmit() {
 	mouseCoordPos.x = Math.max(Math.min(mouseCoordPos.x,4095),1);
 	mouseCoordPos.y = Math.max(Math.min(mouseCoordPos.y,4095),1);
 
-	creaturesList.push(new creature(mouseCoordPos,16,8,[newTraits]));
+	creaturesList.push(new creature(mouseCoordPos,16,8,[newTraits],""));
 }
 
 function initEditor() {
@@ -523,9 +509,86 @@ export function quickSort(unsorted: Array<creature>): Array<creature> {
 	return result;
 }
 
+export function prepForLoad() {
+	entityDict = {};
+	creaturesList = [];
+	foodList = [];
+	particleList = [];
+}
+
+export function loadNewCreature(loadedCreature: { [key:string]:any }, id: string) {
+	let newPos = new vector2(loadedCreature["segments"][0].pos.x,loadedCreature["segments"][0].pos.y);
+	creaturesList.push(new creature(newPos,loadedCreature.bodyLength,loadedCreature.maxDist,null,loadedCreature.id));
+	let tempCreature = entityDict[id] as creature;
+	let newTraits = new creatureTraits(null);
+	newTraits = Object.assign(newTraits,loadedCreature["properties"]);
+	tempCreature.properties = Object.assign(tempCreature.properties,newTraits);
+
+	tempCreature.target = new vector2(tempCreature.target.x,tempCreature.target.y);
+
+	for (let i = 0; i < tempCreature.path.length; i++) {
+		tempCreature.path[i] = new vector2(tempCreature.path[i].x,tempCreature.path[i].y);
+	}
+
+	for (let i = 0; i < tempCreature.bodyLength; i++) {
+		tempCreature.segments[i] = Object.assign(tempCreature.segments[i],loadedCreature["segments"][i]);
+		tempCreature.segments[i].pos = new vector2(tempCreature.segments[i].pos.x,tempCreature.segments[i].pos.y);
+	}
+	
+	for (let i = 0; i < tempCreature.bodyLength; i++) {
+		let frontChildIndex = loadedCreature.segments[i].childJoint;
+		tempCreature.segments[i].childJoint = tempCreature.segments[frontChildIndex];
+		if (tempCreature.segments[i].backChildJoint.length > 0) {
+			for (let j = 0; j < tempCreature.segments[i].backChildJoint.length; j++) {
+				let backChildIndex = loadedCreature.segments[i].backChildJoint[j];
+				tempCreature.segments[i].backChildJoint[j] = tempCreature.segments[backChildIndex];
+			}
+		}
+
+		if (i < tempCreature.bodyLength - 1) {
+			let tempBody = tempCreature.segments[i] as creatureBody;
+			if (tempBody.legs.length > 0) {
+				let legLength = loadedCreature.segments[i].legs[0].legLength;
+				let width = loadedCreature.segments[i].legs[0].width;
+				let legAngle = loadedCreature.segments[i].legs[0].legAngle;
+				tempBody.legs = [new creatureLeg(0,tempBody.pos,tempBody.colour,-1,legLength,width,legAngle),new creatureLeg(1,tempBody.pos,tempBody.colour,1,legLength,width,legAngle)];
+				tempBody.legs[0].pair = tempBody.legs[1];
+				tempBody.legs[1].pair = tempBody.legs[0];
+				
+				for (let j = 0; j < tempBody.legs.length; j++) {
+					let tempElbowPos = loadedCreature.segments[i].legs[j].elbowPos;
+					tempBody.legs[j].elbowPos = new vector2(tempElbowPos.x,tempElbowPos.y);
+					
+					let tempFootPos = loadedCreature.segments[i].legs[j].footPos;
+					tempBody.legs[j].footPos = new vector2(tempFootPos.x,tempFootPos.y);
+
+					tempBody.legs[j].isFootUp = loadedCreature.segments[i].legs[j].isFootUp;
+					
+					
+				}
+			}
+			tempCreature.segments[i] = tempBody;
+		}
+	}
+
+	tempCreature.head = tempCreature.segments[0] as creatureHead;
+	
+	for (let key in loadedCreature) {
+		let propType = typeof loadedCreature[key];
+		if (propType == "string" || propType == "number" || propType == "boolean") {
+			tempCreature.loadProperty(key,loadedCreature[key]);
+		}
+	}
+	entityDict[id] = tempCreature;
+}
+
+export function loadNewFood(loadedFood: food) {
+	foodList.push(loadedFood);
+}
+
 setupApp();
 initIdList();
 initGrid();
+checkForLoad();
 
 tick();
-addDemoCreatures();

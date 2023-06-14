@@ -187,20 +187,22 @@ button:hover {
 #sidenav a {
 	font-family: 'Trashhand', sans-serif;
 	position: fixed;
-	left: -10%;
+	left: -16vh;
 	transition: 0.1s;
 	padding: 2vh;
-	width: 12%;
+	padding-top: 2.8vh;
+	width: 18vh;
 	height: 10%;
 	max-height: 10%;
 	text-decoration: none;
 	font-size: 32pt;
-	color: white;
+	color: transparent;
 	border-radius: 0 24px 24px 0;
   }
     
   #sidenav a:hover {
 	left: 0;
+	color: white;
   }
 
   #save {
@@ -228,25 +230,35 @@ button:hover {
 	margin-top: -3%;
 }
 
- #popup {
+#popup {
 	visibility: hidden;
-	min-width: 12%;
-	margin-left: -6%;
+	min-width: 12vh;
+	margin-left: -6vh;
 	background-color: #1ebc73;
 	color: white;
 	text-align: center;
-	border-radius: 4px;
-	padding: 16px;
+	border-radius: 12px;
+	padding: 3vh 6vh 3vh 6vh;
 	position: fixed;
 	z-index: 1;
 	left: 50%;
 	bottom: 10%;
-	font-size: 10px;
+	font-size: 2vh;
  }
 
  #popup.show {
 	visibility: visible;
 	animation: fadein 0.6s, fadeout 0.6s 0.8s;
+ }
+
+ @keyframes fadein {
+	from {bottom: 0; opacity: 0;}
+	to {bottom: 10%; opacity: 1;}
+ }
+
+ @keyframes fadeout {
+	from {bottom: 10%; opacity: 1;}
+	to {bottom: 8%; opacity: 0;}
  }
 
  .creatureEditor {

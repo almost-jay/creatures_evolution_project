@@ -16,11 +16,11 @@ export class creatureBody extends creatureJoint {
 	constructor (pos: vector2, id: number, colour: string, width: number, hasLegs: boolean, legLength: number, legWidth: number) {
 		super(pos, id, colour, width);
 		if (hasLegs) {
-			this.initLegs(legLength,legWidth)
+			this.initLegs(legLength,legWidth);
 		}
 	}
 
-	renderSegment(state: string, isHurt: boolean) {
+	renderSegment(isHurt: boolean) {
 		if (!isHurt) {
 			ctx.strokeStyle = this.colour;
 		} else {
@@ -49,7 +49,7 @@ export class creatureBody extends creatureJoint {
 
 	initLegs(legLength: number, legWidth: number) {
 		let legAngle = 0.8;
-		this.legs = [new creatureLeg(this.pos,this.colour,-1,legLength,legWidth,legAngle),new creatureLeg(this.pos,this.colour,1,legLength,legWidth,legAngle)];
+		this.legs = [new creatureLeg(0,this.pos,this.colour,-1,legLength,legWidth,legAngle),new creatureLeg(1,this.pos,this.colour,1,legLength,legWidth,legAngle)];
 		this.legs[0].pair = this.legs[1]; //this.legs[0] is the right leg
 		this.legs[1].pair = this.legs[0];
 	}
@@ -93,7 +93,7 @@ export class creatureBody extends creatureJoint {
 
 
 	updateJoint(state: string, isHurt: boolean, isBackwards: boolean): void {
-		this.renderSegment(state,isHurt);
+		this.renderSegment(isHurt);
 		this.updateLegs(state,isHurt,isBackwards);
 	}
 

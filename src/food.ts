@@ -10,21 +10,22 @@ export class food {
 	id: string;
 	isHeldBy: null|creature;
 	isEaten: boolean = false;
+	entityType: string = "food";
 	
-	constructor(pos: vector2, size: number, color: string) {
+	constructor(pos: vector2, size: number, color: string, id: string) {
 		this.pos = pos;
 		this.size = size;
 		this.color = color;
-		this.id = generateId();
-
+		if (id != "") {
+			this.id = id;
+		} else {
+			this.id = generateId();
+		}
+		
 		entityDict[this.id] = this;
 		posGrid[Math.floor(this.pos.x / 16)][Math.floor(this.pos.y / 16)] = this.id;
 	}
 	
-	getTypeOf() {
-		return "food";
-	}
-
 	update() {
 		if (!this.isEaten) {
 			this.render();

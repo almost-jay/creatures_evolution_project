@@ -9,10 +9,10 @@
 	<div id = "holder">
 		<canvas id = "canvas" width = "4096" height = "4096" z-index = "-1"></canvas>
 	</div>
-
+	<div id = "popup"></div>
 	<div id="sidenav" class="sidenav">
-		<a id="save">Quicksave</a>
-		<a href="#" id="lookup">Lookup</a>
+		<a id="save">Save</a>
+		<a id="lookup">Lookup</a>
 		<a href="#" id="settings">Settings</a>
 		<a href="./index.html" id="quit">Exit</a>
 	</div>
@@ -101,7 +101,7 @@
 		let slider = document.querySelectorAll(".sliderDiv");
 		let range = document.querySelectorAll(".slider");
 		let value = document.querySelectorAll(".sliderVal");
-
+		
 		slider.forEach(currentSlider => {
 			value.forEach(currentVal => {
 				let val = currentVal.previousElementSibling.getAttribute("value");

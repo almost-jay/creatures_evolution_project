@@ -9,8 +9,8 @@
 <body>
 	<img class="background" src="./assets/background-screen.svg"/>
 	<img class="screen_vector" src="./assets/icon-text.svg"/>
-	<button class="main_menu_button start_button"><a href="main_sim.html"><img src="./assets/start-text.svg"/></a></button>
-	<button class="main_menu_button load_file_button"><img src="./assets/load-file-text.svg"/></button>
+	<button class="main_menu_button start_button"><a href="main_sim.html?load=false"><img src="./assets/start-text.svg"/></a></button>
+	<button id = "load_button" class="main_menu_button load_file_button"><a href="main_sim.html?load=true"><img src="./assets/load-file-text.svg"/></a></button>
 	<button class="main_menu_button preference_button"><a  href="./settings.html"><img src="./assets/preferences-text.svg"/></a></button>
 
 	<button class="side_button tetris"><a href="tetris.html"><img src="./assets/t-solid.svg"></a></button>
@@ -18,6 +18,30 @@
 	<button class="side_button quit" onclick="close_window(); return false;"><a id="quit_button"><img src="./assets/power-off-solid.svg"></a></button>
 </body>
 <script>
+	let loadButton = document.getElementById("load_button");
+	let loadPrompt = function(event) {
+		event.preventDefault();
+		file_input = document.createElement("input");
+		file_input.addEventListener("change", uploadFile, false);
+		file_input.type = "file";
+		file_input.click();
+	}
+
+	function uploadFile() {
+		let file = event.target.files[0]; 
+		
+		let reader = new FileReader();
+		reader.readAsText(file,'UTF-8');
+		result = reader.onload = readerEvent => {
+			let content = readerEvent.target.result;
+			if (content != null) {
+				window.location.href = "main_sim.html?load="+content;
+			}
+		}
+	}
+
+	loadButton.addEventListener("click", loadPrompt, false);
+
 	function close_window() {
 		if (confirm("Quit?")) {
     		close();
