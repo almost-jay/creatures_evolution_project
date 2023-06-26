@@ -1,4 +1,4 @@
-<html id = "_MAIN">
+<html id = "main_sim">
 <head>
     <title>stickbugged</title>
 	<link rel = "stylesheet" href = "https://fonts.googleapis.com/css?family=Kanit">
@@ -9,19 +9,28 @@
 	<div id = "holder">
 		<canvas id = "canvas" width = "4096" height = "4096" z-index = "-1"></canvas>
 	</div>
-	<div id = "popup"></div>
+	<div class = "popup" id = "save_success" data-translatekey="save_success"></div>
+	<div class = "popup" id = "save_failed" data-translatekey="save_failed"></div>
+	<div class = "popup" id = "load_success" data-translatekey="load_success"></div>
+	<div class = "popup" id = "load_failed" data-translatekey="load_failed"></div>
+	<div class = "popup" id = "id_unrecognised" data-translatekey="id_unrecognised"></div>
+	<div class = "popup" id = "id_invalid" data-translatekey="id_invalid"></div>
+	
 	<div id="sidenav" class="sidenav">
-		<a id="save">Save</a>
-		<a id="lookup">Lookup</a>
-		<a href="#" id="settings">Settings</a>
-		<a href="./index.html" id="quit">Exit</a>
+		<a id="save" data-translatekey="save"></a>
+		<a id="lookup" data-translatekey="lookup"></a>
+		<a id="settings" data-translatekey="settings"></a>
+		<a id="quit" data-translatekey="exit"></a>
 	</div>
 
-	<input id="commandbar" type="text" name="search" placeholder="">
+	<input class="inputbar" id="commandbar" type="text" name="search" placeholder="">
+	<input class="inputbar" id="idbar" type="text" name="search" placeholder="Enter ID:">
 	
 	<div class="callout" id="callout">
 		<div class="closebtn" onclick="this.parentElement.style.display='none';">&times;</div>
-		<div id="info-panel-header" class="callout-header">Information</div>
+		<div class="callout-header">
+			<div id="info-panel-header" draggable="true" ondragstart="startDrag(event)" ondragend="endDrag(event)" data-translatekey="information_title"></div>
+		</div>
 		<div class="callout-container">
 			<p id="info-panel">DISPLAY ERROR</p>
 		</div>
@@ -34,87 +43,284 @@
 		<div class="arc"><i class="fa-solid fa-pen"></i></div>
 	</div>
 
-	<div class="callout" id="creatureEditor">
+	<div class="callout" id="creatureEditorCallout">
 		<div class="closebtn" onclick="this.parentElement.style.display='none';">&times;</div>
 		<div class="creatureEditor">
-			<h2>Editor</h2>
-			<div class = "sliderDiv">
-				<label for="health"><b>Max Health</b></label>
-				<input class="slider" value="30" type="range" min="10" max="50" name="health" step="1">
-				<span class="sliderVal"></span>
-			</div>
-			
-			<div class = "sliderDiv">
-				<label for="strength"><b>Strength</b></label>
-				<input class="slider" value="10" type="range" min="1" max="20" name="strength" step="0.1" required>
-				<span class="sliderVal"></span>
-			</div>
-	
-			<div class = "sliderDiv">
-				<label for="diet"><b>Diet</b></label>
-				<input class="slider" value="0" type="range" min="-1" max="1" name="diet" step="0.1" required>
-				<span class="sliderVal"></span>
-			</div>
-	
-			<div class = "sliderDiv">
-				<label for="speed"><b>Speed</b></label>
-				<input class="slider" value="1.6" type="range" min="0.2" max="3.0" name="speed" step="0.1" required>
-				<span class="sliderVal"></span>
-			</div>
-	
-			<div class = "sliderDiv">
-				<label for="visionDistance"><b>Vision Distance</b></label>
-				<input class="slider" value="262" type="range" min="12" max="512" name="visionDistance" step="1" required>
-				<span class="sliderVal"></span>
-			</div>
-	
-			<div class = "sliderDiv">
-				<label for="visionAngle"><b>Field of View</b></label>
-				<input class="slider" value="0.85" type="range" min="0.2" max="1.5" name="visionAngle" step="0.02" required>
-				<span class="sliderVal"></span>
-			</div>
-	
-			<div class = "sliderDiv">
-				<label for="hearingDistance"><b>Hearing Distance</b></label>
-				<input class="slider" value="134" type="range" min="12" max="256" name="hearingDistance" step="1" required>
-				<span class="sliderVal"></span>
-			</div>
-	
-			<div class = "sliderDiv">
-				<label for="toxicity"><b>Toxicity</b></label>
-				<input class="slider" value="2.5" type="range" min="0.0" max="5.0" name="toxicity" step="0.5" required>
-				<span class="sliderVal"></span>
-			</div>
-			
-			<div class="sliderDiv">
-				<input type="submit" value="Add Creature" id="addButton">
+			<h2 draggable="true" ondragstart="startDrag(event)" ondragend="endDrag(event)" data-translatekey="editor"></h2>
+			<div class="creatureEditorSliders" id="creatureEditorParentDiv">
 			</div>
 		</div>
 	</div>
 
+	<div class="callout" id="settingsCallout">
+		<div class="closebtn settings" onclick="this.parentElement.style.display='none';">&times;</div>
+		<div class="settingsEditor">
+			<h2 class="settingsTitle" draggable="true" ondragstart="startDrag(event)" ondragend="endDrag(event)" data-translatekey="settings"></h2>
+			<div class="settingsSliders">
+				<div class="sliderDiv settingsSliderDiv">
+					<label for="universal_hostility" data-translatekey="universal_hostility"></label>
+					<input type="range" class="slider settingsSlider" id="universal_hostility" name="universal_hostility" min="-5" max="5" value="1" step="0.1">
+					<span class="sliderVal"></span>
+					<br>
+				</div>
+				<br>
+				<div class="sliderDiv settingsSliderDiv">
+					<label for="universal_respect" data-translatekey="universal_respect"></label>
+					<input type="range" class="slider settingsSlider" id="universal_respect" name="universal_respect" min="-5" max="5" value="1" step="0.1">
+					<span class="sliderVal"></span>
+					<br>
+				</div>
+				
+				<div class="sliderDiv settingsSliderDiv">
+					<label for="food_spawn_rate" data-translatekey="food_spawn_rate"></label>
+					<input type="range" class="slider settingsSlider" id="food_spawn_rate" name="food_spawn_rate" min="0" max="100" value="20" step="0.25">
+					<span class="sliderVal"></span>
+					<br>
+				</div>
+				
+			</div>
+		</div>
+	</div>
 	<div class="pauseOverlay" id="pauseOverlay"></div>
+	<script>
+		function initSliders() {
+			let slider = document.querySelectorAll(".sliderDiv");
+			let range = document.querySelectorAll(".slider");
+			let value = document.querySelectorAll(".sliderVal");
 
-</body>
-<script>
-	require("./compiled/initMain.js");
-	function initSliders() {
-		let slider = document.querySelectorAll(".sliderDiv");
-		let range = document.querySelectorAll(".slider");
-		let value = document.querySelectorAll(".sliderVal");
-		
-		slider.forEach(currentSlider => {
-			value.forEach(currentVal => {
-				let val = currentVal.previousElementSibling.getAttribute("value");
-				currentVal.innerText = val;
-			});
+			slider.forEach(currentSlider => {
+				value.forEach(currentVal => {
+					let val = currentVal.previousElementSibling.getAttribute("value");
+					currentVal.innerText = val;
+				});
 
-			range.forEach(e => {
-				e.addEventListener("input", eventArgs => {
-				e.nextElementSibling.innerText = eventArgs.target.value;
+				range.forEach(e => {
+					e.addEventListener("input", eventArgs => {
+					e.nextElementSibling.innerText = eventArgs.target.value;
+					});
 				});
 			});
-		});
-	}
-	
-	initSliders();
-</script>
+		}
+
+		var heldDragMouseX = 0;
+		var heldDragMouseY = 0;
+		function startDrag(event) {
+			heldDragMouseX = event.clientX;
+			heldDragMouseY = event.clientY;
+		}
+		
+		function endDrag(event) {
+			event.target.parentElement.parentElement.style.left = Math.min(Math.max(event.target.parentElement.parentElement.offsetLeft - (heldDragMouseX - event.clientX),20),1600)+"px";
+			event.target.parentElement.parentElement.style.top = Math.min(Math.max(event.target.parentElement.parentElement.offsetTop - (heldDragMouseY - event.clientY),20),1000)+"px";
+		}
+		
+		function createSliders() {
+			const sliderValues = [
+				{
+					"propName": "health",
+					"value": 30,
+					"min": 10,
+					"max": 50,
+					"step": 1
+				},
+				{
+					"propName": "strength",
+					"value": 10,
+					"min": 1,
+					"max": 20,
+					"step": 0.1
+				},
+				{
+					"propName": "diet",
+					"value": 0,
+					"min": -1,
+					"max": 1,
+					"step": 0.1
+				},
+				{
+					"propName": "speed",
+					"value": 1.6,
+					"min": 0.2,
+					"max": 3.0,
+					"step": 0.1
+				},
+				{
+					"propName": "visionDistance",
+					"value": 262,
+					"min": 12,
+					"max": 512,
+					"step": 1
+				},
+				{
+					"propName": "visionAngle",
+					"value": 0.85,
+					"min": 0.2,
+					"max": 1.5,
+					"step": 0.02
+				},
+				{
+					"propName": "hearingDistance",
+					"value": 134,
+					"min": 12,
+					"max": 256,
+					"step": 1
+				},
+				{
+					"propName": "toxicity",
+					"value": 1.5,
+					"min": 0,
+					"max": 5.0,
+					"step": 0.5
+				},				
+			]
+			
+			let creatureEditorParentDiv = document.getElementById("creatureEditorParentDiv");
+			for (let i = 0; i < sliderValues.length; i++) {
+				let newSliderDiv = document.createElement("div");
+				newSliderDiv.className = "sliderDiv editorSliderDiv";
+				newSliderDiv.id = sliderValues[i].propName;
+
+				let newTitleLabel = document.createElement("label");
+				newTitleLabel.className = "largeLabel";
+				newTitleLabel.htmlFor = sliderValues[i].propName;
+				newTitleLabel.dataset.translatekey = sliderValues[i].propName;
+
+				let newValueLabel = document.createElement("label");
+				newValueLabel.htmlFor = "value";
+				newValueLabel.className = "smallLabel";
+				newValueLabel.dataset.translatekey = "value";
+
+				let newValueSlider = document.createElement("input");
+				newValueSlider.type = "range";
+				newValueSlider.className = "slider";
+				newValueSlider.name = "value";
+				newValueSlider.min = sliderValues[i].min;
+				newValueSlider.max = sliderValues[i].max;
+				newValueSlider.step = sliderValues[i].step;
+				newValueSlider.setAttribute("value",sliderValues[i].value);
+
+				let newValueSpan = document.createElement("span");
+				newValueSpan.className = "sliderVal";
+
+				let newValueBreak = document.createElement("br");
+
+				let newDisplayLabel = document.createElement("label");
+				newDisplayLabel.htmlFor = "display";
+				newDisplayLabel.className = "smallLabel";
+				newDisplayLabel.dataset.translatekey = "display";
+
+				let newDisplaySlider = newValueSlider.cloneNode();
+				newDisplaySlider.name = "display";
+
+				let newDisplaySpan = document.createElement("span");
+				newDisplaySpan.className = "sliderVal";
+
+				let newDisplayBreak = document.createElement("br");
+
+				let newAggressionLabel = document.createElement("label");
+				newAggressionLabel.htmlFor = "aggression";
+				newAggressionLabel.className = "smallLabel";
+				newAggressionLabel.dataset.translatekey = "hostility";
+
+				let newAggressionSlider = document.createElement("input");
+				newAggressionSlider.type = "range";
+				newAggressionSlider.className = "slider";
+				newAggressionSlider.name = "aggression";
+				newAggressionSlider.min = -1;
+				newAggressionSlider.max = 1;
+				newAggressionSlider.step = 0.01;
+				newAggressionSlider.setAttribute("value",0);
+
+				let newAggressionSpan = document.createElement("span");
+				newAggressionSpan.className = "sliderVal";
+
+				let newAggressionBreak = document.createElement("br");
+
+				let newRespectLabel = document.createElement("label");
+				newRespectLabel.className = "smallLabel";
+				newRespectLabel.htmlFor = "respect";
+				newRespectLabel.dataset.translatekey = "respect";
+
+				let newRespectSlider = newAggressionSlider.cloneNode();
+				newRespectSlider.name = "respect";
+
+				let newRespectSpan = document.createElement("span");
+				newRespectSpan.className = "sliderVal";
+
+				let newRespectBreak = document.createElement("br");
+
+				let newDivBreak = document.createElement("br");
+
+				newSliderDiv.appendChild(newTitleLabel);
+
+				newSliderDiv.appendChild(newValueLabel);
+				newSliderDiv.appendChild(newValueSlider);
+				newSliderDiv.appendChild(newValueSpan);
+				newSliderDiv.appendChild(newValueBreak);
+
+				newSliderDiv.appendChild(newDisplayLabel);
+				newSliderDiv.appendChild(newDisplaySlider);
+				newSliderDiv.appendChild(newDisplaySpan);
+				newSliderDiv.appendChild(newDisplayBreak);
+
+				newSliderDiv.appendChild(newAggressionLabel);
+				newSliderDiv.appendChild(newAggressionSlider);
+				newSliderDiv.appendChild(newAggressionSpan);
+				newSliderDiv.appendChild(newAggressionBreak);
+
+				newSliderDiv.appendChild(newRespectLabel);
+				newSliderDiv.appendChild(newRespectSlider);
+				newSliderDiv.appendChild(newRespectSpan);
+				newSliderDiv.appendChild(newRespectBreak);
+
+				
+				creatureEditorParentDiv.appendChild(newSliderDiv);
+				creatureEditorParentDiv.appendChild(newDivBreak);
+			}
+
+			let newSubmitDiv = document.createElement("div");
+			newSubmitDiv.className = "sliderDiv";
+
+			let newSubmitButton = document.createElement("input");
+			newSubmitButton.type = "submit";
+			newSubmitButton.dataset.translatekey = "add_creature";
+			newSubmitButton.dataset.translateattribute = "value";
+			newSubmitButton.id = "addButton";
+
+			newSubmitDiv.appendChild(newSubmitButton);
+			let newButtBreak = document.createElement("br");
+
+			let newRandDiv = document.createElement("div");
+			newRandDiv.className = "sliderDiv";
+
+			let newRandomButton = document.createElement("input");
+			newRandomButton.type = "submit";
+			newRandomButton.dataset.translatekey = "add_random";
+			newRandomButton.dataset.translateattribute = "value";
+			newRandomButton.id = "randButton";
+
+			newRandDiv.appendChild(newRandomButton);
+
+			creatureEditorParentDiv.parentElement.appendChild(newSubmitDiv);
+			creatureEditorParentDiv.parentElement.appendChild(newButtBreak);
+			creatureEditorParentDiv.parentElement.appendChild(newRandDiv);
+
+			initSliders();
+		}
+		createSliders();
+		
+	</script>
+	<script src="./src/tinyi18n.js"></script>
+	<script>
+		tinyi18n.loadTranslations("./translations.json");
+		let currentUrl = new URL(window.location.toLocaleString());
+		var currentLang = currentUrl.searchParams.get("lang");
+
+		if (currentLang != null) {
+			tinyi18n.setLang(currentLang);
+		}
+		
+		document.getElementById("quit").href = "index.html?lang="+currentLang;
+		require("./compiled/initMain.js");
+	</script>
+</body>

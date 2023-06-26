@@ -8,6 +8,7 @@ body {
 	font-family: "Kanit", sans-serif;
 	zoom: 100%;
 	cursor: pointer;
+	user-select: none;
 }
 
 h1 {
@@ -18,7 +19,7 @@ h1 {
 }
 
 h2 {
-	font-size: 10vh;
+	font-size: 8vh;
 	font-family: "Trashhand",sans-serif;
 	text-align: center;
 	margin: -1vh 0 0 -2vh;
@@ -187,15 +188,15 @@ button:hover {
 #sidenav a {
 	font-family: 'Trashhand', sans-serif;
 	position: fixed;
-	left: -16vh;
+	left: -18vh;
 	transition: 0.1s;
 	padding: 2vh;
 	padding-top: 2.8vh;
-	width: 18vh;
+	width: 22vh;
 	height: 10%;
 	max-height: 10%;
 	text-decoration: none;
-	font-size: 32pt;
+	font-size: 28pt;
 	color: transparent;
 	border-radius: 0 24px 24px 0;
   }
@@ -230,7 +231,7 @@ button:hover {
 	margin-top: -3%;
 }
 
-#popup {
+.popup {
 	visibility: hidden;
 	min-width: 12vh;
 	margin-left: -6vh;
@@ -240,14 +241,16 @@ button:hover {
 	border-radius: 12px;
 	padding: 3vh 6vh 3vh 6vh;
 	position: fixed;
-	z-index: 1;
+	z-index: 10;
 	left: 50%;
-	bottom: 10%;
+	bottom: 0%;
 	font-size: 2vh;
+	display: block;
  }
 
- #popup.show {
+ .popup.show {
 	visibility: visible;
+	bottom: 10%;
 	animation: fadein 0.6s, fadeout 0.6s 0.8s;
  }
 
@@ -264,30 +267,51 @@ button:hover {
  .creatureEditor {
 	background-color: #b2ba90;
 	width: 35vh;
-	height: 65vh;
-	padding: 4vh;
+	height: 66vh;
+	padding: 3.4vh;
 	border-radius: 12px;
 	display: block;
  }
 
+ .creatureEditorSliders {
+	display: flow-root;
+	column-count: 2;
+	margin-top: -3vh;
+ }
+
  .sliderDiv {
-	display: inline-table;
-	width: 13vh;
+	display: inline-block;
+	width: 15vh;
  }
 
  label {
+	display: inline;
+	padding: 0.4vh;
+	margin-top: 0.2vh;
+	color: #414648;
+	font-size: 2.4vh;
+ }
+
+.smallLabel {
+	font-size: 1.6vh;
+	font-style: italic;
+ }
+
+ .largeLabel {
 	display: block;
 	padding: 0.4vh;
 	margin-top: 2.4vh;
 	color: #313638;
-	font-size: 1.8vh;
+	font-size: 1.6vh;
+	font-style: normal;
+	font-weight: bold;
  }
-
+ 
  .slider {
 	appearance: none;
 	-webkit-appearance: none;
-	width: 8vh;
-	height: 1vh;
+	width: 6vh;
+	height: 0.4vh;
 	border-radius: 5px;  
 	background: #547e64;
 	outline: none;
@@ -299,8 +323,8 @@ button:hover {
   .slider::-webkit-slider-thumb {
 	-webkit-appearance: none;
 	appearance: none;
-	width: 1vh;
-	height: 2vh;
+	width: 0.8vh;
+	height: 1.2vh;
 	border-radius: 1.2vh;
 	background-color: #374e4a;
 	cursor: pointer;
@@ -314,9 +338,10 @@ button:hover {
   }
 
   .sliderVal {
-	margin-left: 0.4vh;
+	margin-left: 0.1vh;
 	display: inline;
 	color: #374e4a;
+	line-height: 0.4vh;
   }
 
   input[type=submit] {
@@ -326,7 +351,7 @@ button:hover {
 	color: #92a984;
 	background-color: #547e64;
 	font-family: 'Trashhand', sans-serif;
-	font-size: 2.8vh;
+	font-size: 2.4vh;
 	text-decoration: none;
 	border: none;
 	border-radius: 2vh;
@@ -445,21 +470,25 @@ button:hover {
   .callout {
 	font-family: "Trashhand", sans-serif;
 	position: fixed;
-	 top: 20%;
+	 top: 10%;
 	left: 20%;
 	width: 35vh;
-	height: 55vh;
 	display: none;
 	background-color: #547e64;
 	border-radius: 12px;
+	user-select: none;
 	}
-	
+
+	#callout {
+		height: 80vh;
+	}
+
 	.callout-header {
 	  padding: 5%;
 	  margin: 4%;
-	  margin-bottom: -8%;
+	  margin-bottom: -6%;
 	  background-color: #32353A;
-	  font-size: 6vh;
+	  font-size: 5vh;
 	  text-align: center;
 	  vertical-align: middle;
 	  color: #B2BB90;
@@ -469,13 +498,13 @@ button:hover {
 	.callout-container {
 	  padding: 4%;
 	  color: #B2BB90;
-	  font-size: 2vh;
+	  font-size: 1.6vh;
 	  margin-left: 8%;
 	  top: 0;
 	}
 
 	.callout-label {
-		font-size: 2.2vh;
+		font-size: 1.8vh;
 		color: #32353A;
 	}
 	
@@ -516,25 +545,102 @@ button:hover {
 		left: 0;
 	  }
 
-	  #commandbar {
-		bottom: -10%;
+	  .inputbar {
 		border-radius: 1vh;
 		position: fixed;
 		padding: 0.5%;
 		line-height: 1.2;
 		font-size: 8px;
 		font-family: "Fira Mono", monospace;
-		width: 16%;
 		height: 4%;
 		color: #FAFAFAFF;
 		border: none;
-		width: 16%;
-		right: 8%;
 		background-color: #AAAAAAAA;
 		display: none;
+		transition-duration: 0.1s;
+	  }
+
+	  #commandbar {
+		bottom: -10%;
+		right: 8%;
+		width: 16%;
 	  }
 
 	  #commandbar.on {
 		bottom: 8%;
 		display: block;
 	  }
+
+	  #idbar {
+		top: 2%;
+		left: -16%;
+		display: block;
+		width: 6%;
+	  }
+
+	  #idbar.on {
+		top: 2%;
+		left: 1%;
+		display: block;
+	  }
+
+	select {
+		background-color: #91e3c2;
+		color: #2e222f;
+		font-family: monospace;
+	  }
+	
+	select:hover {
+		background-color: #b2ebe8;
+	  }
+	  
+.settingsTitle {
+	font-size: 6vh;
+	color: #ae2334;
+}
+
+.settingsEditor {
+	background-color: #fdcbb0;
+	width: 35vh;
+	height: 25vh;
+	padding: 3.4vh;
+	border-radius: 12px;
+	display: block;
+}
+
+.settingsSliders {
+	display: flow-root;
+	column-count: 3;
+}
+
+.settingsSlider {
+	background: #f04f78;
+	width: 4vh;
+}
+
+.settingsSliderDiv {
+	width: 10vh;
+}
+
+.settingsSlider::-webkit-slider-thumb {
+	background-color: #6b3e75;
+  }
+  
+  .settingsSlider::-webkit-slider-thumb:hover {
+	background-color: #45293f;
+  }
+
+  .closebtn.settings {
+	color: #f04f78;
+	background-color: #fdcbb0;
+  }
+  
+  .closebtn.settings:hover {
+	  color: #6b3e75;
+	  background-color: #f04f78;
+  }
+
+  #randButton {
+	margin-left: 13.6vh;
+	transform: scale(0.75);
+  }

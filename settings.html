@@ -1,14 +1,47 @@
-<html id = "_MAIN">
+<html id = "settings">
 <head>
-    <title>start_screen</title>
 	<link rel = "stylesheet" href = "https://fonts.googleapis.com/css?family=Kanit">
 	<link rel="preconnect" href="https://fonts.googleapis.com">
 	<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira+Mono">
     <link rel = "stylesheet" href = "styles.css">
 </head>
-<body style="margin-left: 10%;">
-	<div class = "help-text" style="margin-top: 10%">
-		Stub page only.
+<body>
+	<div class = "help-text" style="margin: 10%">
+		Stub page.
+		- volume <br>
+		- touchscreen controls <br>
+		- languages <br>
+		<br>
+		<label for="lang">
+			<h3 style="color:white" data-translatekey="lang_select"></h3>
+		</label>
+		<br>
+
+		<select name="lang" id="lang" onchange="onchangeDropdown(this.value)">
+			<option value="en">English</option>
+			<option value="de">Deutsch</option>
+			<option value="zh">中文</option>
+			<option value="fi">Suomalainen</option>
+		</select>
+		<br>
+		<a data-translatekey="untranslate_warning"></a>
 	</div>
-	<button><a href="index.html">Back to home</a></button>
+	<button><a id = "return_button" data-translatekey="return_menu"></a></button>
+	<script src="./src/tinyi18n.js"></script>
+	<script>
+		tinyi18n.loadTranslations("./translations.json");
+		let currentUrl = new URL(window.location.toLocaleString());
+		var currentLang = currentUrl.searchParams.get("lang");
+		
+		if (tinyi18n.getLang() != currentLang) {
+			tinyi18n.setLang(currentLang);
+		}
+		
+		function onchangeDropdown(value) {
+			tinyi18n.setLang(value);
+			document.getElementById("return_button").href = "index.html?lang="+value;
+		}
+
+		document.getElementById("return_button").href = "index.html?lang="+currentLang;
+	</script>
 </body>

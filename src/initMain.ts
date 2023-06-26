@@ -7,7 +7,7 @@ import { tick } from "./handleTick";
 import { food } from "./food";
 import { creatureTraits } from "./creatureTraits";
 import { particle } from "./particle";
-import { initSidenav, loadState } from "./saveLoadHandler";
+import { initSidenav, loadState, toast } from "./saveLoadHandler";
 import { creatureBody } from "./jointBody";
 import { creatureLeg } from "./limbLeg";
 
@@ -37,10 +37,15 @@ export var cursorChoice: Array<boolean> = [false,false,false,false,false]; //sto
 
 export var highScores: { [key: string]: [string,number] } = {
 	"longestLiving": ["",0],
+	"mostKilled": ["",0],
+	"mostFoodEaten": ["",0],
+	"mostChildren": ["",0]
 }
 
 export var simPrefs: { [key: string]: number } = {
 	"foodSpawnRate": 20,
+	"universalHostility": 0,
+	"universalRespect": 0,
 }
 
 export var userPrefs: { [key: string]: number } = {
@@ -70,6 +75,28 @@ var isConsoleOpen: boolean = true;  //whether the debug console is showing
 function setupApp() { //creates all the event listeners, triggers the rendering and setup
 	toggleCommandBox();
 	initSidenav();
+	
+	let lookupbox = document.getElementById("lookup") as HTMLInputElement;
+	lookupbox.onclick = function() { showIdPrompt() };
+
+	let settingsbox = document.getElementById("settings") as HTMLInputElement;
+	settingsbox.onclick = function() { showSimSettings() };
+
+	let universalHostilitySlider = document.getElementById("universal_hostility") as HTMLInputElement;
+	universalHostilitySlider.addEventListener("change", function() {
+		simPrefs.universalHostility = universalHostilitySlider.valueAsNumber;
+	});
+
+	let universalRespectSlider = document.getElementById("universal_respect") as HTMLInputElement;
+	universalRespectSlider.addEventListener("change", function() {
+		simPrefs.universalRespect = universalRespectSlider.valueAsNumber;
+	});
+
+	let foodSpawnRateSlider = document.getElementById("food_spawn_rate") as HTMLInputElement;
+	foodSpawnRateSlider.addEventListener("change", function() {
+		simPrefs.foodSpawnRate = foodSpawnRateSlider.valueAsNumber;
+	});
+
 	ctx.lineCap = "round";
 	windowInfo = [window.innerWidth,window.innerHeight];
 	document.addEventListener("mousedown", (event) => {
@@ -168,6 +195,7 @@ function setupApp() { //creates all the event listeners, triggers the rendering 
 			toggleCommandBox();
 		} else if (event.code == "Enter") {
 			acceptCommand();
+			
 		} else if (event.code.slice(0,5) == "Digit") {
 			let numPressed = parseInt(event.key);
 			if (numPressed < 5) {
@@ -196,12 +224,36 @@ function setupApp() { //creates all the event listeners, triggers the rendering 
 	initEditor();
 }
 
+function showIdPrompt() {
+	let idbar = document.getElementById("idbar") as HTMLInputElement;
+	idbar.classList.toggle("on");
+	idbar.focus();
+}
+
+function showSimSettings() {
+	let settingsBox = document.getElementById("settingsCallout") as HTMLInputElement;
+	
+	if (settingsBox.style.display != "block") {
+		settingsBox.style.display = "block";
+	} else {
+		settingsBox.style.display = "none";
+	}
+	
+
+}
+
 function checkForLoad() {
 	let currentUrl = new URL(window.location.toLocaleString());
 	let isLoading = currentUrl.searchParams.get("load");
 	if (isLoading != "false" && isLoading != null) {
-		loadState(isLoading);
+		loadState(parseInt(isLoading));
+	} else {
+		addRandomCreature();
 	}
+}
+
+function addRandomCreature() {
+	creaturesList.push(new creature(new vector2(randRange(1000,1800),randRange(1000,1800)),Math.round(randRange(8,24)),Math.round(randRange(4,16)),null,""));
 }
 
 export function manageCursor() {
@@ -281,7 +333,7 @@ function checkHover() {
 }
 
 function handleTool() {
-	if (!isPaused && !isWheelShowing) {
+	if (!isPaused && !isWheelShowing && mousePos.x > 20 && !(mousePos.y < 90 && mousePos.x < 54)) {
 		let mouseCoordPos = new vector2(activeArea[0].x + 24 + mousePos.x,activeArea[0].y + 24 + mousePos.y);
 		mouseCoordPos.x = Math.max(Math.min(mouseCoordPos.x,4095),1);
 		mouseCoordPos.y = Math.max(Math.min(mouseCoordPos.y,4095),1);
@@ -328,7 +380,7 @@ function handleTool() {
 				foodList.push(new food(new vector2(mouseCoordPos.x,mouseCoordPos.y),randRange(4,6),foodColor,""));
 
 			} else if (tool == 4) {
-				let editDiv = document.getElementById("creatureEditor");
+				let editDiv = document.getElementById("creatureEditorCallout");
 				if (editDiv != undefined) {
 					editDiv.style.display = "block";
 				} else {
@@ -342,26 +394,51 @@ function handleTool() {
 function acceptCommand() {
 	let commandbar = document.getElementById("commandbar") as HTMLInputElement;
 	if (commandbar != undefined) {
-		let command = (commandbar.value).replace("/","");
-		if (debugPrefs.hasOwnProperty(command)) {
-			debugPrefs[command] = !debugPrefs[command];
-			commandbar.value = "";
-		} else {
-			let splitCommand = command.split(" ");
-			if (splitCommand[0] == "teleport" || splitCommand[0] == "tp") {
-				let affectedCreature = entityDict[splitCommand[1]]
-				if (affectedCreature.entityType == "creature" ) {
-					affectedCreature = affectedCreature as creature;
-					let xGoal = parseInt(splitCommand[2]);
-					let yGoal = parseInt(splitCommand[3]);
-
-					affectedCreature.head.pos = new vector2(xGoal,yGoal);
-					affectedCreature.generatePath(4);
-				} else {
-					alert("Creature not found.");
-				}
+		if (document.activeElement == commandbar) {
+			let command = (commandbar.value).replace("/","");
+			if (debugPrefs.hasOwnProperty(command)) {
+				debugPrefs[command] = !debugPrefs[command];
+				commandbar.value = "";
 			} else {
-				alert("Command not recognised: "+splitCommand[0]);
+				let splitCommand = command.split(" ");
+				if (splitCommand[0] == "teleport" || splitCommand[0] == "tp") {
+					let affectedCreature = entityDict[splitCommand[1]]
+					if (affectedCreature.entityType == "creature" ) {
+						affectedCreature = affectedCreature as creature;
+						let xGoal = parseInt(splitCommand[2]);
+						let yGoal = parseInt(splitCommand[3]);
+
+						affectedCreature.head.pos = new vector2(xGoal,yGoal);
+						affectedCreature.generatePath(4);
+					} else {
+						alert("Creature not found.");
+					}
+				} else {
+					alert("Command not recognised: "+splitCommand[0]);
+				}
+			}
+		} else {
+			let idbar = document.getElementById("idbar") as HTMLInputElement;
+			if (document.activeElement == idbar) {
+				let givenId = idbar.value.toUpperCase();
+				idbar.classList.remove("on");
+				idbar.value = "";
+
+				if (entityDict[givenId] != null) {
+					if (entityDict[givenId].entityType == "creature") {
+						checkedCreature = entityDict[givenId] as creature;
+						let panelDiv = document.getElementById("callout");
+						if (panelDiv != undefined) {
+							panelDiv.style.display = "inline";
+						} else {
+							console.error("Could not find callout element!");
+						}
+					} else {
+						toast("id_invalid","#e83b3b","0");
+					}
+				} else {
+					toast("id_unrecognised","#e83b3b","0");
+				}
 			}
 		}
 	} else {
@@ -438,31 +515,25 @@ export function newFood() {
 	}
 }
 
-function addDemoCreatures() {
-	let crNo = (Math.random() * 2) + 1;
-	crNo = 1;
-	for (let i = 0; i < crNo; i ++) {
-		let xOffset = randRange(1000,1800);
-		let yOffset = randRange(1000,1800);
-		creaturesList.push(new creature(new vector2(xOffset,yOffset),Math.round(randRange(8,24)),Math.round(randRange(4,16)),null,""));
-
-	}
-}
-
 function editorSubmit() {	
 	let newTraits = new creatureTraits(null);
 	let range = document.querySelectorAll(".slider");
 
-	range.forEach(protoSlider => {
-		let slider = protoSlider as HTMLInputElement;
-		let name = slider.name;
-		let value = Number(slider.value);
+	let sliders = document.querySelectorAll(".editorSliderDiv");
+	sliders.forEach(protoSliderDiv => {
+		let sliderDiv = protoSliderDiv as HTMLDivElement;
+		let traitName = sliderDiv.id;
 
-		if (name != null && value != null) {
-			newTraits.editTrait(name,value);
-		}
+		range = sliderDiv.querySelectorAll(".slider");
+		range.forEach(protoTraitSlider => {
+			let traitSlider = protoTraitSlider as HTMLInputElement;
+			let traitProp = traitSlider.name;
+			let traitVal = Number(traitSlider.value);
 
+			newTraits.editTrait(traitName,traitProp,traitVal);
+		})
 	});
+
 	let mouseCoordPos = new vector2(activeArea[0].x + 24 + mousePos.x,activeArea[0].y + 24 + mousePos.y);
 	mouseCoordPos.x = Math.max(Math.min(mouseCoordPos.x,4095),1);
 	mouseCoordPos.y = Math.max(Math.min(mouseCoordPos.y,4095),1);
@@ -475,6 +546,11 @@ function initEditor() {
 
 	if (addButton != null) {
 		addButton.onclick = function() { editorSubmit() };
+	}
+
+	let randButton = document.getElementById("randButton") as HTMLInputElement;
+	if (randButton != null) {
+		randButton.onclick = function() { addRandomCreature() };
 	}
 
 }
@@ -590,5 +666,6 @@ setupApp();
 initIdList();
 initGrid();
 checkForLoad();
+
 
 tick();

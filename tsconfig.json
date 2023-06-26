@@ -1,7 +1,8 @@
 {
     "compilerOptions": {
         "module": "commonjs",
-        "target": "ES2017",
+        "target": "ES2017",	
+		"allowJs": true,
         "noImplicitAny": true,
         "alwaysStrict": true,
         "strictNullChecks": true,

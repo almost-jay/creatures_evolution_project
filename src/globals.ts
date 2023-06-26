@@ -105,6 +105,15 @@ export function initIdList() {
 	}
 }
 
+export function camelCaseToTitle(input: string) {
+	let split = input.match(/[A-Za-z][^_\-A-Z]*/g) || [];
+	return split.map(capitalise).join(" ");
+}
+
+function capitalise(input: string) {
+	return input.charAt(0).toUpperCase() + input.substring(1);
+}
+
 export function generateId(): string {
 	let idIndex = Math.floor(randRange(0,idList.length));
 	let id = idList[idIndex];

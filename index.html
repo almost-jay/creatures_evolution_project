@@ -1,4 +1,4 @@
-<html id = "_MAIN">
+<html id = "start">
 <head>
     <title>start_screen</title>
 	<link rel = "stylesheet" href = "https://fonts.googleapis.com/css?family=Kanit">
@@ -9,42 +9,60 @@
 <body>
 	<img class="background" src="./assets/background-screen.svg"/>
 	<img class="screen_vector" src="./assets/icon-text.svg"/>
-	<button class="main_menu_button start_button"><a href="main_sim.html?load=false"><img src="./assets/start-text.svg"/></a></button>
-	<button id = "load_button" class="main_menu_button load_file_button"><a href="main_sim.html?load=true"><img src="./assets/load-file-text.svg"/></a></button>
-	<button class="main_menu_button preference_button"><a  href="./settings.html"><img src="./assets/preferences-text.svg"/></a></button>
+	
+	<button class="main_menu_button start_button">
+		<a id="start_a"><img src="./assets/start-text.svg"/></a>
+	</button>
+	<button id = "load_button" class="main_menu_button load_file_button">
+		<a id = "load_a"><img src="./assets/load-file-text.svg"/></a>
+	</button>
+	<button class="main_menu_button preference_button">
+		<a id = "settings_a"><img src="./assets/preferences-text.svg"/></a>
+	</button>
 
 	<button class="side_button tetris"><a href="tetris.html"><img src="./assets/t-solid.svg"></a></button>
 	<button class="side_button help"><a href="help.html"><img src="./assets/question-solid.svg"></a></button>
 	<button class="side_button quit" onclick="close_window(); return false;"><a id="quit_button"><img src="./assets/power-off-solid.svg"></a></button>
-</body>
-<script>
-	let loadButton = document.getElementById("load_button");
-	let loadPrompt = function(event) {
-		event.preventDefault();
-		file_input = document.createElement("input");
-		file_input.addEventListener("change", uploadFile, false);
-		file_input.type = "file";
-		file_input.click();
-	}
+	<script src="./src/tinyi18n.js"></script>
+	<script>
+		tinyi18n.loadTranslations("./translations.json");
+		let currentUrl = new URL(window.location.toLocaleString());
+		var currentLang = currentUrl.searchParams.get("lang");
+		if (currentLang == null) {
+			currentLang = "en";
+		}
 
-	function uploadFile() {
-		let file = event.target.files[0]; 
-		
-		let reader = new FileReader();
-		reader.readAsText(file,'UTF-8');
-		result = reader.onload = readerEvent => {
-			let content = readerEvent.target.result;
-			if (content != null) {
-				window.location.href = "main_sim.html?load="+content;
+		document.getElementById("start_a").href = "main_sim.html?load=false&lang="+currentLang;
+		document.getElementById("settings_a").href = "settings.html?lang="+currentLang;
+
+		let loadButton = document.getElementById("load_button");
+		let loadPrompt = function(event) {
+			event.preventDefault();
+			file_input = document.createElement("input");
+			file_input.addEventListener("change", uploadFile, false);
+			file_input.type = "file";
+			file_input.click();
+		}
+
+		function uploadFile() {
+			let file = event.target.files[0]; 
+			let reader = new FileReader();
+			reader.readAsText(file,'UTF-8');
+			result = reader.onload = readerEvent => {
+				let content = readerEvent.target.result;
+				if (content != null) {
+					let saveInd = file.name.replace(/\D/g,"");
+					window.location.href = "main_sim.html?load="+saveInd+"&lang="+currentLang;
+				}
 			}
 		}
-	}
 
-	loadButton.addEventListener("click", loadPrompt, false);
+		loadButton.addEventListener("click", loadPrompt, false);
 
-	function close_window() {
-		if (confirm("Quit?")) {
-    		close();
+		function close_window() {
+			if (confirm("Quit?")) {
+				close();
+			}
 		}
-	}
-</script>
+	</script>
+</body>

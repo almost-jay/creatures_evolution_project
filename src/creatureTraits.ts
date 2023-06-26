@@ -46,20 +46,37 @@ export class creatureTraits {
 		}
 	}
 
-	editTrait(traitName: string, value: number) {
+	editTrait(traitName: string, property: string, value: number) {
 		if (traitName in this.traits) {
-			if (value >= this.traits[traitName].min) {
-				if (value <= this.traits[traitName].max) {
-					this.traits[traitName].value = value;
-					this.traits[traitName].display = value;
+			if (property == "value") {
+				if (value >= this.traits[traitName].min) {
+					if (value <= this.traits[traitName].max) {
+						this.traits[traitName].value = value;
+					} else {
+						console.error("Value too big");
+					}
 				} else {
-					console.error("Value too big");
+					console.error("Value too small");
 				}
+			} else if (property == "display") {
+				if (value >= this.traits[traitName].min) {
+					if (value <= this.traits[traitName].max) {
+						this.traits[traitName].display = value;
+					} else {
+						console.error("Display too big");
+					}
+				} else {
+					console.error("Display too small");
+				}
+			} else if (property == "aggression") {
+				this.traits[traitName].attitude[0] = value;
+			} else if (property == "respect") {
+				this.traits[traitName].attitude[1] = value;
 			} else {
-				console.error("Value too small");
+				console.error("Property invalid");
 			}
 		} else {
-			console.error("That's not a valid trait");
+			console.error(traitName+" is not a valid trait!");
 		}
 	}
 }

@@ -13,7 +13,7 @@ const cellSize = 30;
 const gap = 5;
 const corner = 6;
 
-const kickReference = {
+const kickReference = { //This tells us which direction each piece will attempt to wallkick. Based on the data from https://tetris.wiki/Super_Rotation_System#Wall_Kicks
 	"i": {
 		0: [[0,0],[-2,0],[1,0],[-2,-1],[1,2]],
 		1: [[0,0],[-1,0],[2,0],[-1,2],[2,-1]],
@@ -42,7 +42,7 @@ const tCornerReference = {
 	3: [[-1,1],[-1,1]],
 }
 
-const blockReference = {
+const blockReference = { //Defines all tetrominoes. The xOffset and yOffset is measured in tiles.
 	"i": {
 		"colour": "#74C99E",
 		"xOffset": 0.5,
@@ -225,7 +225,7 @@ var score = 0;
 var activePiece;
 var heldPiece;
 var canSwap = true;
-var board = [[0,0,0,0,0,0,0,0,0,0],
+var board = [[0,0,0,0,0,0,0,0,0,0], //The board is a 22x10 tile setup, but 2 lines aren't visible. These lines are there to give the player some "buffer".
 			[0,0,0,0,0,0,0,0,0,0],
 			[0,0,0,0,0,0,0,0,0,0],
 			[0,0,0,0,0,0,0,0,0,0],
@@ -247,7 +247,7 @@ var board = [[0,0,0,0,0,0,0,0,0,0],
 			[0,0,0,0,0,0,0,0,0,0],
 			[0,0,0,0,0,0,0,0,0,0],
 			[0,0,0,0,0,0,0,0,0,0]];
-var pieceBag = ["i","o","t","j","l","z","s","i","o","t","j","l","z","s"];
+var pieceBag = ["i","o","t","j","l","z","s","i","o","t","j","l","z","s"]; //Pieces are drawn from this bag; this is based on the 7-bag algorithm.
 var bagIndex = 0;
 var softScore = 0;
 
@@ -278,7 +278,7 @@ class tetromino {
 		this.flashCounter = 0;
 	}
 
-	render() {
+	render() { //For every single block, draws a tile of its colour in the correct location.
 		for (let i = 0; i < this.blocks.length; i++) {
 			if (this.flashCounter > 0) {
 				this.flashCounter --;
@@ -292,7 +292,7 @@ class tetromino {
 		}
 	}
 
-	checkHitbox() {
+	checkHitbox() { //Checks that the piece is not going to move into another piece, or out of bounds.
 		if (this.state == 0) {
 			for (let i = 0; i < this.blocks.length; i++) {
 				if (this.blocks[i].y > 20 || board[this.blocks[i].y + 1][this.blocks[i].x] != 0) {
@@ -303,7 +303,7 @@ class tetromino {
 			if (this.blocks[this.blocks.length - 1].y < 2) {
 				reset();
 			} else {
-				this.flashCounter = 12;
+				this.flashCounter = 12; //Triggers the "place piece" state
 				this.state = 2;
 			}
 		}
@@ -313,7 +313,7 @@ class tetromino {
 		}
 	}
 
-	dropBlock() {
+	dropBlock() { //Triggered if the soft drop key is pressed, accumulates points
 		this.checkHitbox();
 		if (this.state == 0) {
 			for (let i = 0; i < this.blocks.length; i++) {
@@ -326,7 +326,7 @@ class tetromino {
 		}
 	}
 
-	hardDrop() {
+	hardDrop() { //Triggered if the hard drop key is pressed, immediately makes the piece move to the end of the board
 		if (this.flashCounter == 0) {
 			let maxDistAll = 22;
 			this.checkHitbox();
@@ -383,7 +383,7 @@ class tetromino {
 		}
 	}
 
-	move(direction) {
+	move(direction) { //Moves a piece in the direction indicated IF it would not violate hitbox rules
 		if (this.state != 2 && this.flashCounter == 0) {
 			let canMove = true;
 			for (let i = 0; i < this.blocks.length; i++) {
@@ -404,17 +404,17 @@ class tetromino {
 		}
 	}
 
-	rotate() {
+	rotate() { //Rotates a piece by attempting a rotation, then, if it would violate a hitbox rule, attempts the rotation but with wallkicks.
 		if (this.flashCounter == 0) {
-			let futureRotationVal = this.rotation + 1;
+			let futureRotationVal = this.rotation + 1; //the "increment" index we are rotating to, i.e. 1 = 90 degrees, 2 = 180, 3 = 270, 0 = 360 or 0 degrees
 			if (futureRotationVal > 3) {
-				futureRotationVal = 0;
+				futureRotationVal = 0; //loops the increment index back around so that it is always 0, 1, 2, or 3
 			}
-			let canRotate = false;
-			let rotateScaffold = blockReference[this.type][futureRotationVal];
-			let positions = kickReference["i"][this.rotation];
+			let canRotate = false; //has ANY rotation successfully passed a hitbox check?
+			let rotateScaffold = blockReference[this.type][futureRotationVal]; //the desired block arrangement; doing this with constants is less annoying than dynamically
+			let positions = kickReference["i"][this.rotation]; //offsets that will be checked if the rotation fails
 			let blockIndex = 0;
-			let offset = [0,0];
+			let offset = [0,0]; //the offset required for the rotation to succeed
 			
 			for (let i = 0; i < positions.length; i++) {
 				let pass = true;
@@ -423,7 +423,7 @@ class tetromino {
 						if (rotateScaffold[j][k],[0,0]) {
 							let x = k + this.x - 1 + positions[i][0];
 							if (this.type == "i") {
-								let x = j + this.x - 2 + positions[i][0];
+								x = j + this.x - 2 + positions[i][0];
 							}
 							let y = j + this.y - 1 + positions[i][0];
 							
@@ -431,11 +431,9 @@ class tetromino {
 								pass = false;
 							} else {
 								if (board[y][x] != 0) {
-									pass = false;
-
+									pass = false; //if none of these checks have succeeded, do NOT pass
 								}
 							}
-
 							blockIndex += 1;
 						}
 					}
@@ -448,7 +446,7 @@ class tetromino {
 			}
 
 			if (canRotate) {
-				this.rotation = futureRotationVal;
+				this.rotation = futureRotationVal; //if it succeeds, updates the rotation/result to be the offset and rotation scaffold
 				let blockIndex = 0;
 				for (let i = 0; i < rotateScaffold.length; i++) {
 					for (let j = 0; j < rotateScaffold[i].length; j++) {

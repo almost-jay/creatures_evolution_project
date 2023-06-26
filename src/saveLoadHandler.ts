@@ -66,9 +66,9 @@ function saveState(saveIndex: string): void {
 	});
 
 	if (fs.existsSync("./data/save"+saveIndex+".crs")) {
-		toast("Saved to save"+saveIndex+".crs!","#1ebc73");
+		toast("save_success","#1ebc73",saveIndex);
 	} else {
-		toast("Did not save!","#e83b3b");
+		toast("save_fail","#e83b3b",saveIndex);
 	}
 }
 
@@ -139,8 +139,11 @@ function parseCreatureJoint(joint: creatureBody | creatureHead): any {
 	return tempJoint;
 }
 
-export function loadState(givenSave: string) {
-	let saveIndex = findSave() - 1
+export function loadState(givenSave: number) {
+	let saveIndex = findSave() - 1;
+	if (fs.existsSync("./data/save"+givenSave+".crs","utf8")) {
+		saveIndex = givenSave;
+	}
 	if (fs.existsSync("./data/save"+saveIndex+".crs","utf8")) {
 		let loaded = JSON.parse(fs.readFileSync("./data/save"+saveIndex+".crs","utf8"));
 		prepForLoad();
@@ -184,10 +187,9 @@ export function loadState(givenSave: string) {
 				}
 			}
 		}
-
-		toast("Loaded!","#0eaf9b");
+		toast("load_success","#0eaf9b",String(saveIndex));
 	} else {
-		toast("Load failed!","#e83b3b");
+		toast("load_failed","#e83b3b","0");
 	}
 }
 
@@ -212,13 +214,13 @@ function findSave() : number {
 	return i;
 }
 
-
-function toast(text : string, colour : string) {
-	let toast = document.getElementById("popup") as HTMLBaseElement;
-	toast.innerHTML = text;
+export function toast(text: string, colour : string, save: string) {
+	let toast = document.getElementById(text) as HTMLDivElement;
 	toast.style.backgroundColor = colour;
-	toast.className = "show";
+	toast.className = "popup show"
+	toast.innerHTML = toast.innerHTML.replace(/\d/g,save);
+
 	setTimeout(function() {
-		toast.className = toast.className.replace("show","");
+		toast.className = "popup";
 	},1200);
 }

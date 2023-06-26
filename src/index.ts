@@ -21,7 +21,6 @@ function createWindow() {
 	});
 	mainWindow.loadFile(__dirname + "../../index.html");
 	mainWindow.maximize();
-	//mainWindow.webContents.openDevTools();
 	mainWindow.show();
     mainWindow.on('closed', function () {
         mainWindow = null;

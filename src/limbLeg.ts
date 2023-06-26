@@ -144,6 +144,10 @@ export class creatureLeg {
 	moveFootForward(footCheckPos: vector2, footDist: number) {
 		let delta = this.footPos.subtract(footCheckPos);
 		delta = delta.divide(footDist);
+		if (footDist == 0) {
+			console.log("foot");
+			debugger;
+		}
 		delta = delta.multiply(this.legLength * 0.6 * this.size);
 		
 		this.footPos = this.footPos.subtract(delta);

@@ -1,8 +1,8 @@
 import { creatureTraits, relationship, trait } from "./creatureTraits";
 import { food } from "./food";
-import { preColours, vector2, hexToRgb, generateId, randRange } from "./globals"
+import { preColours, vector2, hexToRgb, generateId, randRange, camelCaseToTitle } from "./globals"
 import { posGrid } from "./handleGrid";
-import { isPaused, debugPrefs, ctx, entityDict, particleList, creaturesList, highScores } from "./initMain";
+import { isPaused, debugPrefs, ctx, entityDict, particleList, creaturesList, highScores, simPrefs } from "./initMain";
 import { creatureJoint } from "./jointBase";
 import { creatureBody } from "./jointBody";
 import { creatureHead } from "./jointHead";
@@ -54,7 +54,7 @@ export class creature {
 		entityDict[this.id] = this;
 		
 		this.health = this.properties.traits.health.value;
-		this.size = ((this.health / ((this.properties.traits.health.min + this.properties.traits.health.max) / 2)) + 0.2) * 2;
+		this.size = ((this.properties.traits.health.display / ((this.properties.traits.health.min + this.properties.traits.health.max) / 2)) + 0.2) * 2;
 
 		this.segments = [];
 		this.initJoints(pos);
@@ -149,7 +149,7 @@ export class creature {
 		return result;
 	}
 
-	generateColours(): any {
+	generateColours(): any { //creates the colours for each creature
 		let colourInd1 = Math.round(((Math.random() + preColours.length * 0.25) * (preColours.length - preColours.length * 0.25)));
 		let colourInd2 = Math.round(colourInd1 + ((Math.random() + preColours.length * 0.25) * (preColours.length - preColours.length * 0.25)));
 		//picks one random integer and then one a random "distance" from the first
@@ -307,6 +307,7 @@ export class creature {
 			}
 			let panelText = this.convertPropsToString();
 			panel.innerHTML = panelText;
+			
 		} else {
 			console.error("Could not find callout text element!");
 		}
@@ -314,9 +315,8 @@ export class creature {
 
 	convertPropsToString(): string {
 		let result = "";
-		result = result.concat("<a class='callout-label'> Health: </a>"+(Math.floor(this.health * 100) / 100)+" / "+this.properties.traits.health.value+"<br>");
 		result = result.concat("<a class='callout-label'> Hunger: </a>"+(Math.floor(this.hunger * 100) / 100)+"<br>");
-		result = result.concat("<a class='callout-label'> Position: </a>("+Math.floor(this.head.pos.x * 10) / 10+","+Math.floor(this.head.pos.y * 10) / 10+") <br>");
+		result = result.concat("<a class='callout-label'> Position: </a>("+(Math.floor(this.head.pos.x * 10) / 10+","+Math.floor(this.head.pos.y * 10) / 10)+") <br>");
 		result = result.concat("<a class='callout-label'> State: </a>"+this.state+"<br>");
 		result = result.concat("<a class='callout-label'> Action: </a>"+this.action+"<br>");
 		result = result.concat("<a class='callout-label'> Energy cost: </a>"+(Math.floor(this.energyPerTick * 100) / 100)+"<br>");
@@ -328,26 +328,27 @@ export class creature {
 		if (this.head.targetEnemy != null) {
 			result = result.concat("<a class='callout-label'>Target enemy: </a>"+this.head.targetEnemy.id+"<br>");
 		}
-		result = result.concat("<a class='callout-label'>Diet: </a>"+this.properties.traits["diet"].value+"<br>");
+		result = result.concat("<a class='callout-label'>Diet: </a>"+(Math.floor(this.properties.traits["diet"].value * 100) / 100)+"<br>");
 		if (this.heldFood != null) {
 			result = result.concat("<a class='callout-label'>Held food: </a>"+this.heldFood.id+"<br>");
 		}
 		if (this.mate != null) {
 			result = result.concat("<a class='callout-label'>Mate: </a>"+this.mate.id+"<br>");
 		}
-
-		return result;
-	}
-
-	oldConvertPropsToString(): string {
-		let result = "";
-		for (let key in this) {
-			if (typeof this[key] == "number" || typeof this[key] == "string" || typeof this[key] == "boolean") {
-				let titleKey = key.replace(/([A-Z])/g, " $1");
-				titleKey = titleKey.charAt(0).toUpperCase() + titleKey.slice(1);
-				result = result.concat("<a class='callout-label'>"+titleKey+": </a>"+this[key]+"<br>");
+		
+		for (let traitKey in this.properties.traits) {
+			let traitName = camelCaseToTitle(traitKey);
+			if (traitKey == "health") {
+				result = result.concat("<a class='callout-label'>Health: </a>"+(Math.floor(this.health * 100) / 100)+" / "+Math.floor((this.properties.traits.health.value * 100) / 100)+"<br>");
+			} else {
+				result = result.concat("<a class='callout-label'>"+traitName+": </a>"+(Math.floor(this.properties.traits[traitKey].value * 100) / 100)+"<br>");
 			}
+			if (this.properties.traits[traitKey].value != this.properties.traits[traitKey].display) {
+				result = result.concat("<a class='callout-label'>&emsp;Displayed"+traitName+": </a>"+(Math.floor(this.properties.traits[traitKey].display * 100) / 100)+"<br>");
+			}
+			result = result.concat("<a class='callout-label'>&emsp;Energy cost: </a>"+(Math.floor(this.properties.traits[traitKey].cost * 100) / 100)+"<br>");
 		}
+
 		return result;
 	}
 
@@ -367,6 +368,8 @@ export class creature {
 			if (this.hurtIndex <= -12) {
 				this.hurtIndex = 6;
 			}
+		} else if (this.hunger < 10 && this.health < this.properties.traits.health.value) {
+			this.health += 0.25;
 		}
 	}
 
@@ -417,9 +420,9 @@ export class creature {
 			if (!this.isMature) {
 				if (Math.pow(3,((this.age * 4) - 10)) > Math.random()) {
 					this.isMature = true;
-					this.size = ((this.health / ((this.properties.traits.health.min + this.properties.traits.health.max) / 2)) + 0.1) * 2;
+					this.size = ((this.properties.traits.health.display / ((this.properties.traits.health.min + this.properties.traits.health.max) / 2)) + 0.1) * 2;
 				}
-				this.size = ((this.health / ((this.properties.traits.health.min + this.properties.traits.health.max) / 2)) + 0.1) * ((this.age + 2) / 12) * 2;
+				this.size = ((this.properties.traits.health.display / ((this.properties.traits.health.min + this.properties.traits.health.max) / 2)) + 0.1) * ((this.age + 2) / 12) * 2;
 				for (let i = 0; i < this.segments.length; i++) {
 					this.segments[i].displayedWidth = this.segments[i].width * this.size;
 				}
@@ -445,7 +448,7 @@ export class creature {
 		let newState = "idle";
 		if (this.attacker != null) {
 			if (this.attacker.id in this.head.relationships) {
-				if (this.head.relationships[this.attacker.id].respect > 0.1 || this.hunger > 80) {
+				if (this.head.relationships[this.attacker.id].respect * simPrefs.universalRespect > 0.1 || this.hunger > 80) {
 					newState = "deferrent";
 				} else if (this.hunger > 40) {
 					newState = "afraid";
@@ -459,7 +462,7 @@ export class creature {
 			if (this.head.targetEnemy.id in this.head.relationships) {
 				if (this.properties.traits["diet"].value < randRange(-0.5,0.5) && this.hunger > 40) {
 					newState = "aggressive";
-				} else if ((this.head.relationships[this.head.targetEnemy.id].respect > 0.1 && this.head.targetEnemy.state == "aggressive") && this.attackCooldown >= 0) {
+				} else if ((this.head.relationships[this.head.targetEnemy.id].respect * simPrefs.universalRespect > 0.1 && this.head.targetEnemy.state == "aggressive") && this.attackCooldown >= 0) {
 					newState = "defensive";
 				} else {
 					newState = "aggressive";
@@ -475,7 +478,7 @@ export class creature {
 					newState = "aggressive";
 				}
 			}
-		} else if (this.isMature && Math.random() < 0.8) {
+		} else if (this.isMature && Math.random() < 0.5) {
 			if (this.mate != null) {
 				newState = "mating";
 			} else if (Math.random() < 0.02){
@@ -489,6 +492,7 @@ export class creature {
 
 		if (newState != this.state) {
 			this.state = newState;
+			console.log(newState);
 			this.generatePath(4);
 		}
 	}
@@ -540,7 +544,7 @@ export class creature {
 						this.targetIndex = 0;
 					} else {
 						if (this.head.targetFood.isHeldBy.id in this.head.relationships) {
-							if (this.head.relationships[this.head.targetFood.isHeldBy.id].respect < -0.2) {
+							if (this.head.relationships[this.head.targetFood.isHeldBy.id].respect * simPrefs.universalRespect < -0.2) {
 								this.head.relationships[this.head.targetFood.isHeldBy.id].aggression -= 0.1;
 							}
 						} else {
@@ -907,14 +911,14 @@ export class creature {
 							this.target = this.head.targetFriend.head.pos;
 						}
 					}
+				} else if (this.head.pos.distance(this.head.targetFriend.head.pos) < this.maxDist * 2) {
+					this.target = (this.path[this.targetIndex].add(this.head.targetFriend.head.pos)).divide(2);
 				}
 				
-				this.target = (this.path[this.targetIndex].add(this.head.targetFriend.head.pos)).divide(2);
-
 				if (this.isMature) {
 					if (this.id in this.head.targetFriend.head.relationships) {
-						if (this.head.relationships[this.head.targetFriend.id].respect + this.head.relationships[this.head.targetFriend.id].aggression >= 0.7) {
-							if (this.head.targetFriend.head.relationships[this.id].respect + this.head.targetFriend.head.relationships[this.id].aggression >= 0.7) {
+						if (this.head.relationships[this.head.targetFriend.id].respect * simPrefs.universalRespect + this.head.relationships[this.head.targetFriend.id].aggression * simPrefs.universalHostility >= 0.7) {
+							if (this.head.targetFriend.head.relationships[this.id].respect * simPrefs.universalRespect + this.head.targetFriend.head.relationships[this.id].aggression * simPrefs.universalHostility >= 0.7) {
 								if (this.head.targetFriend.mate == null) {
 									this.mate = this.head.targetFriend;
 
@@ -933,7 +937,7 @@ export class creature {
 		if (this.heldFood == null && this.properties.traits["diet"].value > randRange(-0.5,0.5)) {
 			if (this.head.targetFood != null && !this.head.targetFood.isEaten) {
 				if (this.head.pos.distance(this.head.targetFood.pos) < 128) {
-					if (this.head.pos.distance(this.head.targetFood.pos) > this.maxDist) {
+					if (this.head.pos.distance(this.head.targetFood.pos) > this.maxDist * 2) {
 						this.target = this.head.targetFood.pos;
 					} else {
 						this.heldFood = this.head.targetFood;
@@ -949,6 +953,7 @@ export class creature {
 		if (this.isBackwards) {
 			leader = this.segments[this.tailStartIndex];
 		}
+
 		let targDist = leader.pos.distance(this.target);
 		if (targDist > this.maxDist) {
 			let delta = leader.pos.subtract(this.target);
@@ -968,9 +973,7 @@ export class creature {
 
 	attemptMate() {
 		if (this.mate != null) {
-			console.log("pass 1")
 			if (this.mate.state == "mating") {
-				console.log("pass 2");
 				this.path = [];
 				let r = ((this.bodyLength * this.maxDist * 0.5) / Math.PI / 2) + ((this.mate.bodyLength * this.mate.maxDist * 0.5) / Math.PI / 2);
 				let avgPos = new vector2(0,0);
@@ -979,6 +982,10 @@ export class creature {
 					avgPos = avgPos.add(this.path[this.path.length - 1]);
 				}
 				avgPos = avgPos.divide(this.path.length);
+				if (this.path.length == 0) {
+					console.error("Path length is zero");
+					debugger;
+				}
 				if (this.targetIndex >= this.path.length - 1) {
 					for (let i = 0; i < randRange(0,3); i++) {
 						creaturesList.push(new creature(avgPos,this.bodyLength,this.maxDist,[this.properties,this.mate.properties],""));
@@ -998,7 +1005,6 @@ export class creature {
 	}
 
 	cloneSelf() {
-		console.log("cloned")
 		this.path = [];
 		let r = (this.bodyLength * this.maxDist * 0.5) / Math.PI / 2;
 		let avgPos = new vector2(0,0);
@@ -1008,8 +1014,13 @@ export class creature {
 		}
 		avgPos = avgPos.divide(this.path.length);
 
+		if (this.path.length == 0) {
+			console.log("path length 0");
+			debugger;
+		}
+
 		if (this.targetIndex >= this.path.length - 1) {
-			for (let i = 0; i < randRange(1,3); i += 0.1) {
+			for (let i = 0; i < randRange(1,3); i++) {
 				creaturesList.push(new creature(avgPos,this.bodyLength,this.maxDist,[this.properties,this.properties],""));
 			}
 			this.die();
@@ -1034,11 +1045,12 @@ export class creature {
 			ctx.fillText(this.state,this.segments[1].pos.x,this.segments[1].pos.y + this.head.width * 4);
 			ctx.fillText(this.action,this.segments[1].pos.x,this.segments[1].pos.y + this.head.width * 6);
 		}
-		
-		this.head.angle = this.head.pos.getAvgAngleRad(this.head.childJoint.pos);
+		if (this.state != "dead") {
+			this.head.angle = this.head.pos.getAvgAngleRad(this.head.childJoint.pos);
+		}
 		for (let i = this.bodyLength - 1; i >= 0; i --) {
 			this.segments[i].updateJoint(this.state,this.hurtIndex >= 0,this.isBackwards);
-			if (!isPaused) {
+			if (!isPaused && this.state != "dead") {
 				this.segments[i].move(this.maxDist * this.size,this.isBackwards);
 			}
 			if (this.state == "mouseDragging" && !isPaused) {

@@ -1,0 +1,293 @@
+{
+	"default_language": "en",
+	"languages": ["en","de","fi","zh"],
+	"translations": {
+		"value": {
+			"en": "Value",
+			"de": "Wert",
+			"fi": "Arvoa",
+			"zh": "值"
+		},
+		"display": {
+			"en": "Display",
+			"de": "Anzeige",
+			"fi": "Näyttö",
+			"zh": "显示"
+		},
+		"hostility": {
+			"en": "Hostility",
+			"de": "Feindseligkeit",
+			"fi": "Vihamielisyys",
+			"zh": "敌意"
+		},
+
+		"aggression": {
+			"en": "Aggression",
+			"de": "Feindseligkeit",
+			"fi": "Vihamielisyys",
+			"zh": "敌意"
+		},
+		"respect": {
+			"en": "Respect",
+			"de": "Die Achtung",
+			"fi": "Kunnioitus",
+			"zh": "畏"
+		},
+
+		"health": {
+			"en": "Max Health",
+			"de": "Maximalen Lebenspunkte",
+			"fi": "Enimmäisterveys",
+			"zh": "最大生命值的"
+			
+		},
+		"strength": {
+			"en": "Strength",
+			"de": "Stärke",
+			"fi": "Voima",
+			"zh": "力量"
+		},
+		"diet": {
+			"en": "Diet",
+			"de": "Ernaehrungssystem",
+			"fi": "Ruokavalio",
+			"zh": "食物"
+		},
+		"speed": {
+			"en": "Speed",
+			"de": "Geschwindigkeit",
+			"fi": "Nopeus",
+			"zh": "快"
+		},
+		"visionDistance": {
+			"en": "Vision Distance",
+			"de": "Sichtweite",
+			"fi": "Näköetäisyys",
+			"zh": "视力"
+		},
+		"visionAngle": {
+			"en": "Field of View",
+			"de": "Sichtbereich",
+			"fi": "Näkökenttä",
+			"zh": "视场角"
+		},
+		"hearingDistance": {
+			"en": "Hearing Distance",
+			"de": "Hörfähigkeit",
+			"fi": "Kuulokynnys",
+			"zh": "听力"
+		},
+		"toxicity": {
+			"en": "Toxicity",
+			"de": "Giftigkeit",
+			"fi": "Myrkyllisyys",
+			"zh": "毒性"
+		},
+		"lang_select": {
+			"en": "Select language",
+			"de": "Sprache wählen",
+			"fi": "Valitse kieli",
+			"zh": "选择语言"
+		},
+		"return_menu": {
+			"en": "Back to home",
+			"de": "Zurück zum Hauptmenü",
+			"fi": "Takaisin päävalikkoon",
+			"zh": "返回到标题屏幕"
+		},
+
+		"add_creature": {
+			"en": "Add creature",
+			"de": "Kreatur erzeugen",
+			"fi": "Luo olento",
+			"zh": "生成生物"
+		},
+
+		"add_random": {
+			"en": "Add random",
+			"de": "Zufälliger erzeugen",
+			"fi": "Luo satunnaisen",
+			"zh": "添加随机"
+		},
+
+		"untranslate_warning": {
+			"en": "*The start page will not be translated!",
+			"de": "*Das Hauptmenü wird nicht übersezt!",
+			"fi": "*Päävalikkoon ei käännetä!",
+			"zh": "*标题画面未翻译!"
+		}, 
+		"save": {
+			"en": "Save",
+			"de": "Speichern",
+			"fi": "Tallenna",
+			"zh": "保存"
+		},
+		"lookup": {
+			"en": "Lookup",
+			"de": "Suche",
+			"fi": "Hae",
+			"zh": "搜索"
+		},
+		"settings": {
+			"en": "Settings",
+			"de": "Optionen",
+			"fi": "Asetukset",
+			"zh": "选项"
+		},
+		"exit": {
+			"en": "Exit",
+			"de": "Spiel beenden",
+			"fi": "Poistu pelistä",
+			"zh": "退出游戏"
+		},
+		"volume": {
+			"en": "Volume",
+			"de": "Lautstärke",
+			"fi": "Äänet",
+			"zh": "音量"
+		},
+		"hunger": {
+			"en": "Hunger",
+			"de": "Hunger",
+			"fi": "Nälkä",
+			"zh": "饥饿"
+
+		},
+		"position": {
+			"en": "Position",
+			"de": "Position",
+			"fi": "Sijainti",
+			"zh": "位置"
+		},
+		"state": {
+			"en": "State",
+			"de": "Modus",
+			"fi": "Tila",
+			"zh": "模式"
+		},
+		"action": {
+			"en": "Action",
+			"de": "Aktion",
+			"fi": "Toiminta",
+			"zh": "作用"
+		},
+		"energy_cost": {
+			"en": "Energy cost",
+			"de": "Energiekosten",
+			"fi": "Energian hinta",
+			"zh": "能源成本"
+		},
+		"age": {
+			"en": "Age",
+			"de": "Alter",
+			"fi": "Ikä",
+			"zh": "年龄"
+		},
+		"mature": {
+			"en": "Is mature",
+			"de": "Ist ausgereift",
+			"fi": "Täysin kehittynyt",
+			"zh": "成熟了"
+		},
+		"target_food": {
+			"en": "Target food",
+			"de": "Zielnahrung",
+			"fi": "Kohderuoka",
+			"zh": "目标食物"
+		},
+		"target_enemy": {
+			"en": "Target enemy",
+			"de": "",
+			"fi": "Kohdevihollinen",
+			"zh": "目标敌人"
+		},
+		"held_food": {
+			"en": "持有食物",
+			"de": "Essen gehalten",
+			"fi": "Piti ruokaa",
+			"zh": "持有食物"
+		},
+		"mate": {
+			"en": "Mate",
+			"de": "Freund",
+			"fi": "Kumppani",
+			"zh": "伴侣"
+		},
+		"save_success": {
+			"en": "Saved as 'save0.crs'!",
+			"de": "Als 'save0.crs' gespeichert!",
+			"fi": "Rakennelma tallennettu nimellä 'save0.crs'!",
+			"zh": "成功保存为 'save0.crs'!"
+		},
+		
+		"save_failed": {
+			"en": "Could not save!",
+			"de": "Konnte nicht gespeichert werden!",
+			"fi": "Tallentaminen epäonnistui!",
+			"zh": "无法保存!"
+		},
+
+		"load_success": {
+			"en": "Loaded 'save0.crs'!",
+			"de": "'save0.crs' geladen!",
+			"fi": "Ladattu kohteesta 'save0.crs'!",
+			"zh": "成功从'save0.crs'中加载!"
+		},
+
+		"load_failed": {
+			"en": "Load failed!",
+			"de": "Neuladen fehlgeschlagen!",
+			"fi": "Lataaminen epäonnistui!",
+			"zh": "重载失败!"
+		},
+
+		"id_unrecognised": {
+			"en": "Target not found.",
+			"de": "Es wurde kein Objekt gefunden.",
+			"fi": "Kohdetta ei löytynyt.",
+			"zh": "未找到实体."
+		},
+
+		"id_invalid": {
+			"en": "Invalid ID!",
+			"de": "Ungültige ID!",
+			"fi": "Virheellinen ID!",
+			"zh": "无效的ID!"
+		},
+
+		"information_title": {
+			"en": "Information",
+			"de": "Daten",
+			"fi": "Tiedot",
+			"zh": "数据"
+		},
+
+		"editor": {
+			"en": "Editor",
+			"de": "Editor",
+			"fi": "muokkain",
+			"zh": "编辑器"
+		},
+
+		"universal_hostility": {
+			"en": "Universal hostility",
+			"de": "Allgemeine Feindseligkeit",
+			"fi": "Universaali vihamielisyys",
+			"zh": "无差别敌意"
+		},
+
+		"universal_respect": {
+			"en": "Universal respect",
+			"de": "Allgemeine Achtung",
+			"fi": "Universaali kunnioitus",
+			"zh": "无差别畏"
+		},
+
+		"food_spawn_rate": {
+			"en": "Food spawn rate",
+			"de": "Futter Erzeugungsrate",
+			"fi": "Ruokaa syntimisnopeus",
+			"zh": "食物生成率"
+		}
+	}
+}
