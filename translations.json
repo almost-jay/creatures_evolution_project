@@ -288,6 +288,13 @@
 			"de": "Futter Erzeugungsrate",
 			"fi": "Ruokaa syntimisnopeus",
 			"zh": "食物生成率"
+		},
+		
+		"time_scale": {
+			"en": "Time scale",
+			"de": "Zeitstrahl",
+			"fi": "Aikaskaala",
+			"zh": "时间尺度"
 		}
 	}
 }

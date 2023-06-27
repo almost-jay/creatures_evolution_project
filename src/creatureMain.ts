@@ -364,8 +364,7 @@ export class creature {
 			totalHungerCost += this.properties.traits[traitKeys[i]].cost;
 		}
 		totalHungerCost /= traitKeys.length;
-		totalHungerCost *= 0.05;
-		this.hunger += totalHungerCost;
+		this.hunger += totalHungerCost * simPrefs.timeScale * 0.05;
 
 		if (this.hunger > 100) {
 			this.health -= (this.hunger / 100) * 0.05;
@@ -414,7 +413,7 @@ export class creature {
 				this.attackCooldown--;
 			}
 			this.updateHunger();
-			this.age += 1 / 720;
+			this.age += simPrefs.timeScale / 720;
 			if (this.heldFood != null) {
 				this.heldFood.pos = this.head.pos;
 			}
@@ -449,9 +448,9 @@ export class creature {
 		let newState = "idle";
 		if (this.attacker != null) {
 			if (this.attacker.id in this.head.relationships) {
-				if (this.head.relationships[this.attacker.id].respect * simPrefs.universalRespect > 0.1 || this.hunger > 60) {
+				if (this.head.relationships[this.attacker.id].respect * simPrefs.universalRespect > 0.4 || this.hunger > 60) {
 					newState = "deferrent";
-				} else if (this.hunger > 40) {
+				} else if (this.hunger > 60) {
 					newState = "afraid";
 				} else {
 					newState = "defensive";
@@ -466,7 +465,7 @@ export class creature {
 				} else if ((this.head.relationships[this.head.targetEnemy.id].respect * simPrefs.universalRespect > 0.1 && this.head.targetEnemy.state == "aggressive") && this.attackCooldown >= 0) {
 					newState = "defensive";
 				} else {
-					newState = "aggressive";
+					newState = "afraid";
 				}
 			} else {
 				newState = "aggressive";
@@ -493,7 +492,6 @@ export class creature {
 
 		if (newState != this.state) {
 			this.state = newState;
-			console.log(newState);
 			this.generatePath(4);
 		}
 	}
@@ -608,7 +606,6 @@ export class creature {
 
 	
 	takeDamage(damage: number, attacker: creature) {
-		console.log(this.health, damage);
 		if (this.health - damage <= 0) {
 			this.die();
 		} else {
@@ -845,12 +842,16 @@ export class creature {
 		if (targetEnemy.hurtIndex < 0) {
 			this.createBloodParticles(this.target);
 			targetEnemy.takeDamage(this.properties.traits.strength.value * 0.2,this);
+			if (!(targetEnemy.id in Object.keys(this.head.relationships))) {
+				this.calcAttitude(targetEnemy);
+			}
 			this.head.relationships[targetEnemy.id].respect -= 0.05;
+			
 			this.attacker = null;
 			this.attackCooldown = 60;
 			this.hunger += this.properties.traits["strength"].cost * 5;
 			this.hunger += Math.max(0,this.properties.traits["diet"].value * targetEnemy.health);
-			this.health -= (targetEnemy.properties.traits["toxicity"].value * targetEnemy.properties.traits["health"].value) / 10;
+			this.health -= (targetEnemy.properties.traits["toxicity"].value * targetEnemy.properties.traits["health"].value) / 4;
 		}
 		this.generateRecoverPath(targetEnemy.head.pos);
 		if (this.stateChangeCooldown < 0) {
@@ -1002,11 +1003,6 @@ export class creature {
 			avgPos = avgPos.add(this.path[this.path.length - 1]);
 		}
 		avgPos = avgPos.divide(this.path.length);
-
-		if (this.path.length == 0) {
-			console.log("path length 0");
-			debugger;
-		}
 
 		if (this.targetIndex >= this.path.length - 1) {
 			for (let i = 0; i < randRange(1,3); i++) {

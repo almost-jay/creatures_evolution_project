@@ -73,11 +73,6 @@ export class creatureBody extends creatureJoint {
 						let delta = this.pos.subtract(movedJoint.pos);
 						delta = delta.divide(childDist);
 						delta = delta.multiply(maxDist);
-
-
-						if (childDist == 0) {
-							console.log("Childdist too close!!");
-						}
 						
 						movedJoint.pos = this.pos.subtract(delta);
 					}
@@ -91,10 +86,6 @@ export class creatureBody extends creatureJoint {
 			let delta = this.pos.subtract(this.childJoint.pos);
 			delta = delta.divide(childDist);
 			delta = delta.multiply(maxDist);
-
-			if (childDist == 0) {
-				console.log("Too close !!");
-			}
 			
 			this.childJoint.pos = this.pos.subtract(delta);
 		}

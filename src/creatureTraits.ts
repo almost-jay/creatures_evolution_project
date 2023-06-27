@@ -23,18 +23,20 @@ export class creatureTraits {
 				
 				for (let key in parentProps[0].traits) {
 					let mutation = (Math.random() - 0.5) * 0.01;
-					let dist = Math.random() / parentProps.length;
 					this.traits[key] = new trait(0,1,[0,0],1);
+					this.traits[key].value = 0;
+					this.traits[key].display = 0;
+					this.traits[key].cost = 0;
 					for (let i = 0; i < parentProps.length; i++) {
 						let parentTrait = parentProps[i].traits[key as string];
 
 						this.traits[key].min = parentTrait.min;
 						this.traits[key].max = parentTrait.max;
-						this.traits[key].display += parentTrait.display * Math.abs(i - dist);
-						this.traits[key].cost += parentTrait.cost * Math.abs(i - dist);
-						this.traits[key].value += parentTrait.value * Math.abs(i - dist) + mutation;
-						this.traits[key].attitude[0] += parentTrait.attitude[0] * Math.abs(i - dist);
-						this.traits[key].attitude[1] += parentTrait.attitude[1] * Math.abs(i - dist);
+						this.traits[key].value += parentTrait.value * (1 / parentProps.length) + mutation;
+						this.traits[key].display += parentTrait.display * (1 / parentProps.length) + mutation;
+						this.traits[key].cost += parentTrait.cost * (1 / parentProps.length);
+						this.traits[key].attitude[0] += parentTrait.attitude[0] * (1 / parentProps.length);
+						this.traits[key].attitude[1] += parentTrait.attitude[1] * (1 / parentProps.length);
 					}
 				}
 			} else {

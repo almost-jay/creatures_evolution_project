@@ -39,6 +39,7 @@ export var simPrefs: { [key: string]: number } = {
 	"foodSpawnRate": 20,
 	"universalHostility": 0,
 	"universalRespect": 0,
+	"timeScale": 1,
 }
 
 export var userPrefs: { [key: string]: number } = {
@@ -88,6 +89,11 @@ function setupApp() { //creates all the event listeners, triggers the rendering 
 	let foodSpawnRateSlider = document.getElementById("food_spawn_rate") as HTMLInputElement;
 	foodSpawnRateSlider.addEventListener("change", function() {
 		simPrefs.foodSpawnRate = foodSpawnRateSlider.valueAsNumber;
+	});
+
+	let timeScaleSlider = document.getElementById("time_scale") as HTMLInputElement;
+	timeScaleSlider.addEventListener("change", function() {
+		simPrefs.timeScale = timeScaleSlider.valueAsNumber;
 	});
 
 	ctx.lineCap = "round";
@@ -592,7 +598,7 @@ export function loadNewCreature(loadedCreature: { [key:string]:any }, id: string
 	let newTraits = new creatureTraits(null);
 	newTraits = Object.assign(newTraits,loadedCreature["properties"]);
 	tempCreature.properties = Object.assign(tempCreature.properties,newTraits);
-
+	tempCreature.name = loadedCreature["name"];
 	tempCreature.target = new vector2(tempCreature.target.x,tempCreature.target.y);
 
 	for (let i = 0; i < tempCreature.path.length; i++) {
@@ -632,8 +638,6 @@ export function loadNewCreature(loadedCreature: { [key:string]:any }, id: string
 					tempBody.legs[j].footPos = new vector2(tempFootPos.x,tempFootPos.y);
 
 					tempBody.legs[j].isFootUp = loadedCreature.segments[i].legs[j].isFootUp;
-					
-					
 				}
 			}
 			tempCreature.segments[i] = tempBody;
