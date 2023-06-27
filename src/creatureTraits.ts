@@ -22,7 +22,7 @@ export class creatureTraits {
 				];
 				
 				for (let key in parentProps[0].traits) {
-					let mutation = (Math.random() - 0.5) * 0.2;
+					let mutation = (Math.random() - 0.5) * 0.01;
 					let dist = Math.random() / parentProps.length;
 					this.traits[key] = new trait(0,1,[0,0],1);
 					for (let i = 0; i < parentProps.length; i++) {

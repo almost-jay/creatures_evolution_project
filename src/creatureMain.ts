@@ -1,8 +1,9 @@
 import { creatureTraits, relationship, trait } from "./creatureTraits";
 import { food } from "./food";
+import { preNames } from "./globals";
 import { preColours, vector2, hexToRgb, generateId, randRange, camelCaseToTitle } from "./globals"
 import { posGrid } from "./handleGrid";
-import { isPaused, debugPrefs, ctx, entityDict, particleList, creaturesList, highScores, simPrefs } from "./initMain";
+import { isPaused, debugPrefs, ctx, entityDict, particleList, creaturesList, simPrefs } from "./initMain";
 import { creatureJoint } from "./jointBase";
 import { creatureBody } from "./jointBody";
 import { creatureHead } from "./jointHead";
@@ -14,6 +15,7 @@ export class creature {
 	weights: number = 0;
 	size: number = 1;
 	id: string = "";
+	name: string = "";
 	segments: Array<creatureJoint> = [];
 	head: creatureHead = new creatureHead(new vector2(0,0),0,"#000000",0,0,"#000000",false,0,0);
 	properties: creatureTraits = new creatureTraits(null);
@@ -52,6 +54,8 @@ export class creature {
 			this.id = generateId();
 		}
 		entityDict[this.id] = this;
+
+		this.name = preNames[Math.floor(Math.random() * preNames.length)];
 		
 		this.health = this.properties.traits.health.value;
 		this.size = ((this.properties.traits.health.display / ((this.properties.traits.health.min + this.properties.traits.health.max) / 2)) + 0.2) * 2;
@@ -344,7 +348,7 @@ export class creature {
 				result = result.concat("<a class='callout-label'>"+traitName+": </a>"+(Math.floor(this.properties.traits[traitKey].value * 100) / 100)+"<br>");
 			}
 			if (this.properties.traits[traitKey].value != this.properties.traits[traitKey].display) {
-				result = result.concat("<a class='callout-label'>&emsp;Displayed"+traitName+": </a>"+(Math.floor(this.properties.traits[traitKey].display * 100) / 100)+"<br>");
+				result = result.concat("<a class='callout-label'>&emsp;Displayed "+traitName+": </a>"+(Math.floor(this.properties.traits[traitKey].display * 100) / 100)+"<br>");
 			}
 			result = result.concat("<a class='callout-label'>&emsp;Energy cost: </a>"+(Math.floor(this.properties.traits[traitKey].cost * 100) / 100)+"<br>");
 		}
@@ -352,7 +356,7 @@ export class creature {
 		return result;
 	}
 
-	updateHunger() {
+	updateHunger() { //every turn, makes the creature's hunger go up + heals it if applicable
 		let totalHungerCost = 0;
 
 		let traitKeys = Object.keys(this.properties.traits);
@@ -369,7 +373,7 @@ export class creature {
 				this.hurtIndex = 6;
 			}
 		} else if (this.hunger < 10 && this.health < this.properties.traits.health.value) {
-			this.health += 0.25;
+			this.health += 0.25; //if it's relatively full, health goes up
 		}
 	}
 
@@ -395,9 +399,6 @@ export class creature {
 	behaviourTick() {
 		if (this.health < 0) {
 			this.die();
-			if (this.age > highScores["longestLiving"][1]) {
-				highScores["longestLiving"] = [this.id,this.age];
-			}
 		} else {
 			if (this.hurtIndex > -12) {
 				this.hurtIndex -= 1;
@@ -448,7 +449,7 @@ export class creature {
 		let newState = "idle";
 		if (this.attacker != null) {
 			if (this.attacker.id in this.head.relationships) {
-				if (this.head.relationships[this.attacker.id].respect * simPrefs.universalRespect > 0.1 || this.hunger > 80) {
+				if (this.head.relationships[this.attacker.id].respect * simPrefs.universalRespect > 0.1 || this.hunger > 60) {
 					newState = "deferrent";
 				} else if (this.hunger > 40) {
 					newState = "afraid";
@@ -607,6 +608,7 @@ export class creature {
 
 	
 	takeDamage(damage: number, attacker: creature) {
+		console.log(this.health, damage);
 		if (this.health - damage <= 0) {
 			this.die();
 		} else {
@@ -690,9 +692,6 @@ export class creature {
 				let targetHeadPos = this.head.targetEnemy.head.pos;
 				ctx.strokeStyle = "#FF0000FF";
 				ctx.lineWidth = 4;
-				ctx.beginPath();
-				ctx.arc(targetHeadPos.x,targetHeadPos.y,10,0,2 * Math.PI);
-				ctx.stroke();
 
 				let angleAway = this.head.pos.getAvgAngleRad(targetHeadPos);
 				let goalDistance = this.bodyLength * this.maxDist * 0.75;
@@ -722,13 +721,6 @@ export class creature {
 						this.target = new vector2((this.head.pos.distance(targetHeadPos) + this.maxDist * this.size * 3) * Math.cos(angleAway + direction),(this.head.pos.distance(targetHeadPos) + this.maxDist * this.size * 3) * Math.sin(angleAway + direction)).add(targetHeadPos);
 						this.followPath();
 					}
-
-					ctx.strokeStyle = "#00FF00FF";
-					ctx.lineWidth = 4;
-					ctx.beginPath();
-					ctx.arc(this.target.x,this.target.y,10,0,2 * Math.PI);
-					ctx.stroke();
-
 				}
 			} else {
 				this.backDown();
@@ -852,7 +844,7 @@ export class creature {
 	attemptAttack(targetEnemy: creature) {
 		if (targetEnemy.hurtIndex < 0) {
 			this.createBloodParticles(this.target);
-			targetEnemy.takeDamage(this.properties.traits.strength.value,this);
+			targetEnemy.takeDamage(this.properties.traits.strength.value * 0.2,this);
 			this.head.relationships[targetEnemy.id].respect -= 0.05;
 			this.attacker = null;
 			this.attackCooldown = 60;
@@ -897,7 +889,7 @@ export class creature {
 		this.followPath();
 	}
 
-	followFriend() {
+	followFriend() { //If it's too far away, gets closer to its friend :)
 		if (this.head.targetFriend != null) {
 			if (this.head.targetFriend.state == "idle" || this.head.targetFriend.state == "foraging" || this.head.targetFriend.state == "friendly") {
 				if (this.head.targetFriend.hunger > 40) {
@@ -920,6 +912,7 @@ export class creature {
 						if (this.head.relationships[this.head.targetFriend.id].respect * simPrefs.universalRespect + this.head.relationships[this.head.targetFriend.id].aggression * simPrefs.universalHostility >= 0.7) {
 							if (this.head.targetFriend.head.relationships[this.id].respect * simPrefs.universalRespect + this.head.targetFriend.head.relationships[this.id].aggression * simPrefs.universalHostility >= 0.7) {
 								if (this.head.targetFriend.mate == null) {
+									//If it thinks positively of another mature creature, and that is reciprocated, and neither have mates, they become mates
 									this.mate = this.head.targetFriend;
 
 									this.head.targetFriend.mate = this;
@@ -971,7 +964,7 @@ export class creature {
 		}
 	}
 
-	attemptMate() {
+	attemptMate() { //tiny chance that they'll have kiddsss
 		if (this.mate != null) {
 			if (this.mate.state == "mating") {
 				this.path = [];
@@ -982,10 +975,6 @@ export class creature {
 					avgPos = avgPos.add(this.path[this.path.length - 1]);
 				}
 				avgPos = avgPos.divide(this.path.length);
-				if (this.path.length == 0) {
-					console.error("Path length is zero");
-					debugger;
-				}
 				if (this.targetIndex >= this.path.length - 1) {
 					for (let i = 0; i < randRange(0,3); i++) {
 						creaturesList.push(new creature(avgPos,this.bodyLength,this.maxDist,[this.properties,this.mate.properties],""));
@@ -1042,8 +1031,8 @@ export class creature {
 		if (debugPrefs.showState) {
 			ctx.fillStyle = "#FAFAFA";
 			ctx.font ="12px mono";
-			ctx.fillText(this.state,this.segments[1].pos.x,this.segments[1].pos.y + this.head.width * 4);
-			ctx.fillText(this.action,this.segments[1].pos.x,this.segments[1].pos.y + this.head.width * 6);
+			ctx.fillText(this.state,this.segments[1].pos.x,this.segments[1].pos.y + this.head.displayedWidth * 4);
+			ctx.fillText(this.action,this.segments[1].pos.x,this.segments[1].pos.y + this.head.displayedWidth * 6);
 		}
 		if (this.state != "dead") {
 			this.head.angle = this.head.pos.getAvgAngleRad(this.head.childJoint.pos);
@@ -1059,6 +1048,10 @@ export class creature {
 		}
 		if (!isPaused && this.state != "mouseDragging") {
 			if (this.state != "dead") {
+				ctx.fillStyle = "#FAFAFA";
+				ctx.font = "20px Ubuntu Mono, monospace";
+				ctx.textAlign = "center";
+				ctx.fillText(this.name,this.head.pos.x,this.head.pos.y - this.head.displayedWidth * 2.8);
 				this.behaviourTick();
 			}
 		}

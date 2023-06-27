@@ -35,13 +35,6 @@ export var entityDict: { [key: string]: creature | food } = {}; //record of all 
 
 export var cursorChoice: Array<boolean> = [false,false,false,false,false]; //stores the sort of cursor that should be used this frame, by priority, to avoid flickering
 
-export var highScores: { [key: string]: [string,number] } = {
-	"longestLiving": ["",0],
-	"mostKilled": ["",0],
-	"mostFoodEaten": ["",0],
-	"mostChildren": ["",0]
-}
-
 export var simPrefs: { [key: string]: number } = {
 	"foodSpawnRate": 20,
 	"universalHostility": 0,
