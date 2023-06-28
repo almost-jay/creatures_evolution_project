@@ -18,8 +18,8 @@ export class creatureJoint { //provides base functions/properties for rest of jo
 	}
 
 	updateJoint(state: string, isHurt: boolean, isBackwards: boolean): void {}
-	move(maxDist: number, isBackwards: boolean) {};
-	moveByDrag(maxDist: number) {
+	move(maxDist: number, isBackwards: boolean): void {};
+	moveByDrag(maxDist: number): void {
 		this.pos.y += maxDist * 0.75;
 	}
 }

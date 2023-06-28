@@ -46,7 +46,7 @@ export class creatureTraits {
 		}
 	}
 
-	editTrait(traitName: string, property: string, value: number) { //alters a trait if it finds it in self
+	editTrait(traitName: string, property: string, value: number): void { //alters a trait if it finds it in self
 		if (traitName in this.traits) {
 			if (property == "value") {
 				if (value >= this.traits[traitName].min) {

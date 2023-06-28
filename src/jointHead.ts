@@ -33,7 +33,7 @@ export class creatureHead extends creatureBody {
 		this.blinkIndex = Math.floor(randRange(-120,12));
 	}
 
-	drawEyes() {
+	drawEyes(): void {
 		let size = this.displayedWidth / this.width;
 		ctx.fillStyle = this.eyeColour;
 		if (!isPaused) {
@@ -65,7 +65,7 @@ export class creatureHead extends creatureBody {
 		ctx.fill();
 	}
 
-	drawCrossEyes() { //this is so painful but it's too much work to automate it
+	drawCrossEyes(): void { //this is so painful but it's too much work to automate it
 		let size = this.displayedWidth / this.width;
 
 		let leftEyeX = (this.eyeSpacing * size * Math.cos(this.angle - (Math.PI * 0.5)) + this.pos.x);
@@ -127,7 +127,7 @@ export class creatureHead extends creatureBody {
 	}
 	
 	//this function checks if the creature can hear or see anything (friend, foe, or food)
-	checkSenses(dictId: string, hearingDistance: number, visionDistance: number, visionAngle: number) : Array<creature> {
+	checkSenses(dictId: string, hearingDistance: number, visionDistance: number, visionAngle: number): Array<creature> {
 		this.canSenseCreatures = false;
 		this.sensedCreatures = [];
 		
@@ -292,12 +292,12 @@ export class creatureHead extends creatureBody {
 		}
 
 		if (debugPrefs.senseArea) {
-			this.drawSenseArea(maxSenseDist,senseCreatures.length,senseCreatures);
+			this.drawSenseArea(maxSenseDist,senseCreatures.length);
 		}
 		return senseCreatures;
 	}
 
-	drawSenseArea(maxSenseDist: number,arrL: number,senseCreatures: Array<string>) {
+	drawSenseArea(maxSenseDist: number,arrL: number): void {
 		let startX = Math.round((this.pos.x - maxSenseDist) / 16) * 16;
 		let startY = Math.round((this.pos.y - maxSenseDist) / 16) * 16;
 		let endX = Math.round((this.pos.x + maxSenseDist) / 16) * 16;
@@ -311,7 +311,7 @@ export class creatureHead extends creatureBody {
 		ctx.fillRect(startX,startY,endX - startX,endY - startY);
 	}
 
-	castVision(checkPos: vector2,visionAngle: number) {
+	castVision(checkPos: vector2,visionAngle: number): boolean {
 		let result = false;
 		let sight_angle = Math.abs(checkPos.getAvgAngleRad(this.pos) - this.angle);
 		if (sight_angle < visionAngle) {

@@ -74,12 +74,12 @@ export class vector2 {
 	}
 };
 
-export function randRange(min: number, max: number) { //returns number between max and min, inclusive
+export function randRange(min: number, max: number): number { //returns number between max and min, inclusive
 	let result = (Math.random() * ((max + 1) - min)) + min;
 	return result;
 }
 
-export function hexToRgb(h: string) {
+export function hexToRgb(h: string): Array<number> {
 	if (h == undefined) {
 		console.error("Hex undefined!",h);
 	}
@@ -89,7 +89,7 @@ export function hexToRgb(h: string) {
 	return [r,g,b];
 }
 
-export function initIdList() {
+export function initIdList(): void {
 	for (let i = 0; i < 36; i++) {
 		for (let j = 0; j < 36; j++) {
 			for (let k = 0; k < 36; k++) {
@@ -105,12 +105,12 @@ export function initIdList() {
 	}
 }
 
-export function camelCaseToTitle(input: string) {
+export function camelCaseToTitle(input: string): string {
 	let split = input.match(/[A-Za-z][^_\-A-Z]*/g) || [];
 	return split.map(capitalise).join(" ");
 }
 
-function capitalise(input: string) {
+function capitalise(input: string): string {
 	return input.charAt(0).toUpperCase() + input.substring(1);
 }
 
@@ -122,7 +122,7 @@ export function generateId(): string {
 	return id;
 }
 
-export function findClosestColour(r: number, g: number, b: number) {
+export function findClosestColour(r: number, g: number, b: number): number {
 	let goalColour = [r,g,b];
 
 	let comparedColour = hexToRgb(preColours[0]);

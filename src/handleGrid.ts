@@ -1,12 +1,12 @@
-import { activeArea, debugPrefs, ctx, creaturesList, isPaused } from "./initMain";
+import { activeArea, debugPrefs, ctx, creaturesList } from "./initMain";
 
 export var posGrid: Array<Array<string>>;
 
-export function initGrid() {
+export function initGrid(): void {
 	posGrid = Array(1024).fill("").map(()=>Array(1024).fill(""));
 }
 
-export function clearGrid() { //completely makes the grid into "", as well as drawing the hitboxGrid if that pref is enabled
+export function clearGrid(): void { //completely makes the grid into "", as well as drawing the hitboxGrid if that pref is enabled
 	let s = 16;
 	for (let i = 0; i < 256; i++) {
 		for (let j = 0; j < 256; j++) {
@@ -31,7 +31,7 @@ export function clearGrid() { //completely makes the grid into "", as well as dr
 }
 
 
-export function fillGrid() { //populates grid with creachers
+export function fillGrid(): void { //populates grid with creachers
 	for (let i = 0; i < creaturesList.length; i++) {
 		let id = creaturesList[i].id;
 		for (let j = 0; j < creaturesList[i].segments.length; j++) {

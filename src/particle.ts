@@ -20,7 +20,7 @@ export class particle {
 		this.colour = colour;
 	}
 
-	render() {
+	render(): void {
 		let size = this.life / this.age * this.size;
 		let opacity = Math.floor((1.0 - (this.age / this.life)) * 255).toString(16);
 		while (opacity.length < 2) {
@@ -32,7 +32,7 @@ export class particle {
 		ctx.fill();
 	}
 
-	advanceParticle() {
+	advanceParticle(): void {
 		this.age++;
 		let speed = this.life / this.age * this.speed;
 		this.pos = this.pos.add(new vector2(speed * Math.cos(this.direction),speed * Math.sin(this.direction)));

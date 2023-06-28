@@ -5,7 +5,7 @@ export var mainWindow: Electron.BrowserWindow | null;
 
 if (require('electron-squirrel-startup')) app.quit();
 
-function createWindow() { //creates a new window! using electron!
+function createWindow(): void { //creates a new window! using electron!
 	mainWindow = new BrowserWindow({ 
 		width: 1280, 
 		height: 720,
@@ -22,20 +22,20 @@ function createWindow() { //creates a new window! using electron!
 	mainWindow.loadFile(__dirname + "../../index.html");
 	mainWindow.maximize();
 	mainWindow.show();
-    mainWindow.on('closed', function () {
+    mainWindow.on('closed', function (): void {
         mainWindow = null;
     });
 }
 
 app.on('ready', createWindow);
 
-app.on('window-all-closed', function () {
+app.on('window-all-closed', function (): void {
     if (process.platform !== 'darwin') {
         app.quit();
     }
 });
 
-app.on('activate', function () {
+app.on('activate', function (): void {
     if (mainWindow === null) {
         createWindow();
     }

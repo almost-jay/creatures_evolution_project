@@ -8,7 +8,7 @@ export class food {
 	size: number;
 	color: string;
 	id: string;
-	isHeldBy: null|creature;
+	isHeldBy: null|creature = null;
 	isEaten: boolean = false;
 	entityType: string = "food";
 	
@@ -26,14 +26,14 @@ export class food {
 		this.update(); //initial update call
 	}
 	
-	update() {
+	update(): void {
 		if (!this.isEaten) {
 			this.render();
 		}
 		posGrid[Math.floor(this.pos.x / 16)][Math.floor(this.pos.y / 16)] = this.id; //places the food into the position grid so that it can be detected
 	}
 
-	render() { //draws a lil dot on the floor to represent the food
+	render(): void { //draws a lil dot on the floor to represent the food
 		ctx.fillStyle = this.color;
 		ctx.beginPath();
 			ctx.arc(this.pos.x,this.pos.y,this.size * 0.75,0,2 * Math.PI);

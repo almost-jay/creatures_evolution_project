@@ -20,7 +20,7 @@ export class creatureBody extends creatureJoint {
 		}
 	}
 
-	renderSegment(isHurt: boolean) { //draws a line from this segment to the child segment; when chained together it creates the liz
+	renderSegment(isHurt: boolean): void { //draws a line from this segment to the child segment; when chained together it creates the liz
 		if (!isHurt) {
 			ctx.strokeStyle = this.colour;
 		} else {
@@ -34,7 +34,7 @@ export class creatureBody extends creatureJoint {
 		ctx.closePath();
 	}
 
-	updateLegs(state: string, isHurt: boolean,isBackwards: boolean) { //calculates limb pos, renders limb
+	updateLegs(state: string, isHurt: boolean,isBackwards: boolean): void { //calculates limb pos, renders limb
 		if (this.legs !== undefined) {
 			for (let i = 0; i < this.legs.length; i++) {
 				this.legs[i].size = (this.displayedWidth / this.width);
@@ -47,14 +47,14 @@ export class creatureBody extends creatureJoint {
 		}
 	}
 
-	initLegs(legLength: number, legWidth: number) {
+	initLegs(legLength: number, legWidth: number): void {
 		let legAngle = 0.8;
 		this.legs = [new creatureLeg(0,this.pos,this.colour,-1,legLength,legWidth,legAngle),new creatureLeg(1,this.pos,this.colour,1,legLength,legWidth,legAngle)];
 		this.legs[0].pair = this.legs[1]; //this.legs[0] is the right leg
 		this.legs[1].pair = this.legs[0];
 	}
 
-	move(maxDist: number, isBackwards: boolean) {
+	move(maxDist: number, isBackwards: boolean): void {
 		let childDist = this.pos.distance(this.childJoint.pos);
 		if (isBackwards) {
 			for (let i = 0; i < this.backChildJoint.length; i++) {

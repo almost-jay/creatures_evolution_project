@@ -66,34 +66,34 @@ var wheelSelection: number = 1; //what the mouse is hovering over on the wheel
 var wheelPos: vector2 = new vector2(mousePos.x,mousePos.y); //the position of the wheel, as it may be different from the mouse position
 var isConsoleOpen: boolean = true;  //whether the debug console is showing
 
-function setupApp() { //creates all the event listeners, triggers the rendering and setup
+function setupApp(): void { //creates all the event listeners, triggers the rendering and setup
 	toggleCommandBox();
 	initSidenav();
 	
 	let lookupbox = document.getElementById("lookup") as HTMLInputElement;
-	lookupbox.onclick = function() { showIdPrompt() };
+	lookupbox.onclick = function(): void { showIdPrompt() };
 
 	let settingsbox = document.getElementById("settings") as HTMLInputElement;
-	settingsbox.onclick = function() { showSimSettings() };
+	settingsbox.onclick = function(): void { showSimSettings() };
 
 	let universalHostilitySlider = document.getElementById("universal_hostility") as HTMLInputElement;
-	universalHostilitySlider.addEventListener("change", function() {
+	universalHostilitySlider.addEventListener("change", function(): void {
 		simPrefs.universalHostility = universalHostilitySlider.valueAsNumber;
 
 	});
 
 	let universalRespectSlider = document.getElementById("universal_respect") as HTMLInputElement;
-	universalRespectSlider.addEventListener("change", function() {
+	universalRespectSlider.addEventListener("change", function(): void {
 		simPrefs.universalRespect = universalRespectSlider.valueAsNumber;
 	});
 
 	let foodSpawnRateSlider = document.getElementById("food_spawn_rate") as HTMLInputElement;
-	foodSpawnRateSlider.addEventListener("change", function() {
+	foodSpawnRateSlider.addEventListener("change", function(): void {
 		simPrefs.foodSpawnRate = foodSpawnRateSlider.valueAsNumber;
 	});
 
 	let timeScaleSlider = document.getElementById("time_scale") as HTMLInputElement;
-	timeScaleSlider.addEventListener("change", function() {
+	timeScaleSlider.addEventListener("change", function(): void {
 		simPrefs.timeScale = timeScaleSlider.valueAsNumber;
 	});
 
@@ -224,13 +224,13 @@ function setupApp() { //creates all the event listeners, triggers the rendering 
 	initEditor();
 }
 
-function showIdPrompt() {
+function showIdPrompt(): void {
 	let idbar = document.getElementById("idbar") as HTMLInputElement;
 	idbar.classList.toggle("on");
 	idbar.focus();
 }
 
-function showSimSettings() {
+function showSimSettings(): void {
 	let settingsBox = document.getElementById("settingsCallout") as HTMLInputElement;
 	
 	if (settingsBox.style.display != "block") {
@@ -242,7 +242,7 @@ function showSimSettings() {
 
 }
 
-function checkForLoad() {
+function checkForLoad(): void {
 	let currentUrl = new URL(window.location.toLocaleString());
 	let isLoading = currentUrl.searchParams.get("load");
 	if (isLoading != "false" && isLoading != null) {
@@ -252,11 +252,11 @@ function checkForLoad() {
 	}
 }
 
-function addRandomCreature() {
+function addRandomCreature(): void {
 	creaturesList.push(new creature(new vector2(randRange(1000,1800),randRange(1000,1800)),16,12,null,""));
 }
 
-export function manageCursor() {
+export function manageCursor(): void {
 	if (isRightMouseDown) {
 		cursorChoice[1] = true;
 	}
@@ -291,7 +291,7 @@ export function manageCursor() {
 	cursorChoice = [false,false,false,false,false];
 }
 
-function toggleCommandBox() {
+function toggleCommandBox(): void {
 	let commandbar = document.getElementById("commandbar") as HTMLInputElement;
 	if (commandbar != undefined) {
 		if (isConsoleOpen) {
@@ -309,7 +309,7 @@ function toggleCommandBox() {
 	}
 }
 
-function checkHover() {
+function checkHover(): void {
 	if (!isPaused && !isWheelShowing && tool == 1) {
 		let mouseCoordPos = new vector2(activeArea[0].x + 24 + mousePos.x,activeArea[0].y + 24 + mousePos.y);
 		mouseCoordPos.x = Math.max(Math.min(mouseCoordPos.x,4095),1);
@@ -332,7 +332,7 @@ function checkHover() {
 	}
 }
 
-function handleTool() {
+function handleTool(): void {
 	if (!isPaused && !isWheelShowing && mousePos.x > 20 && !(mousePos.y < 90 && mousePos.x < 54)) {
 		let mouseCoordPos = new vector2(activeArea[0].x + 24 + mousePos.x,activeArea[0].y + 24 + mousePos.y);
 		mouseCoordPos.x = Math.max(Math.min(mouseCoordPos.x,4095),1);
@@ -391,7 +391,7 @@ function handleTool() {
 	}
 }
 
-function acceptCommand() {
+function acceptCommand(): void {
 	let commandbar = document.getElementById("commandbar") as HTMLInputElement;
 	if (commandbar != undefined) {
 		if (document.activeElement == commandbar) {
@@ -446,7 +446,7 @@ function acceptCommand() {
 	}
 }
 
-function showWheel() {
+function showWheel(): void {
 	if (wheel !== null) {
 		isWheelShowing = true;
 		
@@ -459,7 +459,7 @@ function showWheel() {
 	}
 }
 
-function hideWheel() {
+function hideWheel(): void {
 	if (wheel !== null) {
 		isWheelShowing = false;
 		wheel.setAttribute("data-chosen", "0");
@@ -471,7 +471,7 @@ function hideWheel() {
 	}
 }
 
-function updateWheel() {
+function updateWheel(): void {
 	let delta = mousePos.subtract(wheelPos);
 	let magnitude = delta.getMagnitude();
 	wheelSelection = 0;
@@ -486,7 +486,7 @@ function updateWheel() {
 	wheel.setAttribute('data-chosen', wheelSelection.toString());
 }
 
-function navigateCanvas(event: MouseEvent) {
+function navigateCanvas(event: MouseEvent): void {
 	if (isRightMouseDown) {			
 		window.scrollBy(heldMousePos.x - event.clientX, heldMousePos.y - event.clientY);
 		updateViewportInfo();
@@ -495,19 +495,19 @@ function navigateCanvas(event: MouseEvent) {
 	heldMousePos.y = event.clientY;
 }
 
-function initNavigation() {
+function initNavigation(): void {
 	webFrame.setZoomFactor(1.0);
 	window.scrollTo(1000,1000);
 	updateViewportInfo();
 }
 
-export function updateViewportInfo() {
+export function updateViewportInfo(): void {
 	windowInfo = [window.innerWidth,window.innerHeight];
 	activeArea[0] = new vector2(window.scrollX - 24, window.scrollY - 24);
 	activeArea[1] = new vector2(activeArea[0].x + windowInfo[0] + 48,activeArea[0].y + windowInfo[1] + 48);
 }
 
-export function newFood() {
+export function newFood(): void {
 	for (let i = 0; i < randRange(1,4); i++) {
 		let colorIndex = Math.floor(randRange(0,preColours.length - 1));
 		let foodColor = preColours[colorIndex];
@@ -515,7 +515,7 @@ export function newFood() {
 	}
 }
 
-function editorSubmit() {	
+function editorSubmit(): void {	
 	let newTraits = new creatureTraits(null);
 	let range = document.querySelectorAll(".slider");
 
@@ -541,21 +541,21 @@ function editorSubmit() {
 	creaturesList.push(new creature(mouseCoordPos,16,8,[newTraits],""));
 }
 
-function initEditor() {
+function initEditor(): void {
 	let addButton = document.getElementById("addButton") as HTMLInputElement;
 
 	if (addButton != null) {
-		addButton.onclick = function() { editorSubmit() };
+		addButton.onclick = function(): void { editorSubmit() };
 	}
 
 	let randButton = document.getElementById("randButton") as HTMLInputElement;
 	if (randButton != null) {
-		randButton.onclick = function() { addRandomCreature() };
+		randButton.onclick = function(): void { addRandomCreature() };
 	}
 
 }
 
-export function sortList() {
+export function sortList(): void {
 	creaturesList = quickSort(creaturesList);
 }
 
@@ -585,14 +585,14 @@ export function quickSort(unsorted: Array<creature>): Array<creature> {
 	return result;
 }
 
-export function prepForLoad() {
+export function prepForLoad(): void {
 	entityDict = {};
 	creaturesList = [];
 	foodList = [];
 	particleList = [];
 }
 
-export function loadNewCreature(loadedCreature: { [key:string]:any }, id: string) {
+export function loadNewCreature(loadedCreature: { [key:string]:any }, id: string): void {
 	let newPos = new vector2(loadedCreature["segments"][0].pos.x,loadedCreature["segments"][0].pos.y);
 	creaturesList.push(new creature(newPos,loadedCreature.bodyLength,loadedCreature.maxDist,null,loadedCreature.id));
 	let tempCreature = entityDict[id] as creature;
@@ -656,7 +656,7 @@ export function loadNewCreature(loadedCreature: { [key:string]:any }, id: string
 	entityDict[id] = tempCreature;
 }
 
-export function loadNewFood(loadedFood: food) {
+export function loadNewFood(loadedFood: food): void {
 	foodList.push(loadedFood);
 }
 

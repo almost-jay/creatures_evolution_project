@@ -1,4 +1,4 @@
-import { creatureTraits, relationship, trait } from "./creatureTraits";
+import { creatureTraits, relationship } from "./creatureTraits";
 import { food } from "./food";
 import { findClosestColour, preNames } from "./globals";
 import { preColours, vector2, hexToRgb, generateId, randRange, camelCaseToTitle } from "./globals"
@@ -32,13 +32,13 @@ export class creature { //the parent class, which holds most of the info
 	targetIndex: number = 0;
 	tailStartIndex: number = 0;
 	energyPerTick: number = 0;
-	attacker: null|creature;
-	mate: null|creature;
+	attacker: null|creature = null;
+	mate: null|creature = null;
 	hurtIndex: number = -12;
 	deferCooldown: number = 0;
 	attackCooldown: number = 0;
 	isBackwards: boolean = false;
-	heldFood: null|food;
+	heldFood: null|food = null;
 	entityType: string = "creature";
 
 	constructor(pos: vector2, bodyLength: number, maxDist: number, parentProps: Array<creatureTraits> | null, id: string) {
@@ -91,7 +91,7 @@ export class creature { //the parent class, which holds most of the info
 		return result;
 	}
 
-	updateSize() {
+	updateSize(): void {
 		//the size is based on the health of the creature as well as its age
 		this.size = ((((this.properties.traits.health.display - this.properties.traits.health.min) / (this.properties.traits.health.max - this.properties.traits.health.min)) * (this.age + 0.5 / this.maturityAge + 0.5)) + 0.5);
 	}
@@ -149,12 +149,12 @@ export class creature { //the parent class, which holds most of the info
 		return result;
 	}
 
-	calcTailWidth(bodyCount: number, x: number) {
+	calcTailWidth(bodyCount: number, x: number): number {
 		let result = Math.abs(x / (this.bodyLength - bodyCount));
 		return result;
 	}
 
-	calcLegs(bodyCount: number, x: number) {
+	calcLegs(bodyCount: number, x: number): boolean {
 		let result = false;
 		for (let i = 1; i <= this.weights; i++ ) {
 			let period = Math.floor(i * ((Math.PI * 2) / (Math.PI / ((1.0 / ((2 * this.weights) + 0.8)) * bodyCount))));
@@ -229,7 +229,7 @@ export class creature { //the parent class, which holds most of the info
 		this.target = this.path[0];
 	}
 
-	drawPath() { //only enabled if the command is enabled, draws the section of path the creature hasn't reached yet
+	drawPath(): void { //only enabled if the command is enabled, draws the section of path the creature hasn't reached yet
 		ctx.strokeStyle = this.head.colour;
 		ctx.fillStyle = this.segments[this.bodyLength - 1].colour;
 		ctx.lineWidth = 2;
@@ -253,7 +253,7 @@ export class creature { //the parent class, which holds most of the info
 		ctx.fill();
 	}
 
-	interpolatePath(degree: number) { //degree should be an integer between 2 and 5, inclusive
+	interpolatePath(degree: number): void { //degree should be an integer between 2 and 5, inclusive
 		let knotCount = this.path.length + degree + 1;
 		let knots = this.calcKnots(knotCount,degree);
 		let result = [];
@@ -281,7 +281,7 @@ export class creature { //the parent class, which holds most of the info
 		return knots;
 	}
 
-	interpolate(t: number, degree: number, knots: Array<number>) { //de boor's algorithm
+	interpolate(t: number, degree: number, knots: Array<number>): vector2 { //de boor's algorithm
 		let n = this.path.length;
 
 		let low  = knots[degree];
@@ -313,7 +313,7 @@ export class creature { //the parent class, which holds most of the info
 	  }
 
 	
-	updateInfoPanel() { //writes to callout info panel with own information
+	updateInfoPanel(): void { //writes to callout info panel with own information
 		let panel = document.getElementById("info-panel");
 		let header = document.getElementById("info-panel-header");
 		if (panel != undefined) {
@@ -367,7 +367,7 @@ export class creature { //the parent class, which holds most of the info
 		return result;
 	}
 
-	updateHunger() { //every turn, makes the creature's hunger go up + heals it if applicable
+	updateHunger(): void { //every turn, makes the creature's hunger go up + heals it if applicable
 		let totalHungerCost = 0;
 
 		let traitKeys = Object.keys(this.properties.traits);
@@ -407,7 +407,7 @@ export class creature { //the parent class, which holds most of the info
 		}
 	}
 
-	behaviourTick() { //checks for potential death state, decrements cooldowns, controls head vision, triggers other calls; basically the CNS of the creature
+	behaviourTick(): void { //checks for potential death state, decrements cooldowns, controls head vision, triggers other calls; basically the CNS of the creature
 		if (this.health < 0) {
 			this.die("under mysterious circumstances.");
 		} else {
@@ -454,7 +454,7 @@ export class creature { //the parent class, which holds most of the info
 		}
 	}
 
-	behaviourTree() { //uses try/catch behaviour rather than immediately setting new state, sort of like the frontal lobe
+	behaviourTree(): void { //uses try/catch behaviour rather than immediately setting new state, sort of like the frontal lobe
 		this.isBackwards = false;
 		let newState = this.state;
 		if (this.attacker != null) {
@@ -516,7 +516,7 @@ export class creature { //the parent class, which holds most of the info
 		}
 	}
 
-	stateMachineAction() { //think of this as the functional area of the brain, executing decisions
+	stateMachineAction(): void { //think of this as the functional area of the brain, executing decisions
 		switch (this.state) {
 			case "idle":
 				this.followPath(); //follows the path, no special behaviour
@@ -548,7 +548,7 @@ export class creature { //the parent class, which holds most of the info
 		}
 	}
 
-	lookForFood() {
+	lookForFood(): void {
 		if (this.heldFood != null) { //first, if it is holding food and it hasn't already eaten it, it eats it
 			this.heldFood.isEaten = true;
 			this.hunger -= this.heldFood.size * 4;
@@ -680,7 +680,7 @@ export class creature { //the parent class, which holds most of the info
 		}
 	}
 
-	fleeEnemy() { //runs away!
+	fleeEnemy(): void { //runs away!
 		this.state = "afraid";
 		if (this.action != "fleeing") {
 			this.targetIndex = 0;
@@ -703,7 +703,7 @@ export class creature { //the parent class, which holds most of the info
 		}
 	}
 
-	defendEnemy() { //if the enemy is too close, it retreats, and once it's out of sight it tries to attack
+	defendEnemy(): void { //if the enemy is too close, it retreats, and once it's out of sight it tries to attack
 		if (this.head.targetEnemy != null) {
 			if (this.head.targetEnemy.state != "dead") {
 				this.path = [this.head.pos,this.head.pos];
@@ -748,7 +748,7 @@ export class creature { //the parent class, which holds most of the info
 	}
 
 
-	attackEnemy() { //attempts a lunge at the enemy
+	attackEnemy(): void { //attempts a lunge at the enemy
 		this.state = "aggressive"
 		if (this.head.targetEnemy == null) {
 			if (this.properties.traits["diet"].value < randRange(-0.5,0.5) && this.hunger > 40 && this.head.canSenseCreatures) {
@@ -849,7 +849,7 @@ export class creature { //the parent class, which holds most of the info
 		return closest[1];
 	}
 
-	backDown() { //reset state, retreat
+	backDown(): void { //reset state, retreat
 		this.isBackwards = false;
 		this.attacker = null;
 		this.head.targetEnemy = null;
@@ -859,7 +859,7 @@ export class creature { //the parent class, which holds most of the info
 		this.attackCooldown = 60;
 	}
 
-	attemptAttack(targetEnemy: creature) { //immediately deals damage to the target if it's not on cooldown/in i-frames
+	attemptAttack(targetEnemy: creature): void { //immediately deals damage to the target if it's not on cooldown/in i-frames
 		if (targetEnemy.hurtIndex < 0) {
 			this.createBloodParticles(this.target);
 			targetEnemy.takeDamage(this.properties.traits.strength.value * 0.2,this);
@@ -896,7 +896,7 @@ export class creature { //the parent class, which holds most of the info
 		this.path = backPath;
 	}
 
-	followEnemy() {
+	followEnemy(): void {
 		if (this.attacker != null) {
 			this.target = this.attacker.segments[this.attacker.segments.length - 1].pos;
 			this.deferCooldown -= 1;
@@ -911,7 +911,7 @@ export class creature { //the parent class, which holds most of the info
 		this.followPath();
 	}
 
-	followFriend() { //If it's too far away, gets closer to its friend :)
+	followFriend(): void { //If it's too far away, gets closer to its friend :)
 		if (this.head.targetFriend != null) {
 			if (this.head.targetFriend.state == "idle" || this.head.targetFriend.state == "foraging" || this.head.targetFriend.state == "friendly") {
 				if (this.head.targetFriend.hunger > 40) {
@@ -948,7 +948,7 @@ export class creature { //the parent class, which holds most of the info
 		this.followPath();
 	}
 	
-	followPath() {
+	followPath(): void {
 		let isSeekingFood = false;
 		if (this.state == "idle") {
 			isSeekingFood = this.nearbyFoodCheck();
@@ -976,7 +976,7 @@ export class creature { //the parent class, which holds most of the info
 		}
 	}
 
-	nearbyFoodCheck() : boolean {
+	nearbyFoodCheck(): boolean {
 		let result = false;
 		if (this.heldFood == null && this.properties.traits["diet"].value > randRange(-0.5,0.5)) {
 			if (this.head.targetFood != null && !this.head.targetFood.isEaten) {
@@ -996,7 +996,7 @@ export class creature { //the parent class, which holds most of the info
 		return result;
 	}
 
-	attemptMate() { //tiny chance that they'll have kiddsss
+	attemptMate(): void { //tiny chance that they'll produce kids and die
 		if (this.mate != null) {
 			if (this.mate.state == "mating") {
 				this.path = [];
@@ -1025,7 +1025,7 @@ export class creature { //the parent class, which holds most of the info
 
 	}
 
-	cloneSelf() {
+	cloneSelf(): void {
 		this.path = [];
 		let r = (this.bodyLength * this.maxDist * 0.5) / Math.PI / 2;
 		let avgPos = new vector2(0,0);
@@ -1045,7 +1045,7 @@ export class creature { //the parent class, which holds most of the info
 		this.followPath();
 	}
 
-	update() {
+	update(): void {
 		if (debugPrefs.drawPath) {
 			this.drawPath();
 		}

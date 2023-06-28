@@ -5,7 +5,7 @@ export class creatureLeg {
 	legLength: number; //how long each part of the leg is
 	width: number; //width of the leg
 	id: number;
-	size: number;
+	size: number = 0;
 	legAngle: number; //how far forward and back the leg goes
 	joinPos: vector2;
 	elbowPos: vector2;
@@ -13,7 +13,7 @@ export class creatureLeg {
 	lightColour: string;
 	darkColour: string;
 	side: number;
-	jointAngle: number;
+	jointAngle: number = 0.8;
 	isFootUp: boolean;
 	pair: creatureLeg;
 
@@ -33,7 +33,7 @@ export class creatureLeg {
 		this.isFootUp = false;
 	}
 
-	calcDarkColour() {
+	calcDarkColour(): string {
 		let colourArray = this.lightColour.substring(4,this.lightColour.length - 1).replace(/ /g, "").split(",");
 		let result = "rgb("+parseInt(colourArray[0]) * 0.8+","+parseInt(colourArray[1]) * 0.8+","+parseInt(colourArray[2]) * 0.8+")";
 		return result;
@@ -141,7 +141,7 @@ export class creatureLeg {
 		return result;
 	}
 
-	moveFootForward(footCheckPos: vector2, footDist: number) {
+	moveFootForward(footCheckPos: vector2, footDist: number): void {
 		let delta = this.footPos.subtract(footCheckPos);
 		delta = delta.divide(footDist);
 		delta = delta.multiply(this.legLength * 0.6 * this.size);

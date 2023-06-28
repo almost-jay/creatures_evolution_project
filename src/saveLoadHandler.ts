@@ -139,7 +139,7 @@ function parseCreatureJoint(joint: creatureBody | creatureHead): any {
 	return tempJoint;
 }
 
-export function loadState(givenSave: number) {
+export function loadState(givenSave: number): void {
 	let saveIndex = findSave() - 1;
 	if (fs.existsSync("./data/save"+givenSave+".crs","utf8")) {
 		saveIndex = givenSave;
@@ -193,9 +193,9 @@ export function loadState(givenSave: number) {
 	}
 }
 
-export function initSidenav() : void {
+export function initSidenav(): void {
 	if (document.getElementById("sidenav")) {
-		document.getElementById("sidenav")!.addEventListener("click", function(event : Event) {
+		document.getElementById("sidenav")!.addEventListener("click", function(event: Event) {
 			let targetId = (event.target as HTMLBaseElement).id;
 			switch (targetId) {
 				case "save":
@@ -206,21 +206,21 @@ export function initSidenav() : void {
 	}
 }
 
-function findSave() : number {
-	let i : number = 1;
+function findSave(): number {
+	let i: number = 1;
 	while (fs.existsSync("./data/save"+i.toString()+".crs")) {
 		i++;
 	}
 	return i;
 }
 
-export function toast(text: string, colour : string, save: string) {
+export function toast(text: string, colour: string, save: string): void {
 	let toast = document.getElementById(text) as HTMLDivElement;
 	toast.style.backgroundColor = colour;
 	toast.className = "popup show"
 	toast.innerHTML = toast.innerHTML.replace(/\d/g,save);
 
-	setTimeout(function() {
+	setTimeout(function(): void {
 		toast.className = "popup";
 	},1200);
 }

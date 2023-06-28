@@ -1,7 +1,5 @@
-import { creature } from "./creatureMain";
-import { vector2 } from "./globals";
-import { clearGrid, fillGrid, posGrid } from "./handleGrid";
-import { activeArea, canvas, checkedCreature, creaturesList, ctx, entityDict, foodList, isPaused, manageCursor, newFood, particleList, simPrefs, sortList, updateViewportInfo } from "./initMain";
+import { clearGrid, fillGrid } from "./handleGrid";
+import { activeArea, canvas, checkedCreature, creaturesList, ctx, foodList, isPaused, manageCursor, newFood, particleList, simPrefs, sortList, updateViewportInfo } from "./initMain";
 
 export var time: number = 0;
 
@@ -27,7 +25,7 @@ function clearCanvas(): void {
 	ctx.fillRect(activeArea[0].x,activeArea[0].y,activeArea[1].x - activeArea[0].x,activeArea[1].y - activeArea[0].y);
 }
 
-function drawBoard() {
+function drawBoard(): void {
 	ctx.strokeStyle = "#D6D6D6";
 	ctx.lineWidth = 2;
     ctx.beginPath();
@@ -43,19 +41,19 @@ function drawBoard() {
     ctx.stroke(); 
 };
 
-function spawnFoodCheck() { //spawns food in randomly occasionally based on the food spawn rate
+function spawnFoodCheck(): void { //spawns food in randomly occasionally based on the food spawn rate
 	if (Math.random() < simPrefs.foodSpawnRate / 1000) {
 		newFood();
 	}
 }
 
-function updateFood() { //renders/updates food
+function updateFood(): void { //renders/updates food
 	for (let i = 0; i < foodList.length; i++) {
 		foodList[i].update();
 	}
 }
 
-function renderCreatures() {
+function renderCreatures(): void {
 	for (let i = 0; i < creaturesList.length; i += 1) {
 		creaturesList[i].update();
 	}
@@ -65,7 +63,7 @@ function renderCreatures() {
 	}
 }
 
-function renderParticles() {
+function renderParticles(): void {
 	for (let i = 0; i < particleList.length; i++) {
 		if (particleList[i].age < particleList[i].life) {
 			if (particleList[i].pos.x > activeArea[0].x && particleList[i].pos.x < activeArea[1].x && particleList[i].pos.y > activeArea[0].y && particleList[i].pos.y < activeArea[1].y) {

@@ -2,11 +2,17 @@
     "compilerOptions": {
         "module": "commonjs",
         "target": "ES2017",	
-		"allowJs": true,
         "noImplicitAny": true,
         "alwaysStrict": true,
         "strictNullChecks": true,
         "sourceMap": true,
+		"allowUnreachableCode": false,
+		"allowUnusedLabels": false,
+		"noImplicitReturns": true,
+		"noImplicitThis": true,
+		"noUnusedParameters": true,
+		"noUnusedLocals": true,
+		"strictFunctionTypes": true,
         "outDir": "./compiled",
         "jsx": "react"
     },
