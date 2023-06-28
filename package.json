@@ -1,12 +1,13 @@
 {
-	"name": "creature_test",
+	"name": "small_guys",
 	"description": "just a test of electron",
-	"version": "0.12.02",
+	"version": "1.0.0",
 	"author": "jensen grundy <jayjayseven.g@gmail.com> (https://github.com/almost-jay/)",
 	"main": "./compiled/index.js",
 	"build": {
+		"extraFiles": ["./translations.json"],
 		"appId": "com.creature.test",
-		"icon": "assets/icon.ico",
+		"icon": "resources/icon.ico",
 		"mac": {
 			"target": "zip",
 			"category": "public.app-category.games"
@@ -16,7 +17,7 @@
 		},
 		"linux": {
 			"category": "Simulation",
-			"icon": "assets/256x256.png",
+			"icon": "resources/256x256.png",
 			"target": [
 				"zip"
 			]
@@ -33,7 +34,7 @@
 	},
 	"devDependencies": {
 		"creature_test": "file:",
-		"electron": "^23.1.4",
+		"electron": "^23.1.4",	
 		"electron-builder": "^23.6.0",
 		"electron-packager": "^17.1.1",
 		"electron-squirrel-startup": "^1.0.0",

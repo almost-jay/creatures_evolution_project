@@ -7,25 +7,25 @@
     <link rel = "stylesheet" href = "styles.css">
 </head>
 <body>
-	<img class="background" src="./assets/background-screen.svg"/>
-	<img class="screen_vector" src="./assets/icon-text.svg"/>
+	<img class="background" src="./resources/background-screen.svg"/>
+	<img class="screen_vector" src="./resources/icon-text.svg"/>
 	
 	<button class="main_menu_button start_button">
-		<a id="start_a"><img src="./assets/start-text.svg"/></a>
+		<a id="start_a"><img src="./resources/start-text.svg"/></a>
 	</button>
 	<button id = "load_button" class="main_menu_button load_file_button">
-		<a id = "load_a"><img src="./assets/load-file-text.svg"/></a>
+		<a id = "load_a"><img src="./resources/load-file-text.svg"/></a>
 	</button>
 	<button class="main_menu_button preference_button">
-		<a id = "settings_a"><img src="./assets/preferences-text.svg"/></a>
+		<a id = "settings_a"><img src="./resources/preferences-text.svg"/></a>
 	</button>
 
-	<button class="side_button tetris"><a href="tetris.html"><img src="./assets/t-solid.svg"></a></button>
-	<button class="side_button help"><a href="help.html"><img src="./assets/question-solid.svg"></a></button>
-	<button class="side_button quit" onclick="close_window(); return false;"><a id="quit_button"><img src="./assets/power-off-solid.svg"></a></button>
-	<script src="./src/tinyi18n.js"></script>
+	<button class="side_button tetris"><a href="tetris.html"><img src="./resources/t-solid.svg"></a></button>
+	<button class="side_button help"><a href="help.html"><img src="./resources/question-solid.svg"></a></button>
+	<button class="side_button quit" onclick="close_window(); return false;"><a id="quit_button"><img src="./resources/power-off-solid.svg"></a></button>
+	<script src="./tinyi18n.js"></script>
 	<script>
-		tinyi18n.loadTranslations("./translations.json");
+		tinyi18n.loadTranslations();
 		let currentUrl = new URL(window.location.toLocaleString());
 		var currentLang = currentUrl.searchParams.get("lang");
 		if (currentLang == null) {

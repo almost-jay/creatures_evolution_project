@@ -1,6 +1,6 @@
 @font-face {
 	font-family: "Trashhand";
-	src: url("assets/TrashHand.ttf") format("truetype");
+	src: url("resources/TrashHand.ttf") format("truetype");
 }
 
 body {

@@ -1,5 +1,6 @@
 <html id = "settings">
 <head>
+	<meta charset="utf-16">
 	<link rel = "stylesheet" href = "https://fonts.googleapis.com/css?family=Kanit">
 	<link rel="preconnect" href="https://fonts.googleapis.com">
 	<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira+Mono">
@@ -24,9 +25,9 @@
 		<a data-translatekey="untranslate_warning"></a>
 	</div>
 	<button><a id = "return_button" data-translatekey="return_menu"></a></button>
-	<script src="./src/tinyi18n.js"></script>
+	<script src="./tinyi18n.js"></script>
 	<script>
-		tinyi18n.loadTranslations("./translations.json");
+		tinyi18n.loadTranslations();
 		let currentUrl = new URL(window.location.toLocaleString());
 		var currentLang = currentUrl.searchParams.get("lang");
 		

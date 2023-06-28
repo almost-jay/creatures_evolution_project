@@ -10,7 +10,7 @@ function createWindow() { //creates a new window! using electron!
 		width: 1280, 
 		height: 720,
 		show: false,
-		icon:'./assets/favicon.ico',
+		icon:'./resources/favicon.ico',
 		fullscreen: true,
 		fullscreenable: true,
 		webPreferences: {
