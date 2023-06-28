@@ -46,7 +46,8 @@ export class creature { //the parent class, which holds most of the info
 		this.energyPerTick = this.calcEnergyPerTick();
 
 		this.bodyLength = bodyLength; //bodyLength is the number of segments
-		this.maxDist = maxDist; //the separation between body segments
+		this.maxDist = Math.floor((maxDist - 4) * ((this.properties.traits.hearingDistance.display - this.properties.traits.hearingDistance.min) / (this.properties.traits.hearingDistance.max - this.properties.traits.hearingDistance.min)) + 8); 
+		//^ the separation between body segments
 		this.weights = Math.floor(this.properties.traits.speed.display * 1.8); //the number of legs it'll have
 
 		this.maturityAge = (Math.cbrt(Math.random()) + 10) / 4;
@@ -167,7 +168,7 @@ export class creature { //the parent class, which holds most of the info
 	generateColours(): Array<string> { //creates the colours for each creature
 		let r = (this.properties.traits["strength"].display / this.properties.traits["strength"].max) * 255;
 		let g = (this.properties.traits["toxicity"].display / this.properties.traits["toxicity"].max) * 255;
-		let b = (this.properties.traits["diet"].display / this.properties.traits["diet"].max) * 255;
+		let b = ((this.properties.traits["diet"].display + 1) / (this.properties.traits["diet"].max + 1)) * 255;
 
 		let colour1 = hexToRgb(preColours[findClosestColour(r,g,b)]);
 
@@ -343,7 +344,6 @@ export class creature { //the parent class, which holds most of the info
 		if (this.head.targetEnemy != null) {
 			result = result.concat("<a class='callout-label'>Target enemy: </a>"+this.head.targetEnemy.id+"<br>");
 		}
-		result = result.concat("<a class='callout-label'>Diet: </a>"+(Math.floor(this.properties.traits["diet"].value * 100) / 100)+"<br>");
 		if (this.heldFood != null) {
 			result = result.concat("<a class='callout-label'>Held food: </a>"+this.heldFood.id+"<br>");
 		}
@@ -432,13 +432,12 @@ export class creature { //the parent class, which holds most of the info
 
 			if (!this.isMature) {
 				this.updateSize();
-				if (this.age > this.maturityAge) {
-					this.isMature = true;
-				}
 				for (let i = 0; i < this.segments.length; i++) {
 					this.segments[i].displayedWidth = this.segments[i].width * this.size;
 				}
-
+				if (this.age > this.maturityAge) {
+					this.isMature = true;
+				}
 				
 			} else if (this.age > 12) {
 				if (Math.random() < Math.pow(1.5,this.age - 24)) {

@@ -198,7 +198,7 @@ const blockReference = { //Defines all tetrominoes. The xOffset and yOffset is m
 			[1,0,0]],
 	},
 }
-
+//I need you to understand that this tetris game has both cleaner and more efficient code than the majority of this project
 var lastKey = "";
 var timestamp = 0;
 var direction = 0;

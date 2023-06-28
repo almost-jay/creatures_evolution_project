@@ -253,7 +253,7 @@ function checkForLoad() {
 }
 
 function addRandomCreature() {
-	creaturesList.push(new creature(new vector2(randRange(1000,1800),randRange(1000,1800)),Math.round(randRange(8,24)),Math.round(randRange(4,16)),null,""));
+	creaturesList.push(new creature(new vector2(randRange(1000,1800),randRange(1000,1800)),16,12,null,""));
 }
 
 export function manageCursor() {

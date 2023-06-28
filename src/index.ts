@@ -5,7 +5,7 @@ export var mainWindow: Electron.BrowserWindow | null;
 
 if (require('electron-squirrel-startup')) app.quit();
 
-function createWindow() {
+function createWindow() { //creates a new window! using electron!
 	mainWindow = new BrowserWindow({ 
 		width: 1280, 
 		height: 720,

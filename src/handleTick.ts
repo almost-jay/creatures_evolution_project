@@ -43,13 +43,13 @@ function drawBoard() {
     ctx.stroke(); 
 };
 
-function spawnFoodCheck() {
+function spawnFoodCheck() { //spawns food in randomly occasionally based on the food spawn rate
 	if (Math.random() < simPrefs.foodSpawnRate / 1000) {
 		newFood();
 	}
 }
 
-function updateFood() {
+function updateFood() { //renders/updates food
 	for (let i = 0; i < foodList.length; i++) {
 		foodList[i].update();
 	}
@@ -61,7 +61,7 @@ function renderCreatures() {
 	}
 	
 	if (checkedCreature != undefined) {		
-		checkedCreature.updateInfoPanel()
+		checkedCreature.updateInfoPanel(); //if there is currently a creacher being viewed its info must be updated!
 	}
 }
 
@@ -70,7 +70,7 @@ function renderParticles() {
 		if (particleList[i].age < particleList[i].life) {
 			if (particleList[i].pos.x > activeArea[0].x && particleList[i].pos.x < activeArea[1].x && particleList[i].pos.y > activeArea[0].y && particleList[i].pos.y < activeArea[1].y) {
 				if (!isPaused) {
-					particleList[i].advanceParticle();
+					particleList[i].advanceParticle(); //steps the particle a tad
 				}
 				particleList[i].render();
 			}
