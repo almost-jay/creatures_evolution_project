@@ -16,11 +16,11 @@ export class creatureBody extends creatureJoint {
 	constructor (pos: vector2, id: number, colour: string, width: number, hasLegs: boolean, legLength: number, legWidth: number) {
 		super(pos, id, colour, width);
 		if (hasLegs) {
-			this.initLegs(legLength,legWidth);
+			this.initLegs(legLength,legWidth); //creates legs
 		}
 	}
 
-	renderSegment(isHurt: boolean) {
+	renderSegment(isHurt: boolean) { //draws a line from this segment to the child segment; when chained together it creates the liz
 		if (!isHurt) {
 			ctx.strokeStyle = this.colour;
 		} else {
@@ -34,13 +34,13 @@ export class creatureBody extends creatureJoint {
 		ctx.closePath();
 	}
 
-	updateLegs(state: string, isHurt: boolean,isBackwards: boolean) {
+	updateLegs(state: string, isHurt: boolean,isBackwards: boolean) { //calculates limb pos, renders limb
 		if (this.legs !== undefined) {
 			for (let i = 0; i < this.legs.length; i++) {
 				this.legs[i].size = (this.displayedWidth / this.width);
 				this.legs[i].updateLimb(this.pos,this.childJoint.pos, state,isBackwards);
 				this.legs[i].renderLimb(isHurt);
-				if (this.legs[i].isFootUp) {
+				if (this.legs[i].isFootUp && !isBackwards) {
 					this.skewBodyByFoot(this.legs[i].elbowPos);
 				}
 			}
@@ -60,13 +60,9 @@ export class creatureBody extends creatureJoint {
 			for (let i = 0; i < this.backChildJoint.length; i++) {
 				let movedJoint = this.backChildJoint[i];
 				let childDist = this.pos.distance(movedJoint.pos);
-				if (childDist > maxDist) {
+				if (childDist > maxDist) { //moves the child joint if it's too far away
 					if (childDist > maxDist * 4) {
 						let angle = this.pos.getAvgAngleRad(movedJoint.pos);
-						let delta = new vector2(maxDist * 0.5 * Math.cos(angle), maxDist * 0.5 * Math.sin(angle));
-						movedJoint.pos = this.pos.subtract(delta);
-					} else if (childDist < maxDist) {
-						let angle = this.pos.getAvgAngleRad(movedJoint.pos) + Math.PI;
 						let delta = new vector2(maxDist * 0.5 * Math.cos(angle), maxDist * 0.5 * Math.sin(angle));
 						movedJoint.pos = this.pos.subtract(delta);
 					} else {
@@ -78,7 +74,7 @@ export class creatureBody extends creatureJoint {
 					}
 				}
 			}
-		} else if (childDist > maxDist * 4) {
+		} else if (childDist > maxDist * 4) { //snaps the child joint to the parent if it's too far away
 			let angle = this.pos.getAvgAngleRad(this.childJoint.pos);
 			let delta = new vector2(maxDist * 0.5 * Math.cos(angle), maxDist * 0.5 * Math.sin(angle));
 			this.childJoint.pos = this.pos.subtract(delta);
@@ -92,23 +88,23 @@ export class creatureBody extends creatureJoint {
 	}
 
 
-	updateJoint(state: string, isHurt: boolean, isBackwards: boolean): void {
+	updateJoint(state: string, isHurt: boolean, isBackwards: boolean): void { //a parent function to trigger the rest of the rendering
 		this.renderSegment(isHurt);
 		this.updateLegs(state,isHurt,isBackwards);
 	}
 
-	skewBodyByFoot(elbowPos: vector2): void {
+	skewBodyByFoot(elbowPos: vector2): void { //pulls the body towards the currently moving foot to create a more realistic movement
 		let elbowDist = this.pos.distance(elbowPos);
 		
 		if (elbowDist > this.width) {
 			let delta = this.pos.subtract(elbowPos);
 			delta = delta.divide(this.width);
-			delta = delta.multiply(0.4);
 			this.pos = this.pos.subtract(delta);
+			this.childJoint.pos = this.childJoint.pos.subtract(delta.divide(2));
 		}
 	}
 
-	moveByDrag(maxDist: number): void {
+	moveByDrag(maxDist: number): void { //called every time the creature is dragged
 		super.moveByDrag(maxDist);
 		if (this.legs !== undefined) {
 			for (let i = 0; i < this.legs.length; i++) {

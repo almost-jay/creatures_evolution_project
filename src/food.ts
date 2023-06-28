@@ -23,17 +23,17 @@ export class food {
 		}
 		
 		entityDict[this.id] = this;
-		posGrid[Math.floor(this.pos.x / 16)][Math.floor(this.pos.y / 16)] = this.id;
+		this.update(); //initial update call
 	}
 	
 	update() {
 		if (!this.isEaten) {
 			this.render();
 		}
-		posGrid[Math.floor(this.pos.x / 16)][Math.floor(this.pos.y / 16)] = this.id;
+		posGrid[Math.floor(this.pos.x / 16)][Math.floor(this.pos.y / 16)] = this.id; //places the food into the position grid so that it can be detected
 	}
 
-	render() {
+	render() { //draws a lil dot on the floor to represent the food
 		ctx.fillStyle = this.color;
 		ctx.beginPath();
 			ctx.arc(this.pos.x,this.pos.y,this.size * 0.75,0,2 * Math.PI);

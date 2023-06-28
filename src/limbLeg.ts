@@ -97,7 +97,7 @@ export class creatureLeg {
 		this.elbowPos = this.calcElbowPos(isBackwards);
 	}
 
-	updateFootPos(): void {
+	updateFootPos(): void { //calls all other functions
 		let footCheckPos = this.calcFootCheckPos()
 
 		let footDist = this.footPos.distance(footCheckPos);
@@ -126,7 +126,7 @@ export class creatureLeg {
 		return new vector2(limbSpacing * Math.cos(this.jointAngle - (Math.PI * this.legAngle * this.side)) + footStepPos.x,limbSpacing * Math.sin(this.jointAngle - (Math.PI * this.legAngle * this.side)) + footStepPos.y);
 	}
 	
-	calcElbowPos(isBackwards: boolean): vector2 {
+	calcElbowPos(isBackwards: boolean): vector2 { //INVERSE KINEMATICS SOLVER
 		let side = this.side;
 		if (isBackwards) {
 			side = this.side * -1;
@@ -150,7 +150,7 @@ export class creatureLeg {
 	}
 
 	
-	calcFootDragPos(): vector2 {
+	calcFootDragPos(): vector2 { //finds the foot pos while the creature is being dragged around, making them feel kinda weighted, as the legs are always pulled down
 		let limbSpacing = this.legLength * 1.4 * this.size;
 		let dragAngle = 1.1;
 		let footStepPos = new vector2(limbSpacing * Math.cos(this.jointAngle - (Math.PI * this.side)) + this.joinPos.x,limbSpacing * Math.sin(this.jointAngle - (Math.PI * this.side)) + this.joinPos.y);
@@ -158,7 +158,7 @@ export class creatureLeg {
 	}
 
 	
-	calcFootDeathPos(): vector2 {
+	calcFootDeathPos(): vector2 { //makes the legs go --->->->--- when they die
 		let limbSpacing = this.legLength * 1.4 * this.size;
 		let dragAngle = 0.8;
 		let footStepPos = new vector2(limbSpacing * Math.cos(this.jointAngle - (Math.PI * this.side)) + this.joinPos.x,limbSpacing * Math.sin(this.jointAngle - (Math.PI * this.side)) + this.joinPos.y);

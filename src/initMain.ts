@@ -37,8 +37,8 @@ export var cursorChoice: Array<boolean> = [false,false,false,false,false]; //sto
 
 export var simPrefs: { [key: string]: number } = {
 	"foodSpawnRate": 20,
-	"universalHostility": 0,
-	"universalRespect": 0,
+	"universalHostility": 1,
+	"universalRespect": 1,
 	"timeScale": 1,
 }
 
@@ -79,6 +79,7 @@ function setupApp() { //creates all the event listeners, triggers the rendering 
 	let universalHostilitySlider = document.getElementById("universal_hostility") as HTMLInputElement;
 	universalHostilitySlider.addEventListener("change", function() {
 		simPrefs.universalHostility = universalHostilitySlider.valueAsNumber;
+
 	});
 
 	let universalRespectSlider = document.getElementById("universal_respect") as HTMLInputElement;

@@ -65,7 +65,7 @@ export class creatureHead extends creatureBody {
 		ctx.fill();
 	}
 
-	drawCrossEyes() {
+	drawCrossEyes() { //this is so painful but it's too much work to automate it
 		let size = this.displayedWidth / this.width;
 
 		let leftEyeX = (this.eyeSpacing * size * Math.cos(this.angle - (Math.PI * 0.5)) + this.pos.x);
@@ -169,13 +169,13 @@ export class creatureHead extends creatureBody {
 						if (!(checkedEntity.id in this.relationships)) {
 							newRelationships.push(checkedEntity);
 						} else {
-							if (this.relationships[checkedEntity.id].aggression * simPrefs.universalHostility < -0.1) {
+							if (this.relationships[checkedEntity.id].aggression * simPrefs.universalHostility < 0) { //aggressive at < 0
 								if (this.targetEnemy == null) {
 									this.targetEnemy = checkedEntity;
-								} else if (checkedPosition.distance(this.pos) > this.targetEnemy.head.pos.distance(this.pos)) {
+								} else if (checkedPosition.distance(this.pos) > this.targetEnemy.head.pos.distance(this.pos) || this.relationships[checkedEntity.id].aggression < this.relationships[this.targetEnemy.id].aggression) { //if this enemy is closer than the current target OR more hated, it becomes the new target
 									this.targetEnemy = checkedEntity;
 								}
-							} else if (this.relationships[checkedEntity.id].aggression * simPrefs.universalHostility > 0.1) {
+							} else if (this.relationships[checkedEntity.id].aggression * simPrefs.universalHostility > 0) { //friendly at > 0 :)
 								if (this.targetFriend == null) {
 									this.targetFriend = checkedEntity;
 								} else if (checkedPosition.distance(this.pos) > this.targetFriend.head.pos.distance(this.pos)) {
@@ -193,13 +193,13 @@ export class creatureHead extends creatureBody {
 					if (!(checkedEntity.id in this.relationships)) {
 						newRelationships.push(checkedEntity);
 					} else {
-						if (this.relationships[checkedEntity.id].aggression * simPrefs.universalHostility  < -0.1) { //creatures get aggressive if their aggression count is less than -0.2
+						if (this.relationships[checkedEntity.id].aggression * simPrefs.universalHostility  < 0) { //they are aggressive at < 0
 							if (this.targetEnemy == null) {
 								this.targetEnemy = checkedEntity;
 							} else if (this.pos.distance(this.targetEnemy.head.pos) > checkedPosition.distance(this.pos)) {
 								this.targetEnemy = checkedEntity;
 							}
-						} else if (this.relationships[checkedEntity.id].aggression * simPrefs.universalHostility > 0.1){ //creatures are friendly if aggression is > 0.2
+						} else if (this.relationships[checkedEntity.id].aggression * simPrefs.universalHostility > 0) { //creatures are friendly if > 0
 							if (this.targetFriend == null) {
 								this.targetFriend = checkedEntity;
 							} else if (this.pos.distance(this.targetFriend.head.pos) > checkedPosition.distance(this.pos)) {
@@ -209,7 +209,7 @@ export class creatureHead extends creatureBody {
 						
 						if (debugPrefs.drawRelations) {
 							let red = (Math.floor(16 - ((this.relationships[checkedEntity.id].aggression * simPrefs.universalHostility + 1) * 8))).toString(16);
-							let blue = (Math.floor((this.relationships[checkedEntity.id].respect * simPrefs.universalRespect + 1) * 8)).toString(16);
+							let blue = (Math.floor((this.relationships[checkedEntity.id].respect * checkedEntity.size * simPrefs.universalRespect + 1) * 8)).toString(16);
 							
 							if (red.length < 2) {
 								red = red+red;

@@ -4,15 +4,15 @@ export class creatureTraits {
 	personality: Array<number>;
 	traits: { [id: string]: trait };
 	constructor(parentProps: Array<creatureTraits> | null) {
-		this.traits = {
-			"health": new trait(10,50,[randRange(-1,1),randRange(-1,1)],1),
-			"strength": new trait(1,20,[randRange(-1,1),randRange(-1,1)],1),
-			"diet": new trait(-1.0,1.0,[randRange(-1,1),randRange(-1,1)],0),
-			"speed": new trait(0.2,3.0,[randRange(-1,1),randRange(-1,1)],1),
-			"visionDistance": new trait(12,512,[randRange(-1,1),randRange(-1,1)],0.5),
-			"visionAngle": new trait(0.2,1.5,[randRange(-1,1),randRange(-1,1)],0.8),
-			"hearingDistance": new trait(12,256,[randRange(-1,1),randRange(-1,1)],0.5),
-			"toxicity": new trait(0.0,5.0,[randRange(-1,1),randRange(-1,1)],0.2),
+		this.traits = { //a basis function that creates a bunch of random traits, used to populate empty instances
+			"health": new trait(10,50,[0,0],1),
+			"strength": new trait(1,20,[0,0],1),
+			"diet": new trait(-1.0,1.0,[0,0],0),
+			"speed": new trait(0.2,3.0,[0,0],1),
+			"visionDistance": new trait(64,512,[0,0],0.5),
+			"visionAngle": new trait(0.2,1.5,[0,0],0.8),
+			"hearingDistance": new trait(12,256,[0,0],0.5),
+			"toxicity": new trait(0.0,5.0,[0,0],0.2),
 		};
 		if (parentProps !== null) {
 			if (parentProps.length != 1) {
@@ -22,21 +22,19 @@ export class creatureTraits {
 				];
 				
 				for (let key in parentProps[0].traits) {
-					let mutation = (Math.random() - 0.5) * 0.01;
 					this.traits[key] = new trait(0,1,[0,0],1);
 					this.traits[key].value = 0;
 					this.traits[key].display = 0;
 					this.traits[key].cost = 0;
-					for (let i = 0; i < parentProps.length; i++) {
+					for (let i = 0; i < parentProps.length; i++) { //iterates through parent traits, setting the child's traits as a mix of them
 						let parentTrait = parentProps[i].traits[key as string];
-
 						this.traits[key].min = parentTrait.min;
 						this.traits[key].max = parentTrait.max;
-						this.traits[key].value += parentTrait.value * (1 / parentProps.length) + mutation;
-						this.traits[key].display += parentTrait.display * (1 / parentProps.length) + mutation;
-						this.traits[key].cost += parentTrait.cost * (1 / parentProps.length);
-						this.traits[key].attitude[0] += parentTrait.attitude[0] * (1 / parentProps.length);
-						this.traits[key].attitude[1] += parentTrait.attitude[1] * (1 / parentProps.length);
+						this.traits[key].value += parentTrait.value * (1 / parentProps.length) + (Math.random() - 0.5) * 0.1; //adding a slight "mutation" randomness modifier
+						this.traits[key].display += parentTrait.display * (1 / parentProps.length) + (Math.random() - 0.5) * 0.1;
+						this.traits[key].cost += parentTrait.cost * (1 / parentProps.length) + (Math.random() - 0.5) * 0.1;
+						this.traits[key].attitude[0] += parentTrait.attitude[0] * (1 / parentProps.length) + (Math.random() - 0.5) * 0.05;
+						this.traits[key].attitude[1] += parentTrait.attitude[1] * (1 / parentProps.length) + (Math.random() - 0.5) * 0.05;
 					}
 				}
 			} else {
@@ -48,7 +46,7 @@ export class creatureTraits {
 		}
 	}
 
-	editTrait(traitName: string, property: string, value: number) {
+	editTrait(traitName: string, property: string, value: number) { //alters a trait if it finds it in self
 		if (traitName in this.traits) {
 			if (property == "value") {
 				if (value >= this.traits[traitName].min) {
@@ -103,8 +101,11 @@ export class trait {
 		}
 
 		this.cost = ((this.value - min + 0.2) / (max - min + 0.2)) * costMult;
-		
 		this.attitude = attitude;
+		if (attitude[0] == 0 && attitude[1] == 0) { //no neutral attitudes allowed!
+			this.attitude[0] = (Math.random() - 0.5) * 2; //randRange doesn't return the right sort of thing here
+			this.attitude[1] = (Math.random() - 0.5) * 2;
+		}
 		this.min = min;
 		this.max = max;
 	}

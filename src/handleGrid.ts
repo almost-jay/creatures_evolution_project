@@ -6,7 +6,7 @@ export function initGrid() {
 	posGrid = Array(1024).fill("").map(()=>Array(1024).fill(""));
 }
 
-export function clearGrid() {
+export function clearGrid() { //completely makes the grid into "", as well as drawing the hitboxGrid if that pref is enabled
 	let s = 16;
 	for (let i = 0; i < 256; i++) {
 		for (let j = 0; j < 256; j++) {
@@ -31,7 +31,7 @@ export function clearGrid() {
 }
 
 
-export function fillGrid() {
+export function fillGrid() { //populates grid with creachers
 	for (let i = 0; i < creaturesList.length; i++) {
 		let id = creaturesList[i].id;
 		for (let j = 0; j < creaturesList[i].segments.length; j++) {

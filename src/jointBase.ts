@@ -1,6 +1,6 @@
 import { vector2 } from "./globals";
 
-export class creatureJoint {
+export class creatureJoint { //provides base functions/properties for rest of joints to inherit
 	pos: vector2;
 	id: number;
 	colour: string;

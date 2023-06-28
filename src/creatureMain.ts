@@ -1,6 +1,6 @@
 import { creatureTraits, relationship, trait } from "./creatureTraits";
 import { food } from "./food";
-import { preNames } from "./globals";
+import { findClosestColour, preNames } from "./globals";
 import { preColours, vector2, hexToRgb, generateId, randRange, camelCaseToTitle } from "./globals"
 import { posGrid } from "./handleGrid";
 import { isPaused, debugPrefs, ctx, entityDict, particleList, creaturesList, simPrefs } from "./initMain";
@@ -9,7 +9,7 @@ import { creatureBody } from "./jointBody";
 import { creatureHead } from "./jointHead";
 import { particle } from "./particle";
 
-export class creature {
+export class creature { //the parent class, which holds most of the info
 	bodyLength: number = 0;
 	maxDist: number = 0;
 	weights: number = 0;
@@ -25,6 +25,7 @@ export class creature {
 	health: number = 1;
 	hunger: number = 0;
 	age: number = 0;
+	maturityAge: number = 3;
 	isMature: boolean = false;
 	path: Array<vector2> = [];
 	target: vector2 = new vector2(0,0);
@@ -41,32 +42,37 @@ export class creature {
 	entityType: string = "creature";
 
 	constructor(pos: vector2, bodyLength: number, maxDist: number, parentProps: Array<creatureTraits> | null, id: string) {
-		this.properties = new creatureTraits(parentProps);
+		this.properties = new creatureTraits(parentProps); //needs to generate creature traits
 		this.energyPerTick = this.calcEnergyPerTick();
 
-		this.bodyLength = bodyLength;
-		this.maxDist = maxDist;
-		this.weights = Math.floor(this.properties.traits.speed.display * 1.8);
-		
-		if (id != "") {
+		this.bodyLength = bodyLength; //bodyLength is the number of segments
+		this.maxDist = maxDist; //the separation between body segments
+		this.weights = Math.floor(this.properties.traits.speed.display * 1.8); //the number of legs it'll have
+
+		this.maturityAge = (Math.cbrt(Math.random()) + 10) / 4;
+
+		if (id != "") { //if an ID is given, that becomes the new ID, if not, it gotta generate an id
 			this.id = id;
 		} else {
 			this.id = generateId();
 		}
-		entityDict[this.id] = this;
+		entityDict[this.id] = this; //inserts itself into the entity dict
 
-		this.name = preNames[Math.floor(Math.random() * preNames.length)];
+		this.name = preNames[Math.floor(Math.random() * preNames.length)]; //picks random name from list of names
+		this.health = this.properties.traits.health.value; //sets its health to its maxHealth
 		
-		this.health = this.properties.traits.health.value;
-		this.size = ((this.properties.traits.health.display / ((this.properties.traits.health.min + this.properties.traits.health.max) / 2)) + 0.2) * 2;
+		//sets the size to be relative to the displayed health trait, as well as the creature's age
+		this.updateSize();
 
 		this.segments = [];
-		this.initJoints(pos);
-		
-		this.generatePath(4);
+		this.initJoints(pos); //creates a bunch of segments
+
+		this.generatePath(3); //generates a starting path
+		this.behaviourTree(); //and finally, calculates state
+
 	}
 
-	loadProperty(key: string, rawValue: any) {
+	loadProperty(key: string, rawValue: any) { //takes a property, if it has that property, changes itself to match it
 		if (this.hasOwnProperty(key)) {
 			let alteredProp = this[key as keyof creature];
 			let value = rawValue as typeof alteredProp;
@@ -74,7 +80,7 @@ export class creature {
 		}
 	}
 
-	calcEnergyPerTick(): number {
+	calcEnergyPerTick(): number { //just sums up the tick energy cost based on its traits
 		let result = 0;
 
 		for (let key in this.properties.traits) {
@@ -84,10 +90,15 @@ export class creature {
 		return result;
 	}
 
-	initJoints(pos: vector2) {
+	updateSize() {
+		//the size is based on the health of the creature as well as its age
+		this.size = ((((this.properties.traits.health.display - this.properties.traits.health.min) / (this.properties.traits.health.max - this.properties.traits.health.min)) * (this.age + 0.5 / this.maturityAge + 0.5)) + 0.5);
+	}
+
+	initJoints(pos: vector2) { //creates a bunch of new joints, each one with a width and colour as dictated
 		let bodyCount = Math.floor(0.6 * this.bodyLength);
 		let bodyColour = this.generateColours();
-		let baseWidth = 8;
+		let baseWidth = 8; //the standard width of one joint, as the canvas sees it
 
 		let eyeLightness = Math.round((1 - ((this.properties.traits.visionDistance.display - 16) / 500)) * 16).toString(16);
 		if (eyeLightness.length == 1) {
@@ -153,27 +164,26 @@ export class creature {
 		return result;
 	}
 
-	generateColours(): any { //creates the colours for each creature
-		let colourInd1 = Math.round(((Math.random() + preColours.length * 0.25) * (preColours.length - preColours.length * 0.25)));
-		let colourInd2 = Math.round(colourInd1 + ((Math.random() + preColours.length * 0.25) * (preColours.length - preColours.length * 0.25)));
-		//picks one random integer and then one a random "distance" from the first
-		while (colourInd1 > preColours.length - 1) {
-			colourInd1 -= preColours.length - 1; //keep it the right length
-		}
-		
-		while (colourInd2 > preColours.length - 1) {
-			colourInd2 -= preColours.length - 1;
+	generateColours(): Array<string> { //creates the colours for each creature
+		let r = (this.properties.traits["strength"].display / this.properties.traits["strength"].max) * 255;
+		let g = (this.properties.traits["toxicity"].display / this.properties.traits["toxicity"].max) * 255;
+		let b = (this.properties.traits["diet"].display / this.properties.traits["diet"].max) * 255;
+
+		let colour1 = hexToRgb(preColours[findClosestColour(r,g,b)]);
+
+		let colour2Ind = Math.floor(Math.random() * 12);
+		while (colour2Ind > preColours.length) {
+			colour2Ind -= preColours.length;
 		}
 
-		let colour1 = hexToRgb(preColours[colourInd1]); //selects colour from list from those integers, converts them into RGB format
-		let colour2 = hexToRgb(preColours[colourInd2]);
+		let colour2 = hexToRgb(preColours[colour2Ind]);
 
 		let colourRes: Array<string> = [];
 		let inc = 1 / this.bodyLength; //reciprocal of length
 		for (let i = 0; i < this.bodyLength; i++) { //creates gradient between two given colours, pushing the results into an array
-			let r = Math.round(Math.max(Math.min((colour1[0] * (1 - (inc * i)) + (colour2[0] * (inc * i))) * (this.properties.traits["strength"].display / this.properties.traits["strength"].max), 255), 0));
-			let g = Math.round(Math.max(Math.min((colour1[1] * (1 - (inc * i)) + (colour2[1] * (inc * i))) * (this.properties.traits["toxicity"].display / this.properties.traits["toxicity"].max), 255), 0));
-			let b = Math.round(Math.max(Math.min((colour1[2] * (1 - (inc * i)) + (colour2[2] * (inc * i))) * ((this.properties.traits["diet"].display + 1) / (this.properties.traits["diet"].max + 1)), 255), 0));
+			let r = colour1[0] * (1 - (inc * i)) + (colour2[0] * (inc * i));
+			let g = colour1[1] * (1 - (inc * i)) + (colour2[1] * (inc * i));
+			let b = colour1[2] * (1 - (inc * i)) + (colour2[2] * (inc * i));
 			colourRes.push("rgb("+r+","+g+","+b+")");
 		}
 
@@ -181,7 +191,7 @@ export class creature {
 
 	}
 
-	generatePath(alpha: number): void {
+	generatePath(alpha: number): void { //note that alpha of 3 is most stable
 		this.isBackwards = false;
 		let pathLength = 32; //can be adjusted later
 		this.targetIndex = 0; //reset the target back to the path at 0
@@ -212,13 +222,13 @@ export class creature {
 			this.path[i].y = yPos;
 		}
 		
-		this.interpolatePath(4);
+		this.interpolatePath(3); //note that a polynomial of degree 3 tends to give the most numerically stable result
 
 		this.action = "walk";
 		this.target = this.path[0];
 	}
 
-	drawPath() {
+	drawPath() { //only enabled if the command is enabled, draws the section of path the creature hasn't reached yet
 		ctx.strokeStyle = this.head.colour;
 		ctx.fillStyle = this.segments[this.bodyLength - 1].colour;
 		ctx.lineWidth = 2;
@@ -257,7 +267,7 @@ export class creature {
 		this.path = result;
 	}
 
-	calcKnots(knotCount: number, degree: number): Array<number> {
+	calcKnots(knotCount: number, degree: number): Array<number> { //evaluates knots based on goal knot count + degree of polynomial
 		let knots = [];
 		for (let i = 0; i < knotCount - (degree * 2); i++) {
 			knots.push(i);
@@ -270,7 +280,7 @@ export class creature {
 		return knots;
 	}
 
-	interpolate(t: number, degree: number, knots: Array<number>) {
+	interpolate(t: number, degree: number, knots: Array<number>) { //de boor's algorithm
 		let n = this.path.length;
 
 		let low  = knots[degree];
@@ -302,7 +312,7 @@ export class creature {
 	  }
 
 	
-	updateInfoPanel() {
+	updateInfoPanel() { //writes to callout info panel with own information
 		let panel = document.getElementById("info-panel");
 		let header = document.getElementById("info-panel-header");
 		if (panel != undefined) {
@@ -317,8 +327,9 @@ export class creature {
 		}
 	}
 
-	convertPropsToString(): string {
+	convertPropsToString(): string { //creates an HTML readout of all properties/attributes
 		let result = "";
+		result = result.concat("<a class='callout-label'> Name: </a>"+this.name+"<br>");
 		result = result.concat("<a class='callout-label'> Hunger: </a>"+(Math.floor(this.hunger * 100) / 100)+"<br>");
 		result = result.concat("<a class='callout-label'> Position: </a>("+(Math.floor(this.head.pos.x * 10) / 10+","+Math.floor(this.head.pos.y * 10) / 10)+") <br>");
 		result = result.concat("<a class='callout-label'> State: </a>"+this.state+"<br>");
@@ -376,7 +387,8 @@ export class creature {
 		}
 	}
 
-	die() {
+	die(cause: string) { //used to set up the whole death state
+		console.log(this.name+" died "+cause); //fun little easter egg
 		this.state = "dead";
 		this.health = 0;
 		this.path = [this.head.pos];
@@ -395,9 +407,9 @@ export class creature {
 		}
 	}
 
-	behaviourTick() {
+	behaviourTick() { //checks for potential death state, decrements cooldowns, controls head vision, triggers other calls; basically the CNS of the creature
 		if (this.health < 0) {
-			this.die();
+			this.die("under mysterious circumstances.");
 		} else {
 			if (this.hurtIndex > -12) {
 				this.hurtIndex -= 1;
@@ -417,12 +429,12 @@ export class creature {
 			if (this.heldFood != null) {
 				this.heldFood.pos = this.head.pos;
 			}
+
 			if (!this.isMature) {
-				if (Math.pow(3,((this.age * 4) - 10)) > Math.random()) {
+				this.updateSize();
+				if (this.age > this.maturityAge) {
 					this.isMature = true;
-					this.size = ((this.properties.traits.health.display / ((this.properties.traits.health.min + this.properties.traits.health.max) / 2)) + 0.1) * 2;
 				}
-				this.size = ((this.properties.traits.health.display / ((this.properties.traits.health.min + this.properties.traits.health.max) / 2)) + 0.1) * ((this.age + 2) / 12) * 2;
 				for (let i = 0; i < this.segments.length; i++) {
 					this.segments[i].displayedWidth = this.segments[i].width * this.size;
 				}
@@ -430,7 +442,7 @@ export class creature {
 				
 			} else if (this.age > 12) {
 				if (Math.random() < Math.pow(1.5,this.age - 24)) {
-					this.die()
+					this.die("from old age!");
 				}
 			}
 			if (this.stateChangeCooldown < 0) {
@@ -439,16 +451,16 @@ export class creature {
 			} else {
 				this.stateChangeCooldown --;
 			}
-			this.stateMachineAction();
+			this.stateMachineAction(); //causes the creature to act based on whatever its current state is, must be called every tick
 		}
 	}
 
-	behaviourTree() {
+	behaviourTree() { //uses try/catch behaviour rather than immediately setting new state, sort of like the frontal lobe
 		this.isBackwards = false;
-		let newState = "idle";
+		let newState = this.state;
 		if (this.attacker != null) {
 			if (this.attacker.id in this.head.relationships) {
-				if (this.head.relationships[this.attacker.id].respect * simPrefs.universalRespect > 0.4 || this.hunger > 60) {
+				if (this.head.relationships[this.attacker.id].respect * simPrefs.universalRespect * this.attacker.size > 0.4 || this.hunger > 60) {
 					newState = "deferrent";
 				} else if (this.hunger > 60) {
 					newState = "afraid";
@@ -462,12 +474,21 @@ export class creature {
 			if (this.head.targetEnemy.id in this.head.relationships) {
 				if (this.properties.traits["diet"].value < randRange(-0.5,0.5) && this.hunger > 40) {
 					newState = "aggressive";
-				} else if ((this.head.relationships[this.head.targetEnemy.id].respect * simPrefs.universalRespect > 0.1 && this.head.targetEnemy.state == "aggressive") && this.attackCooldown >= 0) {
+				} else if ((this.head.relationships[this.head.targetEnemy.id].respect * simPrefs.universalRespect * this.head.targetEnemy.size > 0.1 && this.head.targetEnemy.state == "aggressive") && this.attackCooldown >= 0) {
 					newState = "defensive";
 				} else {
-					newState = "afraid";
+					if (this.id in this.head.targetEnemy.head.relationships) {
+						if (this.head.targetEnemy.head.relationships[this.id].aggression < -0.2) {
+							newState = "afraid"; //runs away if enemy thinks badly of it
+						} else {
+							newState = "aggressive";
+						}
+					} else {
+						newState = "defensive";
+					}
 				}
 			} else {
+				this.calcAttitude(this.head.targetEnemy);
 				newState = "aggressive";
 			}
 		} else if (this.hunger > 40) {
@@ -478,7 +499,7 @@ export class creature {
 					newState = "aggressive";
 				}
 			}
-		} else if (this.isMature && Math.random() < 0.5) {
+		} else if (this.isMature && Math.random() < 0.75) {
 			if (this.mate != null) {
 				newState = "mating";
 			} else if (Math.random() < 0.02){
@@ -491,55 +512,55 @@ export class creature {
 		}
 
 		if (newState != this.state) {
-			this.state = newState;
-			this.generatePath(4);
+			this.state = newState; //if it calculates a new state, regenerates path and updates self
+			this.generatePath(3);
 		}
 	}
 
-	stateMachineAction() {
+	stateMachineAction() { //think of this as the functional area of the brain, executing decisions
 		switch (this.state) {
 			case "idle":
-				this.followPath();
+				this.followPath(); //follows the path, no special behaviour
 				break;
 			case "friendly":
-				this.followFriend();
+				this.followFriend(); //follows the path while remaining close to a friend
 				break;
 			case "foraging":
-				this.lookForFood();
+				this.lookForFood(); //similar behaviour to followPath, but will break to investigate if it detects food
 				break;
 			case "aggressive":
-				this.attackEnemy();
+				this.attackEnemy(); //attack behaviour, see inside for details
 				break;
 			case "defensive":
-				this.defendEnemy();
+				this.defendEnemy(); //defensive behaviour, see inside for details - should probably be "defend AGAINST enemy" but naming conventions
 				break;
 			case "deferrent":
-				this.followEnemy();
+				this.followEnemy(); //cowardly/follower behaviour
 				break;
 			case "afraid":
-				this.fleeEnemy();
+				this.fleeEnemy(); //cowardly/fleeing behaviour
 				break;
 			case "mating":
-				this.attemptMate();
+				this.attemptMate(); //if its partner is also mating, triggers children
 				break;
 			case "cloning":
-				this.cloneSelf();
+				this.cloneSelf(); //if it has no partner (far more likely) this is triggered instead
 				break;
 		}
 	}
 
 	lookForFood() {
-		if (this.heldFood != null) {
+		if (this.heldFood != null) { //first, if it is holding food and it hasn't already eaten it, it eats it
 			this.heldFood.isEaten = true;
 			this.hunger -= this.heldFood.size * 4;
 			this.heldFood = null;
 			this.head.targetFood = null;
 			this.behaviourTree();
 		} else {
-			if (this.action != "sniff") {
+			if (this.action != "sniff") { //if it isn't already investigating...
 				if (this.head.targetFood != null) {
 					if (this.head.targetFood.isHeldBy == null) {
-						this.investigate(this.head.targetFood.pos);
+						this.investigate(this.head.targetFood.pos); //investigate target food (closest food detected)
 						this.targetIndex = 0;
 					} else {
 						if (this.head.targetFood.isHeldBy.id in this.head.relationships) {
@@ -594,12 +615,12 @@ export class creature {
 		this.path = sniffPath;
 	}
 
-	posFunc(i: number): number {
+	posFunc(i: number): number { //spiralling function
 		let result = (Math.random() * 0.25 + 8) * (this.pathFunc(3 * i) - (0.4 * i));
 		return result;
 	}
 
-	pathFunc(i: number): number {
+	pathFunc(i: number): number { //sinusoidal asymmetric wave wrapped around spiral, see above
 		let result = -1 * Math.abs(Math.sin(i + ((Math.random() * 2) /2) * Math.abs(Math.sin(i))));
 		return result;
 	}
@@ -607,7 +628,7 @@ export class creature {
 	
 	takeDamage(damage: number, attacker: creature) {
 		if (this.health - damage <= 0) {
-			this.die();
+			this.die("in combat with "+attacker.name);
 		} else {
 			this.deferCooldown = 60 * Math.random() + 300;
 			this.health -= damage;
@@ -625,18 +646,18 @@ export class creature {
 		}
 	}
 
-	createBloodParticles(startPos: vector2) {
+	createBloodParticles(startPos: vector2) { //this is the only use of the particle system rn :(
 		for (let i = 0; i < Math.random() * 32 + 12; i++) {
 			particleList.push(new particle(startPos,Math.random() * 0.5 + 0.05,Math.random() * 2 * Math.PI, Math.random() * 0.25 + 0.05,Math.random() * 20 + 40,"#FF1020"));
 		}
 	}
 
 
-	calcAttitude(reference: creature) {
+	calcAttitude(reference: creature) { //calculates how a creature feels about another creature based on its personality and attitude values
 		this.head.relationships[reference.id] = new relationship(reference);
 		let creatureTraits = reference.properties.traits;
-		let aggression = 0;
-		let respect = 0;
+		let aggression = -1;
+		let respect = 1;
 
 		for (let key in creatureTraits) {
 			aggression += ((creatureTraits[key].display / (creatureTraits[key].max - creatureTraits[key].min)) * this.properties.traits[key].attitude[0]);
@@ -656,10 +677,12 @@ export class creature {
 
 		if (this.attacker == reference) {
 			this.head.relationships[reference.id].respect += 0.2;
+			this.head.relationships[reference.id].aggression -= 0.1;
 		}
 	}
 
-	fleeEnemy() {
+	fleeEnemy() { //runs away!
+		this.state = "afraid";
 		if (this.action != "fleeing") {
 			this.targetIndex = 0;
 			this.action = "fleeing";
@@ -667,7 +690,7 @@ export class creature {
 		
 		if (this.attacker != null) {
 			let safeDistance = Math.max(this.attacker.properties.traits.visionDistance.display * 1.2,this.attacker.properties.traits.hearingDistance.display * 1.2) + (this.attacker.maxDist * this.attacker.bodyLength);
-			let angleAway = -(this.attacker.head.pos.getAvgAngleRad(this.head.pos));
+			let angleAway = -(this.attacker.head.pos.getAvgAngleRad(this.head.pos)) + ((Math.random() - 0.5) * 0.5);
 			let scale = this.properties.traits.speed.value * 50 * this.size;
 			
 			if (this.attacker.head.targetEnemy == this && this.head.pos.distance(this.attacker.head.pos) < safeDistance) {
@@ -681,7 +704,7 @@ export class creature {
 		}
 	}
 
-	defendEnemy() {
+	defendEnemy() { //if the enemy is too close, it retreats, and once it's out of sight it tries to attack
 		if (this.head.targetEnemy != null) {
 			if (this.head.targetEnemy.state != "dead") {
 				this.path = [this.head.pos,this.head.pos];
@@ -703,11 +726,9 @@ export class creature {
 					}
 					
 				} else {
-					if (this.attackCooldown < 0 && (!this.head.targetEnemy.head.targetEnemy != null || this.head.targetEnemy.state == "defensive")) {
-						this.isBackwards = false;
-						this.followPath();
+					if (this.attackCooldown < 0 && (!(this.head.targetEnemy.head.targetEnemy != null || this.head.targetEnemy.state == "defensive") && this.head.relationships[this.head.targetEnemy.id].respect > this.head.targetEnemy.head.relationships[this.id].respect)) {
 						if (this.head.pos.distance(this.target) < this.maxDist * 6) {
-							this.attackEnemy();
+							this.attemptAttack(this.head.targetEnemy);
 						}
 					} else {
 						let direction = 0.05;
@@ -728,7 +749,8 @@ export class creature {
 	}
 
 
-	attackEnemy() {
+	attackEnemy() { //attempts a lunge at the enemy
+		this.state = "aggressive"
 		if (this.head.targetEnemy == null) {
 			if (this.properties.traits["diet"].value < randRange(-0.5,0.5) && this.hunger > 40 && this.head.canSenseCreatures) {
 				if (this.head.sensedCreatures.length > 0) {
@@ -802,7 +824,7 @@ export class creature {
 		}
 	}
 
-	checkGridHitbox(goalId: string): boolean {
+	checkGridHitbox(goalId: string): boolean { //looks to see if there is a creature around itself
 		let result = false;
 		for (let i = -2; i < 3; i += 1) {
 			for (let j = -2; j < 3; j += 1) {
@@ -815,7 +837,7 @@ export class creature {
 		return result;
 	}
 
-	getNearestSegment(segments: Array<creatureJoint>): vector2 {
+	getNearestSegment(segments: Array<creatureJoint>): vector2 { //finds the closest enemy segment (so it can BITE it >:3)
 		let closest: [number,vector2] = [segments[0].pos.distance(this.head.pos),segments[0].pos];
 
 		for (let i = 1; i < segments.length; i++) {
@@ -828,17 +850,17 @@ export class creature {
 		return closest[1];
 	}
 
-	backDown() {
+	backDown() { //reset state, retreat
 		this.isBackwards = false;
 		this.attacker = null;
 		this.head.targetEnemy = null;
 		this.state = "idle";
 		this.action = "walk";
-		this.generatePath(4);
+		this.generatePath(3);
 		this.attackCooldown = 60;
 	}
 
-	attemptAttack(targetEnemy: creature) {
+	attemptAttack(targetEnemy: creature) { //immediately deals damage to the target if it's not on cooldown/in i-frames
 		if (targetEnemy.hurtIndex < 0) {
 			this.createBloodParticles(this.target);
 			targetEnemy.takeDamage(this.properties.traits.strength.value * 0.2,this);
@@ -851,7 +873,7 @@ export class creature {
 			this.attackCooldown = 60;
 			this.hunger += this.properties.traits["strength"].cost * 5;
 			this.hunger += Math.max(0,this.properties.traits["diet"].value * targetEnemy.health);
-			this.health -= (targetEnemy.properties.traits["toxicity"].value * targetEnemy.properties.traits["health"].value) / 4;
+			this.takeDamage((targetEnemy.properties.traits["toxicity"].value * targetEnemy.properties.traits["health"].value) / 4,targetEnemy);
 		}
 		this.generateRecoverPath(targetEnemy.head.pos);
 		if (this.stateChangeCooldown < 0) {
@@ -859,13 +881,13 @@ export class creature {
 		}
 	}
 
-	generateRecoverPath(targetTailPos: vector2): void {
+	generateRecoverPath(targetTailPos: vector2): void { //makes creature retreat
 		let angleBack = this.head.pos.getAvgAngleRad(targetTailPos);
 		let backPath: Array<vector2> = [];
-		let lastDistanceAway = 0;
 		backPath.push(new vector2(this.properties.traits.speed.value * Math.cos(angleBack),this.properties.traits.speed.value * Math.sin(angleBack)).add(this.head.pos));
+		let lastDistanceAway = targetTailPos.distance(backPath[0]);
 		
-		while (lastDistanceAway < this.bodyLength * this.maxDist * 2) {
+		while (lastDistanceAway < this.bodyLength * this.maxDist * 2 && lastDistanceAway != 0) { //the != 0 is in here to prevent infinite while loop
 			let newPos = new vector2(this.properties.traits.speed.value * 30 * Math.cos(angleBack),this.properties.traits.speed.value * 30 * Math.sin(angleBack));
 			newPos = newPos.add(backPath[backPath.length - 1]);
 			backPath.push(newPos);
@@ -884,7 +906,7 @@ export class creature {
 				this.attacker = null;
 				this.state = "idle";
 				this.head.targetEnemy = null;
-				this.generatePath(4);
+				this.generatePath(3);
 			}
 		} 
 		this.followPath();
@@ -928,21 +950,11 @@ export class creature {
 	}
 	
 	followPath() {
-		if (this.heldFood == null && this.properties.traits["diet"].value > randRange(-0.5,0.5)) {
-			if (this.head.targetFood != null && !this.head.targetFood.isEaten) {
-				if (this.head.pos.distance(this.head.targetFood.pos) < 128) {
-					if (this.head.pos.distance(this.head.targetFood.pos) > this.maxDist * 2) {
-						this.target = this.head.targetFood.pos;
-					} else {
-						this.heldFood = this.head.targetFood;
-						this.head.targetFood.isHeldBy = this;
-						this.head.targetFood = null;
-						this.generatePath(4);
-					}
-				}
-			}
+		let isSeekingFood = false;
+		if (this.state == "idle") {
+			isSeekingFood = this.nearbyFoodCheck();
 		}
-
+		
 		let leader: creatureJoint = this.head;
 		if (this.isBackwards) {
 			leader = this.segments[this.tailStartIndex];
@@ -954,15 +966,35 @@ export class creature {
 			delta = delta.divide(this.head.width * 2);
 			delta = delta.multiply(this.properties.traits.speed.value * 1.75 + this.size * 0.25);
 			leader.pos = leader.pos.subtract(delta);
-		} else {
+		} else if (!isSeekingFood) {
 			if (this.targetIndex + 1 < this.path.length) {
 				this.targetIndex += 1;
 				this.target = this.path[this.targetIndex];
 			} else {
 				this.action = "walk";
-				this.generatePath(4);
+				this.generatePath(3);
 			}
 		}
+	}
+
+	nearbyFoodCheck() : boolean {
+		let result = false;
+		if (this.heldFood == null && this.properties.traits["diet"].value > randRange(-0.5,0.5)) {
+			if (this.head.targetFood != null && !this.head.targetFood.isEaten) {
+				if (this.head.pos.distance(this.head.targetFood.pos) < 64) {
+					result = true;
+					if (this.head.pos.distance(this.head.targetFood.pos) > this.maxDist * 2) {
+						this.target = this.head.targetFood.pos;
+					} else {
+						this.heldFood = this.head.targetFood;
+						this.head.targetFood.isHeldBy = this;
+						this.head.targetFood = null;
+						this.generatePath(3);
+					}
+				}
+			}
+		}
+		return result;
 	}
 
 	attemptMate() { //tiny chance that they'll have kiddsss
@@ -982,7 +1014,7 @@ export class creature {
 					}
 				}
 				
-				this.die();
+				this.die(" after reproducing with "+this.mate.name);
 
 				this.followPath();
 			} else {
@@ -1008,7 +1040,7 @@ export class creature {
 			for (let i = 0; i < randRange(1,3); i++) {
 				creaturesList.push(new creature(avgPos,this.bodyLength,this.maxDist,[this.properties,this.properties],""));
 			}
-			this.die();
+			this.die("after cloning itself.");
 		}
 
 		this.followPath();
@@ -1042,18 +1074,20 @@ export class creature {
 				this.segments[i].moveByDrag(this.maxDist * this.size);
 			}
 		}
-		if (!isPaused && this.state != "mouseDragging") {
-			if (this.state != "dead") {
-				ctx.fillStyle = "#FAFAFA";
-				ctx.font = "20px Ubuntu Mono, monospace";
-				ctx.textAlign = "center";
-				ctx.fillText(this.name,this.head.pos.x,this.head.pos.y - this.head.displayedWidth * 2.8);
+
+		if (this.state != "dead") {
+			ctx.fillStyle = "#FAFAFA";
+			ctx.font = "20px Ubuntu Mono, monospace";
+			ctx.textAlign = "center";
+			ctx.fillText(this.name,this.head.pos.x,this.head.pos.y - this.head.displayedWidth * 2.8);
+			if (!isPaused && this.state != "mouseDragging") {
 				this.behaviourTick();
 			}
 		}
-
+		
 		if (this.hurtIndex <= 0 && this.state == "hurt") {
 			this.behaviourTree();
 		}
+		
 	}
 }
