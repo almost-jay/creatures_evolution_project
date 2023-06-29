@@ -47,7 +47,7 @@ export class creatureBody extends creatureJoint {
 		}
 	}
 
-	initLegs(legLength: number, legWidth: number): void {
+	initLegs(legLength: number, legWidth: number): void { //creates legs
 		let legAngle = 0.8;
 		this.legs = [new creatureLeg(0,this.pos,this.colour,-1,legLength,legWidth,legAngle),new creatureLeg(1,this.pos,this.colour,1,legLength,legWidth,legAngle)];
 		this.legs[0].pair = this.legs[1]; //this.legs[0] is the right leg

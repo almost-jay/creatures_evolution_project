@@ -41,11 +41,12 @@
 			file_input = document.createElement("input");
 			file_input.addEventListener("change", uploadFile, false);
 			file_input.type = "file";
+			file_input.accept = ".crs";
 			file_input.click();
 		}
 
 		function uploadFile() {
-			let file = event.target.files[0]; 
+			let file = event.target.files[0];
 			let reader = new FileReader();
 			reader.readAsText(file,'UTF-8');
 			result = reader.onload = readerEvent => {

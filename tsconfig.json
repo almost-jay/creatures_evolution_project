@@ -10,7 +10,6 @@
 		"allowUnusedLabels": false,
 		"noImplicitReturns": true,
 		"noImplicitThis": true,
-		"noUnusedParameters": true,
 		"noUnusedLocals": true,
 		"strictFunctionTypes": true,
         "outDir": "./compiled",
@@ -19,6 +18,6 @@
     "include": [
         "src/**/*.ts",
         "src/**/*.tsx", 
-		"src/index.ts" ],
+		"src/index.ts"],
     "exclude": []
 }

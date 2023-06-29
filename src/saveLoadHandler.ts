@@ -9,6 +9,7 @@ import { creatureHead } from "./jointHead";
 import { creatureLeg } from "./limbLeg";
 
 const fs = require("fs");
+const path = require("path");
 
 function saveState(saveIndex: string): void {
 	let eDKeys = Object.keys(entityDict);
@@ -59,13 +60,15 @@ function saveState(saveIndex: string): void {
 	if (!Number.isSafeInteger(Number(saveIndex))) {
 		saveIndex = String(findSave());
 	}
-	fs.writeFileSync("./data/save"+saveIndex+".crs",JSON.stringify(outDict), function(err: Error) {
+
+	let filePath = path.join(process.cwd(),"/data/save"+saveIndex+".crs");
+	fs.writeFileSync(filePath,JSON.stringify(outDict), function(err: Error) {
 		if (err) {
 			console.error(err);
 		}
 	});
 
-	if (fs.existsSync("./data/save"+saveIndex+".crs")) {
+	if (fs.existsSync(filePath)) {
 		toast("save_success","#1ebc73",saveIndex);
 	} else {
 		toast("save_fail","#e83b3b",saveIndex);
@@ -141,11 +144,16 @@ function parseCreatureJoint(joint: creatureBody | creatureHead): any {
 
 export function loadState(givenSave: number): void {
 	let saveIndex = findSave() - 1;
-	if (fs.existsSync("./data/save"+givenSave+".crs","utf8")) {
+
+	let filePath = path.join(process.cwd(),"/data/save"+givenSave+".crs");
+	if (fs.existsSync(filePath,"utf8")) {
 		saveIndex = givenSave;
 	}
-	if (fs.existsSync("./data/save"+saveIndex+".crs","utf8")) {
-		let loaded = JSON.parse(fs.readFileSync("./data/save"+saveIndex+".crs","utf8"));
+
+	filePath = path.join(process.cwd(),"/data/save"+saveIndex+".crs");
+	console.log(filePath);
+	if (fs.existsSync(filePath,"utf8")) {
+		let loaded = JSON.parse(fs.readFileSync(filePath,"utf8"));
 		prepForLoad();
 		
 		for (let key in loaded) {
@@ -208,7 +216,9 @@ export function initSidenav(): void {
 
 function findSave(): number {
 	let i: number = 1;
-	while (fs.existsSync("./data/save"+i.toString()+".crs")) {
+	let filePath = path.join(process.cwd(),"/data/save"+i.toString()+".crs");
+	while (fs.existsSync(filePath)) {
+		filePath = path.join(process.cwd(),"/data/save"+i.toString()+".crs");
 		i++;
 	}
 	return i;

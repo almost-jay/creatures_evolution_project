@@ -1,4 +1,5 @@
 const fs = require("fs");
+const path = require("path");
 
 var tinyi18n = {
 	_data: null,
@@ -36,7 +37,8 @@ var tinyi18n = {
 	},
 
 	loadTranslations: function() {
-		tinyi18n._data = JSON.parse(fs.readFileSync("./translations.json"),"utf8");
+		let filePath = path.join(__dirname,"/translations.json");
+		tinyi18n._data = JSON.parse(fs.readFileSync(filePath),"utf8");
 		tinyi18n._translate_elements = document.querySelectorAll('[data-translatekey]') // Get all elements with a translate key
 		tinyi18n._current_language = tinyi18n._data.default_language || 'en'
 		tinyi18n.setLang(tinyi18n._current_language);

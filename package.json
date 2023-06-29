@@ -1,19 +1,20 @@
 {
 	"name": "small_guys",
 	"description": "just a test of electron",
-	"version": "1.0.0",
+	"version": "1.0.4",
 	"author": "jensen grundy <jayjayseven.g@gmail.com> (https://github.com/almost-jay/)",
 	"main": "./compiled/index.js",
 	"build": {
-		"extraFiles": ["./translations.json","data"],
 		"appId": "com.creature.test",
+		"extraFiles": ["data"],
+		"asarUnpack": ["translations.json","tinyi18n.js"],
 		"icon": "resources/icon.ico",
 		"mac": {
 			"target": "zip",
 			"category": "public.app-category.games"
 		},
 		"win": {
-			"target": "portable"
+			"target": "zip"
 		},
 		"linux": {
 			"category": "Simulation",
